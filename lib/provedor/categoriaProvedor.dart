@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' hide Category;
-import '../models/category.dart';
-import '../services/category_service.dart';
+import '../modelos/categoria.dart';
+import '../services/categoria.dart';
 
 /// Provider para gerenciar o estado das categorias
 class CategoryProvider with ChangeNotifier {

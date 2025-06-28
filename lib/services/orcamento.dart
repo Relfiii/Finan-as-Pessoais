@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
-import '../models/budget.dart';
-import 'database_service.dart';
+import '../modelos/orcamento.dart';
+import 'database.dart';
 
 /// Serviço para operações CRUD com orçamentos
 class BudgetService {

@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
-import '../models/category.dart';
-import 'database_service.dart';
+import '../modelos/categoria.dart';
+import 'database.dart';
 
 /// Serviço para operações CRUD com categorias
 class CategoryService {

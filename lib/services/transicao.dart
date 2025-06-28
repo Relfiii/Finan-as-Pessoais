@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart' as sqflite;
-import '../models/transaction.dart';
-import 'database_service.dart';
+import '../modelos/transicao.dart';
+import 'database.dart';
 
 /// Serviço para operações CRUD com transações
 class TransactionService {

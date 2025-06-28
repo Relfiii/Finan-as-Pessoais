@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/transaction_provider.dart';
-import '../providers/category_provider.dart';
-import '../models/transaction.dart';
-import '../utils/format_utils.dart';
+import '../provedor/transicaoProvedor.dart';
+import '../provedor/categoriaProvedor.dart';
+import '../modelos/transicao.dart';
+import '../utils/formatarUtils.dart';
 
 /// Widget para exibir transações recentes
 class RecentTransactions extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../models/transaction.dart';
-import '../services/transaction_service.dart';
+import '../modelos/transicao.dart';
+import '../services/transicao.dart';
 
 /// Provider para gerenciar o estado das transações
 class TransactionProvider with ChangeNotifier {

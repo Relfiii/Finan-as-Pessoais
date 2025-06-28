@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/transaction_provider.dart';
-import 'providers/category_provider.dart';
-import 'providers/budget_provider.dart';
-import 'screens/home_screen.dart';
-import 'services/database_service.dart';
+import 'provedor/transicaoProvedor.dart';
+import 'provedor/categoriaProvedor.dart';
+import 'provedor/orcamentoProvedor.dart';
+import 'telas/telaPrincipal.dart';
+import 'services/database.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

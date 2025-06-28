@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../models/budget.dart';
-import '../services/budget_service.dart';
+import '../modelos/orcamento.dart';
+import '../services/orcamento.dart';
 
 /// Provider para gerenciar o estado dos orçamentos
 class BudgetProvider with ChangeNotifier {

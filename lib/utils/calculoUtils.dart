@@ -1,5 +1,5 @@
 import 'package:decimal/decimal.dart';
-import '../models/transaction.dart';
+import '../modelos/transicao.dart';
 
 /// Utilitários para cálculos financeiros
 class CalculationUtils {

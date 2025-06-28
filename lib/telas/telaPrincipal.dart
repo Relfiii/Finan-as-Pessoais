@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:decimal/decimal.dart';
-import '../providers/transaction_provider.dart';
-import '../providers/category_provider.dart';
+import '../provedor/transicaoProvedor.dart';
+import '../provedor/categoriaProvedor.dart';
 import '../widgets/dashboard_card.dart';
-import '../widgets/recent_transactions.dart';
-import '../utils/format_utils.dart';
-import '../utils/calculation_utils.dart';
+import '../widgets/trsacoesRecente.dart';
+import '../utils/formatarUtils.dart';
+import '../utils/calculoUtils.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
