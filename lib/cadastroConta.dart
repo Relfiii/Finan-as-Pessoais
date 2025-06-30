@@ -15,6 +15,9 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
    String? _senhaStatus;
    Color _senhaBorderColor = Colors.transparent;
    Color _confirmeBorderColor = Colors.transparent;
+   String? _erroCamposVazios; // Adicionado para mensagem de erro
+   Color _emailBorderColor = Colors.transparent; // Adicionado para borda do e-mail
+   bool _mostrarErroSenhaVazia = false; // Flag para mostrar erro de senha vazia
 
     @override
   void initState() {
@@ -45,6 +48,13 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
     super.dispose();
   }
   
+  bool _isCadastroAtivo() {
+    return _emailController.text.isNotEmpty &&
+        _senhaController.text.isNotEmpty &&
+        _confirmeController.text.isNotEmpty &&
+        _senhaController.text == _confirmeController.text;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,15 +102,15 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                         hintStyle: TextStyle(color: Colors.grey[400]),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.transparent, width: 2),
+                          borderSide: BorderSide(color: _emailBorderColor, width: 2),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.transparent, width: 2),
+                          borderSide: BorderSide(color: _emailBorderColor, width: 2),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.transparent, width: 2),
+                          borderSide: BorderSide(color: _emailBorderColor, width: 2),
                         ),
                       ),
                       style: TextStyle(color: Colors.white),
@@ -168,6 +178,9 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                         ),
                       ),
                       style: TextStyle(color: Colors.white),
+                      onChanged: (_) {
+                        setState(() {}); // Atualiza a tela para mostrar mensagem de erro
+                      },
                     ),
                     if (_senhaStatus != null)
                       Padding(
@@ -175,11 +188,35 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                         child: Text(
                           _senhaStatus == "ok"
                               ? "Senhas coincidem"
-                              : "Senhas não coincidem",
+                              : _senhaStatus == "erro"
+                                  ? "As senhas não coincidem"
+                                  : "",
                           style: TextStyle(
                             color: _senhaStatus == "ok"
                                 ? Colors.green
                                 : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    if (_erroCamposVazios != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                        child: Text(
+                          _erroCamposVazios!,
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    if (_mostrarErroSenhaVazia)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                        child: Text(
+                          'Preencha todos os campos de senha.',
+                          style: TextStyle(
+                            color: Colors.red,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -196,63 +233,85 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _senhaBorderColor = _senhaController.text.isEmpty ? Colors.red : Colors.transparent;
-                            _confirmeBorderColor = _confirmeController.text.isEmpty ? Colors.red : Colors.transparent;
-                          });
+                        onPressed: _isCadastroAtivo()
+                            ? () {
+                                // Verifica se todos os campos estão vazios
+                                if (_emailController.text.isEmpty &&
+                                    _senhaController.text.isEmpty &&
+                                    _confirmeController.text.isEmpty) {
+                                  setState(() {
+                                    _emailBorderColor = Colors.red;
+                                    _senhaBorderColor = Colors.red;
+                                    _confirmeBorderColor = Colors.red;
+                                    _erroCamposVazios = 'Preencha todos os campos.'; // Define mensagem de erro
+                                    _mostrarErroSenhaVazia = false;
+                                  });
+                                  return;
+                                } else {
+                                  setState(() {
+                                    _erroCamposVazios = null; // Limpa mensagem se não for o caso
+                                  });
+                                }
 
-                          if (_senhaController.text.isEmpty || _confirmeController.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Preencha todos os campos de senha.'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
-                          if (_senhaController.text != _confirmeController.text) {
-                            setState(() {
-                              _confirmeBorderColor = Colors.red;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('As senhas não coincidem.'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
-                          // Cadastro realizado com sucesso
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              backgroundColor: Color(0xFF222222),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              content: Row(
-                                children: [
-                                  Icon(Icons.check_circle, color: Colors.green, size: 32),
-                                  SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      'Cadastro realizado com sucesso!',
-                                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                                setState(() {
+                                  _emailBorderColor = _emailController.text.isEmpty ? Colors.red : Colors.transparent;
+                                  _senhaBorderColor = _senhaController.text.isEmpty ? Colors.red : Colors.transparent;
+                                  _confirmeBorderColor = _confirmeController.text.isEmpty ? Colors.red : Colors.transparent;
+                                });
+
+                                if (_senhaController.text.isEmpty || _confirmeController.text.isEmpty) {
+                                  setState(() {
+                                    _mostrarErroSenhaVazia = true;
+                                  });
+                                  return;
+                                } else {
+                                  setState(() {
+                                    _mostrarErroSenhaVazia = false;
+                                  });
+                                }
+                                if (_senhaController.text != _confirmeController.text) {
+                                  setState(() {
+                                    _confirmeBorderColor = Colors.red;
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('As senhas não coincidem.'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                // Cadastro realizado com sucesso
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    backgroundColor: Color(0xFF222222),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    content: Row(
+                                      children: [
+                                        Icon(Icons.check_circle, color: Colors.green, size: 32),
+                                        SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'Cadastro realizado com sucesso!',
+                                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                          Future.delayed(Duration(seconds: 2), () {
-                            Navigator.of(context).pop(); // Fecha o dialog
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TelaLogin(),
-                              ),
-                            );
-                          });
-                        },
+                                );
+                                Future.delayed(Duration(seconds: 2), () {
+                                  Navigator.of(context).pop(); // Fecha o dialog
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TelaLogin(),
+                                    ),
+                                  );
+                                });
+                              }
+                            : null,
                         child: Text('Cadastrar'),
                       ),
                     ),

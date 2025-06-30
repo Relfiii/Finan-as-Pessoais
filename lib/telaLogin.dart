@@ -105,12 +105,14 @@ class TelaLogin extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CadastroContaScreen(),
-                            ),
-                          );
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CadastroContaScreen(),
+                              ),
+                            );
+                          });
                         },
                         child: Text(
                           'Cadastrar conta',
