@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'provedor/transicaoProvedor.dart';
 import 'provedor/categoriaProvedor.dart';
 import 'provedor/orcamentoProvedor.dart';
-import 'telas/telaPrincipal.dart';
+import 'telaLogin.dart';
 import 'services/database.dart';
 
 void main() async {
@@ -62,7 +62,7 @@ class FinanceiroApp extends StatelessWidget {
             elevation: 0,
           ),
         ),
-        home: const HomeScreen(),
+        home: TelaLogin(),
         debugShowCheckedModeBanner: false,
       ),
     );
