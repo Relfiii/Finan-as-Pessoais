@@ -23,14 +23,12 @@ class _TelaLoginState extends State<TelaLogin> {
           child: Column(
             children: [
               SizedBox(height: 40),
-              Text(
-                'NossoDinDin',
-                style: TextStyle(
-                  color: Color(0xFFB983FF),
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                ),
+              Image.asset(
+                'assets/logo-NossoDinDin.png',
+                width: 220, // ajuste o tamanho conforme necessário
+                fit: BoxFit.contain,
               ),
+              SizedBox(height: 40),
               SizedBox(height: 40),
               Container(
                 padding: EdgeInsets.all(32),
