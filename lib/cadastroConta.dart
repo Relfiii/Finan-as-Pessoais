@@ -12,11 +12,13 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
    final TextEditingController _senhaController = TextEditingController();
    final TextEditingController _confirmeController = TextEditingController();
    final TextEditingController _emailController = TextEditingController();
+   final TextEditingController _nomeController = TextEditingController(); // Novo controlador para nome
    String? _senhaStatus;
    Color _senhaBorderColor = Colors.transparent;
    Color _confirmeBorderColor = Colors.transparent;
    String? _erroCamposVazios; // Adicionado para mensagem de erro
    Color _emailBorderColor = Colors.transparent; // Adicionado para borda do e-mail
+   Color _nomeBorderColor = Colors.transparent; // Adicionado para borda do nome
    bool _mostrarErroSenhaVazia = false; // Flag para mostrar erro de senha vazia
 
     @override
@@ -45,11 +47,13 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
     _senhaController.dispose();
     _confirmeController.dispose();
     _emailController.dispose();
+    _nomeController.dispose();
     super.dispose();
   }
   
   bool _isCadastroAtivo() {
-    return _emailController.text.isNotEmpty &&
+    return _nomeController.text.isNotEmpty && // Adicionado nome
+        _emailController.text.isNotEmpty &&
         _senhaController.text.isNotEmpty &&
         _confirmeController.text.isNotEmpty &&
         _senhaController.text == _confirmeController.text;
@@ -92,6 +96,30 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                       ),
                     ),
                     SizedBox(height: 24),
+                    TextField(
+                      controller: _nomeController,
+                      obscureText: false,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Color(0xFF181818),
+                        hintText: 'Nome',
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: _nomeBorderColor, width: 2),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: _nomeBorderColor, width: 2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(color: _nomeBorderColor, width: 2),
+                        ),
+                      ),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    SizedBox(height: 16),
                     TextField(
                       controller: _emailController,
                       obscureText: false,
@@ -236,10 +264,12 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                         onPressed: _isCadastroAtivo()
                             ? () {
                                 // Verifica se todos os campos estão vazios
-                                if (_emailController.text.isEmpty &&
+                                if (_nomeController.text.isEmpty &&
+                                    _emailController.text.isEmpty &&
                                     _senhaController.text.isEmpty &&
                                     _confirmeController.text.isEmpty) {
                                   setState(() {
+                                    _nomeBorderColor = Colors.red;
                                     _emailBorderColor = Colors.red;
                                     _senhaBorderColor = Colors.red;
                                     _confirmeBorderColor = Colors.red;
@@ -254,6 +284,7 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                                 }
 
                                 setState(() {
+                                  _nomeBorderColor = _nomeController.text.isEmpty ? Colors.red : Colors.transparent;
                                   _emailBorderColor = _emailController.text.isEmpty ? Colors.red : Colors.transparent;
                                   _senhaBorderColor = _senhaController.text.isEmpty ? Colors.red : Colors.transparent;
                                   _confirmeBorderColor = _confirmeController.text.isEmpty ? Colors.red : Colors.transparent;

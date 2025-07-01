@@ -2,8 +2,18 @@ import 'package:flutter/material.dart';
 import 'telas/telaPrincipal.dart';
 import 'cadastroConta.dart';
 import 'alterarSenha.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class TelaLogin extends StatelessWidget {
+class TelaLogin extends StatefulWidget {
+  @override
+  _TelaLoginState createState() => _TelaLoginState();
+}
+
+class _TelaLoginState extends State<TelaLogin> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController senhaController = TextEditingController();
+  String? errorMessage;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,6 +52,7 @@ class TelaLogin extends StatelessWidget {
                     ),
                     SizedBox(height: 24),
                     TextField(
+                      controller: emailController,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFF181818),
@@ -56,6 +67,7 @@ class TelaLogin extends StatelessWidget {
                     ),
                     SizedBox(height: 16),
                     TextField(
+                      controller: senhaController,
                       obscureText: true,
                       decoration: InputDecoration(
                         filled: true,
@@ -69,6 +81,14 @@ class TelaLogin extends StatelessWidget {
                       ),
                       style: TextStyle(color: Colors.white),
                     ),
+                    if (errorMessage != null && errorMessage!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                        child: Text(
+                          errorMessage!,
+                          style: TextStyle(color: Colors.red, fontSize: 14),
+                        ),
+                      ),
                     SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
@@ -81,13 +101,37 @@ class TelaLogin extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => HomeScreen(),
-                            ),
-                          );
+                        onPressed: () async {
+                          setState(() {
+                            errorMessage = null;
+                          });
+                          try {
+                            final response = await Supabase.instance.client.auth.signInWithPassword(
+                              email: emailController.text,
+                              password: senhaController.text,
+                            );
+                            if (response.user != null) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => HomeScreen()),
+                              );
+                            } else {
+                              setState(() {
+                                errorMessage = 'E-mail ou senha inválidos';
+                              });
+                            }
+                          } on AuthException catch (e) {
+                            setState(() {
+                              errorMessage = (e.message.isNotEmpty)
+                                  ? e.message
+                                  : 'E-mail ou senha inválidos';
+                            });
+                          } catch (e) {
+                            setState(() {
+                              errorMessage = 'Erro ao tentar fazer login.';
+                            });
+                          }
                         },
                         child: Text('Entrar'),
                       ),
