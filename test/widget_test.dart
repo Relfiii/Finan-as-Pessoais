@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:financeiro_app/main.dart';
+import 'package:NossoDinDin/main.dart';
 
 void main() {
   testWidgets('App starts correctly', (WidgetTester tester) async {

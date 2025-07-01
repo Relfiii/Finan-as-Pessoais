@@ -12,7 +12,12 @@ class TelaLogin extends StatefulWidget {
 class _TelaLoginState extends State<TelaLogin> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
-  String? errorMessage;
+
+  // Mensagem de erro fixa
+  bool loginInvalido = false;
+
+  // Novo estado para controlar a visibilidade da senha
+  bool _senhaVisivel = false;
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +27,12 @@ class _TelaLoginState extends State<TelaLogin> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 40),
               Image.asset(
                 'assets/logo-NossoDinDin.png',
-                width: 220, // ajuste o tamanho conforme necessário
+                width: 150, // ajuste o tamanho conforme necessário
                 fit: BoxFit.contain,
               ),
-              SizedBox(height: 40),
-              SizedBox(height: 40),
+              SizedBox(height: 20),
               Container(
                 padding: EdgeInsets.all(32),
                 decoration: BoxDecoration(
@@ -66,7 +69,7 @@ class _TelaLoginState extends State<TelaLogin> {
                     SizedBox(height: 16),
                     TextField(
                       controller: senhaController,
-                      obscureText: true,
+                      obscureText: !_senhaVisivel,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFF181818),
@@ -76,14 +79,26 @@ class _TelaLoginState extends State<TelaLogin> {
                           borderRadius: BorderRadius.circular(6),
                           borderSide: BorderSide.none,
                         ),
+                        // Adiciona o ícone de olho
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.grey[400],
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _senhaVisivel = !_senhaVisivel;
+                            });
+                          },
+                        ),
                       ),
                       style: TextStyle(color: Colors.white),
                     ),
-                    if (errorMessage != null && errorMessage!.isNotEmpty)
+                    if (loginInvalido)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0, left: 4.0),
                         child: Text(
-                          errorMessage!,
+                          'E-mail ou senha inválidos.',
                           style: TextStyle(color: Colors.red, fontSize: 14),
                         ),
                       ),
@@ -101,7 +116,7 @@ class _TelaLoginState extends State<TelaLogin> {
                         ),
                         onPressed: () async {
                           setState(() {
-                            errorMessage = null;
+                            loginInvalido = false;
                           });
                           try {
                             final response = await Supabase.instance.client.auth.signInWithPassword(
@@ -111,23 +126,44 @@ class _TelaLoginState extends State<TelaLogin> {
                             if (response.user != null) {
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(
-                                    builder: (context) => HomeScreen()),
+                                MaterialPageRoute(builder: (context) => HomeScreen()),
                               );
                             } else {
                               setState(() {
-                                errorMessage = 'E-mail ou senha inválidos';
+                                loginInvalido = true;
                               });
                             }
                           } on AuthException catch (e) {
+                            // Tradução das mensagens mais comuns do Supabase
+                            String mensagem = e.message;
+                            if (mensagem.contains('Invalid login credentials')) {
+                              mensagem = 'E-mail ou senha inválidos.';
+                            } else if (mensagem.contains('Email not confirmed')) {
+                              mensagem = 'Confirme seu e-mail antes de entrar.';
+                            } else if (mensagem.contains('User already registered')) {
+                              mensagem = 'Usuário já cadastrado.';
+                            } else if (mensagem.contains('Password should be at least')) {
+                              mensagem = 'A senha deve ter pelo menos 6 caracteres.';
+                            } else if (mensagem.contains('User not found')) {
+                              mensagem = 'Usuário não encontrado.';
+                            } else if (mensagem.contains('Network error')) {
+                              mensagem = 'Erro de conexão. Verifique sua internet.';
+                            } else {
+                              // Mensagem padrão em português
+                              mensagem = 'Erro: ' + mensagem;
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(mensagem),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
                             setState(() {
-                              errorMessage = (e.message.isNotEmpty)
-                                  ? e.message
-                                  : 'E-mail ou senha inválidos';
+                              loginInvalido = true;
                             });
                           } catch (e) {
                             setState(() {
-                              errorMessage = 'Erro ao tentar fazer login.';
+                              loginInvalido = true;
                             });
                           }
                         },

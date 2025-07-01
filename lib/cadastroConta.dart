@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'telaLogin.dart';
 
 class CadastroContaScreen extends StatefulWidget {
@@ -262,7 +263,7 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                           ),
                         ),
                         onPressed: _isCadastroAtivo()
-                            ? () {
+                            ? () async {
                                 // Verifica se todos os campos estão vazios
                                 if (_nomeController.text.isEmpty &&
                                     _emailController.text.isEmpty &&
@@ -312,35 +313,85 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                                   );
                                   return;
                                 }
-                                // Cadastro realizado com sucesso
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    backgroundColor: Color(0xFF222222),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    content: Row(
-                                      children: [
-                                        Icon(Icons.check_circle, color: Colors.green, size: 32),
-                                        SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'Cadastro realizado com sucesso!',
-                                            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                                          ),
+                                try {
+                                  final response = await Supabase.instance.client.auth.signUp(
+                                    email: _emailController.text,
+                                    password: _senhaController.text,
+                                    data: {'nome': _nomeController.text},
+                                  );
+
+                                  // Verifica se o usuário já confirmou o e-mail
+                                  final user = response.user;
+                                  if (user != null && user.emailConfirmedAt == null) {
+                                    // E-mail não confirmado
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        backgroundColor: Color(0xFF222222),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        content: Row(
+                                          children: [
+                                            Icon(Icons.info, color: Colors.orange, size: 32),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Confirme seu e-mail para continuar.',
+                                                style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                                Future.delayed(Duration(seconds: 2), () {
-                                  Navigator.of(context).pop(); // Fecha o dialog
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => TelaLogin(),
+                                      ),
+                                    );
+                                    Future.delayed(Duration(seconds: 2), () {
+                                      Navigator.of(context).pop(); // Fecha o dialog
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TelaLogin(),
+                                        ),
+                                      );
+                                    });
+                                  } else {
+                                    // Cadastro realizado com sucesso (caso raro, e-mail já confirmado)
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        backgroundColor: Color(0xFF222222),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        content: Row(
+                                          children: [
+                                            Icon(Icons.check_circle, color: Colors.green, size: 32),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Conta criada com sucesso!',
+                                                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                    Future.delayed(Duration(seconds: 2), () {
+                                      Navigator.of(context).pop();
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TelaLogin(),
+                                        ),
+                                      );
+                                    });
+                                  }
+                                } catch (e) {
+                                  // Trate erros de cadastro aqui
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Erro ao cadastrar: ${e.toString()}'),
+                                      backgroundColor: Colors.red,
                                     ),
                                   );
-                                });
+                                }
                               }
                             : null,
                         child: Text('Cadastrar'),

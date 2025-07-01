@@ -11,8 +11,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
-    url: 'https://xoeqrahlglvhqxpbtkke.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvZXFyYWhsZ2x2aHF4cGJ0a2tlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzMjczMTMsImV4cCI6MjA2NjkwMzMxM30.yQr5IdVnw6m8_vf7-Kj1dNSTqFLocHJ7ey4B-nJg0Yo',
+    url: 'https://bfcuvqovxsnjbcpsnjwj.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmY3V2cW92eHNuamJjcHNuandqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzODMzNTcsImV4cCI6MjA2Njk1OTM1N30.3GON-bbY4N11n9PJgMSl28HgiyqpPupYwv-E3Kse2co',
   );
   await DatabaseService.database;
   runApp(const FinanceiroApp());
