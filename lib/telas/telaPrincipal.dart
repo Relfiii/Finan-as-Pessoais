@@ -12,6 +12,7 @@ import '../telaLogin.dart';
 import 'dart:ui';
 import 'criarCategoria.dart';
 import 'criarGasto.dart';
+import 'telaLateral.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -92,97 +93,200 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Top bar
+                    // Top bar - Apenas o título e botão menu
                     Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    child: Row(
-                      children: [
-                        Text(
-                          "NossoDinDin",
-                          style: TextStyle(
-                            color: Color(0xFFB983FF),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                          Expanded(
-                            child: Container(
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF23272F),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: TextField(
-                                controller: _searchController,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: InputDecoration(
-                                  hintText: "Digite para criar categorias ou adicionar gastos ...",
-                                  hintStyle: TextStyle(color: Colors.white54),
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  suffixIcon: Icon(Icons.help_outline, color: Colors.white54, size: 20),
-                                ),
-                              ),
+                      padding: const EdgeInsets.only(left: 8, right: 16, top: 16, bottom: 0),
+                      child: Row(
+                        children: [
+                          Builder(
+                            builder: (context) => IconButton(
+                              icon: Icon(Icons.menu, color: Color(0xFFB983FF)),
+                              onPressed: () {
+                                abrirMenuLateral(context); // Chama o menu lateral com desfoque
+                              },
+                              tooltip: 'Abrir menu',
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              showGeneralDialog(
-                                context: context,
-                                barrierDismissible: true,
-                                barrierLabel: "Adicionar Gasto",
-                                barrierColor: Colors.black.withOpacity(0.3),
-                                transitionDuration: const Duration(milliseconds: 200),
-                                pageBuilder: (context, anim1, anim2) {
-                                  return const AddExpenseDialog();
-                                },
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF00E0C6),
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            ),
-                            child: const Text("+ Gasto"),
                           ),
                           const SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: () {
-                              showGeneralDialog(
-                                context: context,
-                                barrierDismissible: true,
-                                barrierLabel: "Adicionar Categoria",
-                                barrierColor: Colors.black.withOpacity(0.3),
-                                transitionDuration: const Duration(milliseconds: 200),
-                                pageBuilder: (context, anim1, anim2) {
-                                  return const AddCategoryDialog();
-                                },
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF00E0C6),
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          Text(
+                            "NossoDinDin",
+                            style: TextStyle(
+                              color: Color(0xFFB983FF),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
                             ),
-                            child: const Text("+ Categoria"),
                           ),
-                          const SizedBox(width: 8),
+                          // Spacer para empurrar o botão de sair para o fim da linha
+                          Spacer(),
                           IconButton(
                             icon: Icon(Icons.logout, color: Colors.white),
                             onPressed: () {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TelaLogin(),
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => TelaLogin(),
+                                  ),
+                                );
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Caixa de texto e botões
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Caixa de texto
+                          Container(
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF23272F),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                hintText: "Digite para criar categorias ou adicionar gastos ...",
+                                hintStyle: TextStyle(color: Colors.white54),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                suffixIcon: IconButton(
+                                  icon: Icon(Icons.help_outline, color: Colors.white54, size: 20),
+                                  tooltip: 'Como usar IA e comandos',
+                                  onPressed: () {
+                                    showGeneralDialog(
+                                      context: context,
+                                      barrierDismissible: true,
+                                      barrierLabel: "Ajuda IA",
+                                      barrierColor: Colors.black.withOpacity(0.3),
+                                      transitionDuration: const Duration(milliseconds: 200),
+                                      pageBuilder: (context, anim1, anim2) {
+                                        return BackdropFilter(
+                                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                          child: Center(
+                                            child: AlertDialog(
+                                              backgroundColor: const Color(0xFF23272F),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(16),
+                                              ),
+                                              content: SingleChildScrollView(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: const [
+                                                        Text(
+                                                          "🧠 IA Inteligente:",
+                                                          style: TextStyle(
+                                                            color: Color(0xFFFF6EC7),
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 8),
+                                                    Text(
+                                                      '• "Comprei carne 25.90" → 🛒 Mercado\n'
+                                                      '• "Comprei pizza 35" → 🍽️ Restaurante\n'
+                                                      '• "Comprei refrigerante 5.50" → ❓ Opções\n'
+                                                      '• "Gastei 50 no mercado"\n'
+                                                      '• "Uber custou 18"',
+                                                      style: TextStyle(color: Colors.white, fontSize: 14),
+                                                    ),
+                                                    Divider(color: Colors.white24, height: 24),
+                                                    Row(
+                                                      children: const [
+                                                        Text(
+                                                          "🟦 Criar Categorias:",
+                                                          style: TextStyle(
+                                                            color: Color(0xFF00E0C6),
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 15,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 6),
+                                                    Text(
+                                                      '• "Criar categoria Pets"\n'
+                                                      '• "Nova categoria Academia"',
+                                                      style: TextStyle(color: Colors.white, fontSize: 14),
+                                                    ),
+                                                    SizedBox(height: 12),
+                                                    Row(
+                                                      children: const [
+                                                        Text(
+                                                          "🟥 Deletar Categoria:",
+                                                          style: TextStyle(
+                                                            color: Color(0xFFFFB300),
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 15,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 6),
+                                                    Text(
+                                                      '• "Deletar categoria Pets"\n'
+                                                      '• "Remover categoria Academia"',
+                                                      style: TextStyle(color: Colors.white, fontSize: 14),
+                                                    ),
+                                                    SizedBox(height: 12),
+                                                    Row(
+                                                      children: const [
+                                                        Icon(Icons.info_outline, color: Color(0xFFFF6EC7), size: 18),
+                                                        SizedBox(width: 4),
+                                                        Expanded(
+                                                          child: Text(
+                                                            "A IA diferencia ingredientes de comida pronta!",
+                                                            style: TextStyle(
+                                                              color: Color(0xFFFF6EC7),
+                                                              fontSize: 13,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 8),
+                                                    Row(
+                                                      children: const [
+                                                        Icon(Icons.warning_amber_rounded, color: Color(0xFFFFB300), size: 18),
+                                                        SizedBox(width: 4),
+                                                        Expanded(
+                                                          child: Text(
+                                                            "Quando ambíguo, você escolhe a categoria!",
+                                                            style: TextStyle(
+                                                              color: Color(0xFFFFB300),
+                                                              fontSize: 13,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  child: const Text('Fechar', style: TextStyle(color: Color(0xFFB983FF))),
+                                                  onPressed: () => Navigator.of(context).pop(),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
                               ),
-                            );
-                          });
-                        },
+                            ),
                           ),
                         ],
                       ),
@@ -202,159 +306,135 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Cards de resumo
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Saldo atual
-                            Expanded(
-                              child: Container(
-                                margin: const EdgeInsets.all(3),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF23272F),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                constraints: const BoxConstraints(
-                                  minHeight: 180, // já estava assim
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "Saldo atual",
-                                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                                      softWrap: true,
-                                      overflow: TextOverflow.visible,
+                      child: Column(
+                        children: [
+                          IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Saldo atual
+                                Expanded(
+                                  child: Container(
+                                    margin: const EdgeInsets.all(3),
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFF23272F),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                    const SizedBox(height: 8),
-                                    // Valor embaixo do R$
-                                    Column(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 80,
+                                    ),
+                                    child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        const SizedBox(height: 0),
                                         Text(
-                                          "R\$",
-                                          style: TextStyle(
-                                            color: const Color.fromARGB(255, 4, 131, 0),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                          ),
+                                          "Saldo atual",
+                                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                                          softWrap: true,
+                                          overflow: TextOverflow.visible,
                                         ),
-                                        Text(
-                                          "5.432,00",
-                                          style: TextStyle(
-                                            color: const Color.fromARGB(255, 4, 131, 0),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 24,
-                                          ),
+                                        const SizedBox(height: 8),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "R\$ 100.000.000,00",
+                                              style: TextStyle(
+                                                color: const Color.fromARGB(255, 24, 119, 5),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ),
-                            // Gasto total no mês
-                            Expanded(
-                              child: Container(
-                                margin: const EdgeInsets.all(3),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF23272F),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                constraints: const BoxConstraints(
-                                  minHeight: 180, // já estava assim
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "Gasto no mês",
-                                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                                      softWrap: true,
-                                      overflow: TextOverflow.visible,
+                                // Gasto total no mês
+                                Expanded(
+                                  child: Container(
+                                    margin: const EdgeInsets.all(3),
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFF23272F),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                    const SizedBox(height: 8),
-                                    // Valor embaixo do R$
-                                    Column(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 80,
+                                    ),
+                                    child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        const SizedBox(height: 0),
                                         Text(
-                                          "R\$",
-                                          style: TextStyle(
-                                            color: const Color.fromARGB(255, 155, 0, 0),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                          ),
+                                          "Gasto no mês",
+                                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                                          softWrap: true,
+                                          overflow: TextOverflow.visible,
                                         ),
-                                        Text(
-                                          "100,00",
-                                          style: TextStyle(
-                                            color: const Color.fromARGB(255, 155, 0, 0),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 24,
-                                          ),
+                                        const SizedBox(height: 8),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "R\$ 100.000.000,00",
+                                              style: TextStyle(
+                                                color: const Color.fromARGB(255, 151, 53, 53),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                            // Total de Investimentos
-                            Expanded(
-                              child: Container(
-                                margin: const EdgeInsets.all(3),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Color(0xFF23272F),
-                                  borderRadius: BorderRadius.circular(12),
+                          ),
+                          // Card de Investimentos abaixo
+                          Container(
+                            margin: const EdgeInsets.all(3),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Color(0xFF23272F),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            constraints: const BoxConstraints(
+                              minHeight: 80,
+                            ),
+                            width: double.infinity,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 0),
+                                Text(
+                                  "Investimentos",
+                                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                                  softWrap: true,
+                                  overflow: TextOverflow.visible,
                                 ),
-                                constraints: const BoxConstraints(
-                                  minHeight: 180, // já estava assim
-                                ),
-                                child: Column(
+                                const SizedBox(height: 8),
+                                Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const SizedBox(height: 8),
                                     Text(
-                                      "Investimentos",
-                                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                                      softWrap: true,
-                                      overflow: TextOverflow.visible,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    // Valor embaixo do R$
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "R\$",
-                                          style: TextStyle(
-                                            color: const Color.fromARGB(255, 2, 38, 243),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                        Text(
-                                          "100,00",
-                                          style: TextStyle(
-                                            color: const Color.fromARGB(255, 2, 38, 243),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 24,
-                                          ),
-                                        ),
-                                      ],
+                                      "R\$ 1.000.000.000,00",
+                                      style: TextStyle(
+                                        color: const Color.fromARGB(255, 15, 157, 240),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 24),
