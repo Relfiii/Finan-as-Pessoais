@@ -84,7 +84,7 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                   color: Color(0xFF222222),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                width: 400,
+                width: 320,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

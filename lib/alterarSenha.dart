@@ -24,7 +24,7 @@ class AlterarSenhaPage extends StatelessWidget {
             ),
             SizedBox(height: 40),
             Container(
-              width: 400,
+              width: 320,
               padding: EdgeInsets.all(32),
               decoration: BoxDecoration(
                 color: Color(0xFF232323),

@@ -5,6 +5,7 @@ import 'alterarSenha.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TelaLogin extends StatefulWidget {
+  static const routeName = '/login';
   @override
   _TelaLoginState createState() => _TelaLoginState();
 }
@@ -29,7 +30,7 @@ class _TelaLoginState extends State<TelaLogin> {
             children: [
               Image.asset(
                 'assets/logo-NossoDinDin.png',
-                width: 150, // ajuste o tamanho conforme necessário
+                width: 100, // ajuste o tamanho conforme necessário
                 fit: BoxFit.contain,
               ),
               SizedBox(height: 20),
@@ -39,7 +40,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   color: Color(0xFF222222),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                width: 400,
+                width: 320,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

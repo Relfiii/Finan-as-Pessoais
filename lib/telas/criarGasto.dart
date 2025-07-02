@@ -5,6 +5,7 @@ import '../../modelos/categoria.dart';
 import '../../provedor/categoriaProvedor.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   const AddExpenseDialog({super.key});
@@ -142,7 +143,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 // Valor
                 TextField(
                   controller: _valueController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [CurrencyInputFormatter()],
                   style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   decoration: InputDecoration(
                     prefixText: 'R\$ ',
@@ -157,9 +159,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
-                  onChanged: (val) {
-                    // Opcional: formatação do valor
-                  },
                 ),
                 const SizedBox(height: 14),
                 // Categoria
@@ -260,6 +259,23 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) digits = '0';
+
+    double value = double.parse(digits) / 100;
+    final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: 2);
+    String newText = formatter.format(value).trim();
+
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }
