@@ -7,8 +7,8 @@ import 'telaLateral.dart';
 import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
-import '../cardsPrincipais/cardInvestimento.dart';
 import '../provedor/gastoProvedor.dart';
+import 'package:intl/intl.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -118,14 +118,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               // Mês/Ano
                               Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                                padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
                                 child: Text(
-                                  "Junho 2025",
+                                  DateFormat("MMMM yyyy", "pt_BR").format(DateTime.now()).capitalize(),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 32,
+                                    fontSize: 20,
                                   ),
                                 ),
                               ),
@@ -471,5 +470,12 @@ class _CaixaTextoOverlayState extends State<CaixaTextoOverlay> {
         ),
       ),
     );
+  }
+}
+
+extension StringCasingExtension on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return this[0].toUpperCase() + substring(1);
   }
 }
