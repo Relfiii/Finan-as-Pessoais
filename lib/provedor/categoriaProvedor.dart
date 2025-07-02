@@ -73,6 +73,18 @@ class CategoryProvider with ChangeNotifier {
       }
     }
 
+    /// Atualiza o nome de uma categoria
+    Future<void> updateCategoryName(String id, String novoNome) async {
+      final supabase = Supabase.instance.client;
+      await supabase.from('categorias').update({'nome': novoNome}).eq('id', id);
+
+      final idx = _categories.indexWhere((c) => c.id == id);
+      if (idx != -1) {
+        _categories[idx] = _categories[idx].copyWith(name: novoNome);
+        notifyListeners();
+      }
+    }
+
     /// Define o estado de carregamento
     void _setLoading(bool loading) {
       _isLoading = loading;

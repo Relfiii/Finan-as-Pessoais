@@ -1,14 +1,34 @@
 import 'package:flutter/material.dart';
 import '../modelos/gasto.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GastoProvider with ChangeNotifier {
   final List<Gasto> _gastos = [];
 
-  List<Gasto> get gastos => _gastos;
+  List<Gasto> gastosPorCategoria(String categoryId) {
+    return _gastos.where((gasto) => gasto.categoriaId == categoryId).toList();
+  }
 
   void addGasto(Gasto gasto) {
     _gastos.add(gasto);
     notifyListeners();
+  }
+
+  // Método para deletar gasto
+  Future<void> deleteGasto(String gastoId) async {
+    try {
+      // Remove do Supabase
+      await Supabase.instance.client
+          .from('gastos')
+          .delete()
+          .eq('id', gastoId);
+
+      // Remove da lista local
+      _gastos.removeWhere((gasto) => gasto.id == gastoId);
+      notifyListeners();
+    } catch (e) {
+      throw Exception('Erro ao deletar gasto: $e');
+    }
   }
 
   double totalPorCategoria(String categoriaId) {

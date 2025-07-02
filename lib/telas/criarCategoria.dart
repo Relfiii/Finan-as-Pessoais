@@ -111,3 +111,99 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
     );
   }
 }
+
+class EditCategoryDialog extends StatefulWidget {
+  final String initialName;
+  final Future<void> Function(String) onConfirm;
+
+  const EditCategoryDialog({
+    Key? key,
+    required this.initialName,
+    required this.onConfirm,
+  }) : super(key: key);
+
+  @override
+  State<EditCategoryDialog> createState() => _EditCategoryDialogState();
+}
+
+class _EditCategoryDialogState extends State<EditCategoryDialog> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      child: Center(
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF181818),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: const Text(
+            'Editar Categoria',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Altere o nome da categoria.',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _controller,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Nome da Categoria',
+                  hintStyle: const TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: const Color(0xFF23272F),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFB983FF),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              onPressed: () async {
+                final novoNome = _controller.text.trim();
+                if (novoNome.isNotEmpty) {
+                  await widget.onConfirm(novoNome);
+                }
+              },
+              child: const Text('Salvar Alteração'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

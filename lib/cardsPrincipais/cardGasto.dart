@@ -2,8 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provedor/categoriaProvedor.dart';
 import '../provedor/gastoProvedor.dart';
+import '../telas/criarCategoria.dart';
+import '../telas/detalhesCategoria.dart';
 
 class CardGasto extends StatelessWidget {
+  // Novo método para editar categoria
+  Future<void> _editarCategoriaPopup(BuildContext context, CategoryProvider categoryProvider, dynamic categoria) async {
+    final TextEditingController controller = TextEditingController(text: categoria.name);
+    await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return EditCategoryDialog(
+          initialName: categoria.name,
+          onConfirm: (novoNome) async {
+            if (novoNome.trim().isNotEmpty && novoNome != categoria.name) {
+              await categoryProvider.updateCategoryName(categoria.id, novoNome.trim());
+            }
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+    controller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +52,6 @@ class CardGasto extends StatelessWidget {
               ),
             );
           }
-          // Trocar ListView.separated por GridView.builder para duas colunas
           return GridView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             itemCount: categories.length,
@@ -38,18 +59,27 @@ class CardGasto extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.7, // Aumente o valor para cards mais baixos
+              childAspectRatio: 1.7,
             ),
             itemBuilder: (context, index) {
               final cat = categories[index];
               final valor = gastoProvider.totalPorCategoria(cat.id);
-              return _ExpandableCategoryCard(
+              return _CategoryCard(
                 categoryName: cat.name,
                 valor: valor,
-                onEdit: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Editar "${cat.name}"')),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetalhesCategoriaScreen(
+                        categoryId: cat.id,
+                        categoryName: cat.name,
+                      ),
+                    ),
                   );
+                },
+                onEdit: () async {
+                  await _editarCategoriaPopup(context, categoryProvider, cat);
                 },
                 onDelete: () async {
                   await categoryProvider.deleteCategory(cat.id);
@@ -66,43 +96,28 @@ class CardGasto extends StatelessWidget {
   }
 }
 
-class _ExpandableCategoryCard extends StatefulWidget {
+class _CategoryCard extends StatelessWidget {
   final String categoryName;
   final double valor;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _ExpandableCategoryCard({
+  const _CategoryCard({
     required this.categoryName,
     required this.valor,
+    required this.onTap,
     required this.onEdit,
     required this.onDelete,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<_ExpandableCategoryCard> createState() => _ExpandableCategoryCardState();
-}
-
-class _ExpandableCategoryCardState extends State<_ExpandableCategoryCard> {
-  bool _expanded = false;
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
+    return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF232323),
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          if (_expanded)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -110,9 +125,9 @@ class _ExpandableCategoryCardState extends State<_ExpandableCategoryCard> {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () => setState(() => _expanded = !_expanded),
+            onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.all(8), // Reduzido de 14 para 8
+              padding: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -121,7 +136,7 @@ class _ExpandableCategoryCardState extends State<_ExpandableCategoryCard> {
                     children: [
                       Expanded(
                         child: Text(
-                          widget.categoryName,
+                          categoryName,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -136,9 +151,9 @@ class _ExpandableCategoryCardState extends State<_ExpandableCategoryCard> {
                         padding: EdgeInsets.zero,
                         onSelected: (value) {
                           if (value == 'editar') {
-                            widget.onEdit();
+                            onEdit();
                           } else if (value == 'deletar') {
-                            widget.onDelete();
+                            onDelete();
                           }
                         },
                         itemBuilder: (context) => [
@@ -159,23 +174,18 @@ class _ExpandableCategoryCardState extends State<_ExpandableCategoryCard> {
                     children: [
                       const SizedBox(width: 6),
                       Text(
-                        'R\$ ${widget.valor.toStringAsFixed(2).replaceAll('.', ',')}',
+                        'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Color.fromARGB(255, 214, 158, 158),
                           fontSize: 16,
                         ),
                       ),
                     ],
                   ),
-                  if (_expanded) ...[
-                    const SizedBox(height: 14),
-                    Divider(color: Colors.white12, thickness: 1),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Mais detalhes da categoria podem ser exibidos aqui.',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ],
+                  const Spacer(),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                  ),
                 ],
               ),
             ),
