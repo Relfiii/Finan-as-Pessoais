@@ -8,6 +8,7 @@ import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
 import '../cardsPrincipais/cardInvestimento.dart';
+import '../provedor/gastoProvedor.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -211,8 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   minHeight: 80,
                                                 ),
                                                 child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
                                                     const SizedBox(height: 0),
                                                     Text(
@@ -225,17 +225,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment.start,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
-                                                        Text(
-                                                          "R\$ ${gastoMes.toStringAsFixed(2).replaceAll('.', ',')}",
-                                                          style: TextStyle(
-                                                            color: const Color.fromARGB(
-                                                                255, 151, 53, 53),
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
-                                                          ),
+                                                        Consumer<GastoProvider>(
+                                                          builder: (context, gastoProvider, _) {
+                                                            final totalGasto = gastoProvider.totalGastoMes();
+                                                            return Text(
+                                                              "R\$ ${totalGasto.toStringAsFixed(2).replaceAll('.', ',')}",
+                                                              style: TextStyle(
+                                                                color: const Color.fromARGB(255, 151, 53, 53),
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                              ),
+                                                            );
+                                                          },
                                                         ),
                                                       ],
                                                     ),
@@ -300,130 +303,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              // Lista de categorias em cards
-                              Consumer<CategoryProvider>(
-                                builder: (context, categoryProvider, child) {
-                                  final categories = categoryProvider.categories;
-                                  if (categories.isEmpty) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 8),
-                                      child: Text(
-                                        'Nenhuma categoria cadastrada.',
-                                        style: TextStyle(
-                                            color: Colors.white54, fontSize: 16),
-                                      ),
-                                    );
-                                  }
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 8),
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        // Responsivo: 4 colunas em telas largas, 2 em telas pequenas
-                                        int crossAxisCount = constraints.maxWidth > 900
-                                            ? 4
-                                            : constraints.maxWidth > 600
-                                                ? 3
-                                                : 2;
-                                        return GridView.builder(
-                                          shrinkWrap: true,
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          gridDelegate:
-                                              SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: crossAxisCount,
-                                            crossAxisSpacing: 10,
-                                            mainAxisSpacing: 10,
-                                            childAspectRatio: 2.0, // Proporção largura/altura do card
-                                          ),
-                                          itemCount: categories.length,
-                                          itemBuilder: (context, index) {
-                                            final cat = categories[index];
-                                            // TODO: Buscar valor real da categoria e total do mês
-                                            final valor = 'R\$ 0,00';
-                                            return Container(
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF232323),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              padding: const EdgeInsets.all(10),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment.spaceBetween,
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          cat.name,
-                                                          style: const TextStyle(
-                                                            color: Colors.white,
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
-                                                          ),
-                                                          overflow: TextOverflow.ellipsis,
-                                                        ),
-                                                      ),
-                                                      PopupMenuButton<String>(
-                                                        icon: const Icon(
-                                                            Icons.more_vert,
-                                                            color: Colors.white54),
-                                                        color: const Color(0xFF23272F),
-                                                        onSelected: (value) async {
-                                                          if (value == 'editar') {
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                              SnackBar(
-                                                                  content: Text(
-                                                                      'Editar "${cat.name}"')),
-                                                            );
-                                                          } else if (value == 'deletar') {
-                                                            final categoryProvider = context.read<CategoryProvider>();
-                                                            await categoryProvider.deleteCategory(cat.id);
-                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                              SnackBar(
-                                                                  content: Text(
-                                                                      'Categoria "${cat.name}" deletada!')),
-                                                            );
-                                                          }
-                                                        },
-                                                        itemBuilder: (context) => [
-                                                          const PopupMenuItem(
-                                                            value: 'editar',
-                                                            child: Text('Editar',
-                                                                style: TextStyle(
-                                                                    color: Colors.white)),
-                                                          ),
-                                                          const PopupMenuItem(
-                                                            value: 'deletar',
-                                                            child: Text('Deletar',
-                                                                style: TextStyle(
-                                                                    color: Colors.red)),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  const SizedBox(height: 2), // espaço menor
-                                                  Text(
-                                                    valor,
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 18, // fonte um pouco menor
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
                             ],
                           ),
                         );

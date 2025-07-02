@@ -5,6 +5,7 @@ import 'provedor/categoriaProvedor.dart';
 import 'provedor/orcamentoProvedor.dart';
 import 'telaLogin.dart';
 import 'services/database.dart';
+import 'provedor/gastoProvedor.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -28,6 +29,8 @@ class FinanceiroApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => BudgetProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+        ChangeNotifierProvider(create: (_) => GastoProvider()),
       ],
       child: MaterialApp(
         title: 'Financeiro App',

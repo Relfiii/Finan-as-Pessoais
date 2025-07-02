@@ -3,9 +3,12 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../modelos/categoria.dart';
 import '../../provedor/categoriaProvedor.dart';
+import '../../provedor/gastoProvedor.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/services.dart';
+import '../../modelos/gasto.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   const AddExpenseDialog({super.key});
@@ -250,8 +253,43 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 onPressed: () async {
-                  // Salvar lógica aqui
-                  Navigator.of(context).pop();
+                  if (_selectedCategoria == null) return;
+                
+                  final valor = double.tryParse(
+                    _valueController.text.replaceAll('.', '').replaceAll(',', '.')
+                  ) ?? 0.0;
+                
+                  try {
+                    // Salva no Supabase
+                    final result = await Supabase.instance.client
+                        .from('gastos')
+                        .insert({
+                          'descricao': _descController.text,
+                          'valor': valor,
+                          'data': _selectedDate.toIso8601String(),
+                          'categoria_id': _selectedCategoria!.id,
+                        })
+                        .select()
+                        .single();
+                
+                    // Adiciona no provedor local (ajuste conforme seu modelo Gasto)
+                    final gastoProvider = context.read<GastoProvider>();
+                    gastoProvider.addGasto(
+                      Gasto(
+                        id: result['id'],
+                        descricao: _descController.text,
+                        valor: valor,
+                        data: _selectedDate,
+                        categoriaId: _selectedCategoria!.id,
+                      ),
+                    );
+                
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erro ao salvar gasto: $e')),
+                    );
+                  }
                 },
                 child: const Text('Adicionar Gasto'),
               ),

@@ -22,3 +22,12 @@ alter table public.transacoes
 -- Substitua os valores conforme necessário ao executar
 insert into public.categorias (id, nome)
 values (gen_random_uuid(), 'Nome da Categoria Exemplo');
+
+-- Criação da tabela de gastos
+create table if not exists public.gastos (
+  id uuid primary key default gen_random_uuid(),
+  valor numeric not null,
+  categoria_id uuid references public.categorias_gastos(id),
+  descricao text,
+  data timestamp with time zone not null default now()
+);
