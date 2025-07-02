@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../modelos/categoria.dart';
 import '../../provedor/categoriaProvedor.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AddCategoryDialog extends StatefulWidget {
   const AddCategoryDialog({super.key});
@@ -75,9 +76,17 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
               onPressed: () async {
                 final name = _categoryNameController.text.trim();
                 if (name.isNotEmpty) {
-                  final categoryProvider = context.read<CategoryProvider>();
+                  final supabase = Supabase.instance.client;
+                  // Insere na base e obtém o id gerado
+                  final response = await supabase
+                      .from('categorias')
+                      .insert({'nome': name})
+                      .select()
+                      .single();
+              
+                  // Cria o objeto local com o id do banco
                   final newCategory = Category(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    id: response['id'], // Usa o id do Supabase
                     name: name,
                     description: '',
                     color: const Color(0xFFB983FF),
@@ -85,7 +94,11 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                     createdAt: DateTime.now(),
                     updatedAt: DateTime.now(),
                   );
+              
+                  // Adiciona na lista local do provider
+                  final categoryProvider = context.read<CategoryProvider>();
                   await categoryProvider.addCategory(newCategory);
+              
                   _categoryNameController.clear();
                   Navigator.of(context).pop();
                 }

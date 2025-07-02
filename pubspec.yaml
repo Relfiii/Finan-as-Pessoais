@@ -12,6 +12,7 @@ dependencies:
   provider: any
   cupertino_icons: ^1.0.8
   material_symbols_icons: ^4.2780.0
+  uuid: ^4.0.0
   
   sqflite: ^2.3.0
   shared_preferences: ^2.2.2

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../modelos/transicao.dart';
 import '../services/transicao.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Provider para gerenciar o estado das transações
 class TransactionProvider with ChangeNotifier {
@@ -111,5 +112,45 @@ class TransactionProvider with ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  Future<double> getSaldoAtual() async {
+    final data = await Supabase.instance.client
+        .from('transacoes')
+        .select('valor');
+    final list = data as List<dynamic>;
+    return list.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item['valor'] ?? 0) as num).toDouble(),
+    );
+  }
+  
+  Future<double> getGastoMesAtual() async {
+    final now = DateTime.now();
+    final inicio = DateTime(now.year, now.month, 1);
+    final fim = DateTime(now.year, now.month + 1, 0);
+    final data = await Supabase.instance.client
+        .from('transacoes')
+        .select('valor')
+        .gte('data', inicio.toIso8601String())
+        .lte('data', fim.toIso8601String())
+        .eq('tipo', 'gasto');
+    final list = data as List<dynamic>;
+    return list.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item['valor'] ?? 0) as num).toDouble(),
+    );
+  }
+  
+  Future<double> getInvestimento() async {
+    final data = await Supabase.instance.client
+        .from('transacoes')
+        .select('valor')
+        .eq('tipo', 'investimento');
+    final list = data as List<dynamic>;
+    return list.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item['valor'] ?? 0) as num).toDouble(),
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'criarGasto.dart';
 import 'criarCategoria.dart';
 import 'configuracao.dart';
+import '../telaLogin.dart';
 
 // Widget para ser usado no showGeneralDialog, com desfoque global
 class TelaLateralDialog extends StatelessWidget {
@@ -212,8 +213,14 @@ class TelaLateralDialog extends StatelessWidget {
                               },
                             );
                             if (shouldLogout == true) {
-                              // ignore: use_build_context_synchronously
-                              Navigator.pushReplacementNamed(context, '/login');
+                              // Aguarda o fechamento do diálogo antes de navegar
+                              Future.microtask(() {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => TelaLogin()),
+                                  (route) => false,
+                                );
+                              });
                             }
                           },
                         ),
