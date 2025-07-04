@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../widgets/topBarComCaixaTexto.dart';
 
 class ConfiguracaoPage extends StatelessWidget {
   const ConfiguracaoPage({Key? key}) : super(key: key);
@@ -8,25 +7,22 @@ class ConfiguracaoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF181A20),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                // TopBar com caixa de texto
-                Padding(
-                  padding: const EdgeInsets.only(left: 8, right: 16, top: 16, bottom: 8),
-                  child: TopBarComCaixaTexto(
-                    titulo: "Configurações",
-                    mostrarMenuLateral: false,
-                    mostrarNotificacao: false,
-                  ),
-                ),
-                // Conteúdo
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    children: [
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF23242B),
+        elevation: 0,
+        title: const Text(
+          'Configurações',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFFB983FF)),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        children: [
           _SectionTitle('Conta'),
           _SettingsTile(
             icon: Icons.person_outline,
@@ -106,15 +102,7 @@ class ConfiguracaoPage extends StatelessWidget {
               ),
             ),
           ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            // Overlay da caixa de texto
-            CaixaTextoOverlay(),
-          ],
-        ),
+        ],
       ),
     );
   }

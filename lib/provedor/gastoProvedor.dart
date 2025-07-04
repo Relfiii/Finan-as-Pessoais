@@ -4,6 +4,42 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GastoProvider with ChangeNotifier {
   final List<Gasto> _gastos = [];
+  bool _isLoading = false;
+  String? _error;
+
+  /// Estado de carregamento
+  bool get isLoading => _isLoading;
+
+  /// Mensagem de erro
+  String? get error => _error;
+
+  /// Carrega todos os gastos da base de dados
+  Future<void> loadGastos() async {
+    _setLoading(true);
+    _setError(null);
+
+    try {
+      final data = await Supabase.instance.client
+          .from('gastos')
+          .select('*');
+      
+      _gastos.clear();
+      for (final item in data) {
+        _gastos.add(Gasto(
+          id: item['id'],
+          descricao: item['descricao'],
+          valor: (item['valor'] as num).toDouble(),
+          data: DateTime.parse(item['data']),
+          categoriaId: item['categoria_id'],
+        ));
+      }
+      notifyListeners();
+    } catch (e) {
+      _setError('Erro ao carregar gastos: $e');
+    } finally {
+      _setLoading(false);
+    }
+  }
 
   List<Gasto> gastosPorCategoria(String categoryId) {
     return _gastos.where((gasto) => gasto.categoriaId == categoryId).toList();
@@ -42,5 +78,19 @@ class GastoProvider with ChangeNotifier {
     return _gastos
         .where((g) => g.data.month == now.month && g.data.year == now.year)
         .fold(0.0, (soma, g) => soma + g.valor);
+  }
+
+  /// Define o estado de carregamento
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  /// Define uma mensagem de erro
+  void _setError(String? error) {
+    _error = error;
+    if (error != null) {
+      notifyListeners();
+    }
   }
 }

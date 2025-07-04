@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../provedor/transicaoProvedor.dart';
 import '../provedor/categoriaProvedor.dart';
 import 'dart:ui';
-import '../widgets/topBarComCaixaTexto.dart';
+import 'telaLateral.dart';
+import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
 import '../provedor/gastoProvedor.dart';
@@ -33,10 +34,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     final transactionProvider = context.read<TransactionProvider>();
     final categoryProvider = context.read<CategoryProvider>();
+    final gastoProvider = context.read<GastoProvider>();
 
     await Future.wait([
       transactionProvider.loadTransactions(),
       categoryProvider.loadCategories(),
+      gastoProvider.loadGastos(),
     ]);
     _loadResumo();
   }
@@ -74,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Padding(
                     padding:
                         const EdgeInsets.only(left: 8, right: 16, top: 16, bottom: 0),
-                    child: TopBarComCaixaTexto(),
+                    child: _TopBarWithCaixaTexto(),
                   ),
                   // CONTEÚDO ROLÁVEL
                   Expanded(
@@ -312,6 +315,159 @@ class _HomeScreenState extends State<HomeScreen> {
               // Overlay da caixa de texto expandida
               CaixaTextoOverlay(),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// TopBar customizada com CaixaTextoWidget como botão central
+class _TopBarWithCaixaTexto extends StatefulWidget {
+  @override
+  State<_TopBarWithCaixaTexto> createState() => _TopBarWithCaixaTextoState();
+}
+
+class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Color(0xFFB983FF)),
+            onPressed: () {
+              abrirMenuLateral(context);
+            },
+            tooltip: 'Abrir menu',
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Título
+        AnimatedSwitcher(
+          duration: Duration(milliseconds: 250),
+          child: !CaixaTextoOverlay.isExpanded(context)
+              ? Text(
+                  "NossoDinDin",
+                  key: ValueKey('title'),
+                  style: TextStyle(
+                    color: Color(0xFFB983FF),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
+                )
+              : SizedBox(width: 120),
+        ),
+        const SizedBox(width: 8),
+        // CaixaTextoWidget como botão
+        Expanded(
+          child: CaixaTextoWidget(
+            asButton: true,
+            onExpand: () {
+              CaixaTextoOverlay.show(context);
+            },
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Botão de notificação
+        AnimatedSwitcher(
+          duration: Duration(milliseconds: 250),
+          child: !CaixaTextoOverlay.isExpanded(context)
+              ? IconButton(
+                  key: ValueKey('notif'),
+                  icon: Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
+                  tooltip: 'Notificações',
+                  onPressed: () {
+                    showGeneralDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      barrierLabel: "Notificações",
+                      barrierColor: Colors.black.withOpacity(0.3),
+                      transitionDuration: const Duration(milliseconds: 200),
+                      pageBuilder: (context, anim1, anim2) {
+                        return BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                          child: Center(
+                            child: AlertDialog(
+                              backgroundColor: const Color(0xFF181818),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              title: Row(
+                                children: const [
+                                  Icon(Icons.notifications, color: Color(0xFFB983FF)),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Notificações',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              content: const Text(
+                                'Nenhuma notificação no momento.',
+                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Fechar',
+                                      style: TextStyle(color: Colors.white70)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                )
+              : SizedBox(width: 48),
+        ),
+      ],
+    );
+  }
+}
+
+/// Overlay global para caixa de texto expandida
+class CaixaTextoOverlay extends StatefulWidget {
+  static final GlobalKey<_CaixaTextoOverlayState> _key = GlobalKey();
+  CaixaTextoOverlay({Key? key}) : super(key: _key);
+
+  static void show(BuildContext context) {
+    _key.currentState?.expand();
+  }
+
+  static bool isExpanded(BuildContext context) {
+    return _key.currentState?.expanded ?? false;
+  }
+
+  @override
+  State<CaixaTextoOverlay> createState() => _CaixaTextoOverlayState();
+}
+
+class _CaixaTextoOverlayState extends State<CaixaTextoOverlay> {
+  bool expanded = false;
+  void expand() => setState(() => expanded = true);
+  void collapse() => setState(() => expanded = false);
+
+  @override
+  Widget build(BuildContext context) {
+    if (!expanded) return SizedBox.shrink();
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withOpacity(0.45),
+        child: Center(
+          child: FractionallySizedBox(
+            widthFactor: 0.95,
+            child: CaixaTextoWidget(
+              asButton: false,
+              autofocus: true,
+              onCollapse: () => setState(() => expanded = false),
+            ),
           ),
         ),
       ),
