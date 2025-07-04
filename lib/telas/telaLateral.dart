@@ -4,90 +4,97 @@ import 'criarGasto.dart';
 import 'criarCategoria.dart';
 import 'configuracao.dart';
 import '../telaLogin.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-// Widget para ser usado no showGeneralDialog, com desfoque global
-class TelaLateralDialog extends StatelessWidget {
-  const TelaLateralDialog({Key? key}) : super(key: key);
+class TelaLateral extends StatelessWidget {
+  const TelaLateral({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: SizedBox(
-        width: 290,
-        height: double.infinity,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF23242B), Color(0xFF181A20)],
-              ),
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(32),
-                bottomRight: Radius.circular(32),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
-                  blurRadius: 24,
-                  offset: const Offset(4, 0),
-                ),
-              ],
+    return Drawer(
+      child: Stack(
+        children: [
+          // Fundo translúcido com desfoque
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              color: Colors.black.withOpacity(0.0), // Ajuste a opacidade conforme necessário
             ),
-            child: SafeArea(
+          ),
+          // Conteúdo da tela lateral
+          SafeArea(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Cabeçalho com avatar e nome
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 28.0, horizontal: 20),
+                  // Header com avatar e informações do usuário
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
                     child: Row(
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFB983FF), Color(0xFF7B2FF2)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.18),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(3),
-                          child: const CircleAvatar(
-                            radius: 26,
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.account_circle, size: 44, color: Color(0xFF7B2FF2)),
-                          ),
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: const Color(0xFF7B2FF2),
+                          child: const Icon(Icons.account_circle, size: 50, color: Colors.white),
                         ),
                         const SizedBox(width: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              'Olá, Usuário!',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 19,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          children: [
+                            Builder(
+                              builder: (context) {
+                                final supabase = Supabase.instance.client;
+                                final userId = supabase.auth.currentUser?.id ?? '';
+                                return FutureBuilder(
+                                  future: supabase.from('usuarios').select('nome').eq('id', userId).single(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const Text(
+                                        'Olá, carregando...',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      );
+                                    } else if (snapshot.hasError || !snapshot.hasData) {
+                                      return const Text(
+                                        'Olá, Usuário!',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      );
+                                    } else {
+                                      final data = snapshot.data as Map<String, dynamic>;
+                                      final nomeUsuario = data['nome'] ?? 'Usuário';
+                                      return Text(
+                                        'Olá, $nomeUsuario!',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
+                              },
                             ),
-                            SizedBox(height: 2),
-                            Text(
+                            const SizedBox(height: 4),
+                            const Text(
                               'Bem-vindo de volta',
                               style: TextStyle(
                                 color: Color(0xFFB983FF),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400,
+                                fontSize: 14,
                               ),
                             ),
                           ],
@@ -95,113 +102,102 @@ class TelaLateralDialog extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Divider(
-                      color: Colors.white.withOpacity(0.08),
-                      thickness: 1.2,
+                  const Divider(color: Colors.white24, thickness: 1),
+                  // Botões do menu
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        _buildDrawerButton(
+                          context,
+                          icon: Icons.home_rounded,
+                          label: 'Início',
+                          onTap: () => Navigator.pop(context),
+                        ),
+                        _buildDrawerButton(
+                          context,
+                          icon: Icons.add_circle_outline,
+                          label: 'Novo Gasto',
+                          onTap: () {
+                            Navigator.pop(context);
+                            showGeneralDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel: "Adicionar Gasto",
+                              barrierColor: Colors.black.withOpacity(0.3),
+                              transitionDuration: const Duration(milliseconds: 200),
+                              pageBuilder: (context, anim1, anim2) {
+                                return const AddExpenseDialog();
+                              },
+                            );
+                          },
+                        ),
+                        _buildDrawerButton(
+                          context,
+                          icon: Icons.category_outlined,
+                          label: 'Categorias',
+                          onTap: () {
+                            Navigator.pop(context);
+                            showGeneralDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel: "Adicionar Categoria",
+                              barrierColor: Colors.black.withOpacity(0.3),
+                              transitionDuration: const Duration(milliseconds: 200),
+                              pageBuilder: (context, anim1, anim2) {
+                                return const AddCategoryDialog();
+                              },
+                            );
+                          },
+                        ),
+                        _buildDrawerButton(
+                          context,
+                          icon: Icons.family_restroom_outlined,
+                          label: 'Controle Familiar',
+                          onTap: () {
+                            Navigator.pop(context);
+                            showGeneralDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel: "Controle Familiar",
+                              barrierColor: Colors.black.withOpacity(0.3),
+                              transitionDuration: const Duration(milliseconds: 200),
+                              pageBuilder: (context, anim1, anim2) {
+                                return const AddCategoryDialog();
+                              },
+                            );
+                          },
+                        ),
+                        _buildDrawerButton(
+                          context,
+                          icon: Icons.settings_outlined,
+                          label: 'Configurações',
+                          onTap: () {
+                            final navigator = Navigator.of(context);
+                            Navigator.pop(context);
+                            Future.delayed(const Duration(milliseconds: 220), () {
+                              navigator.push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ConfiguracaoPage(),
+                                ),
+                              );
+                            });
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  // Menu principal
-                  _ModernDrawerButton(
-                    icon: Icons.home_rounded,
-                    label: 'Início',
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    dark: true,
-                    highlight: true,
-                  ),
-                  _ModernDrawerButton(
-                    icon: Icons.add_circle_outline,
-                    label: 'Novo Gasto',
-                    onTap: () {
-                      Navigator.pop(context);
-                      showGeneralDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        barrierLabel: "Adicionar Gasto",
-                        barrierColor: Colors.black.withOpacity(0.3),
-                        transitionDuration: const Duration(milliseconds: 200),
-                        pageBuilder: (context, anim1, anim2) {
-                          return const AddExpenseDialog();
-                        },
-                      );
-                    },
-                    dark: true,
-                  ),
-                  _ModernDrawerButton(
-                    icon: Icons.category_outlined,
-                    label: 'Categorias',
-                    onTap: () {
-                      Navigator.pop(context);
-                      showGeneralDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        barrierLabel: "Adicionar Categoria",
-                        barrierColor: Colors.black.withOpacity(0.3),
-                        transitionDuration: const Duration(milliseconds: 200),
-                        pageBuilder: (context, anim1, anim2) {
-                          return const AddCategoryDialog();
-                        },
-                      );
-                    },
-                    dark: true,
-                  ),
-                  _ModernDrawerButton(
-                    icon: Icons.family_restroom_outlined,
-                    label: 'Controle Familiar',
-                    onTap: () {
-                      Navigator.pop(context);
-                      showGeneralDialog(
-                        context: context,
-                        barrierDismissible: true,
-                        barrierLabel: "Controle Familiar",
-                        barrierColor: Colors.black.withOpacity(0.3),
-                        transitionDuration: const Duration(milliseconds: 200),
-                        pageBuilder: (context, anim1, anim2) {
-                          return const AddCategoryDialog();
-                        },
-                      );
-                    },
-                    dark: true,
-                  ),
-                  _ModernDrawerButton(
-                    icon: Icons.settings_outlined,
-                    label: 'Configurações',
-                    onTap: () {
-                      final navigator = Navigator.of(context);
-                      Navigator.pop(context);
-                      Future.delayed(const Duration(milliseconds: 220), () {
-                        navigator.push(
-                          MaterialPageRoute(
-                            builder: (context) => const ConfiguracaoPage(),
-                          ),
-                        );
-                      });
-                    },
-                    dark: true,
-                  ),
-                  
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: Divider(
-                      color: Colors.white.withOpacity(0.08),
-                      thickness: 1.2,
-                    ),
-                  ),
+                  const Divider(color: Colors.white24, thickness: 1),
                   // Ações rápidas no rodapé
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _QuickActionButton(
+                        _buildQuickAction(
+                          context,
                           icon: Icons.logout,
                           label: 'Sair',
                           onTap: () async {
-                            Navigator.pop(context);
                             final shouldLogout = await showGeneralDialog<bool>(
                               context: context,
                               barrierDismissible: true,
@@ -213,8 +209,7 @@ class TelaLateralDialog extends StatelessWidget {
                               },
                             );
                             if (shouldLogout == true) {
-                              // Aguarda o fechamento do diálogo antes de navegar
-                              Future.microtask(() {
+                              Future.delayed(const Duration(milliseconds: 100), () {
                                 Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(builder: (context) => TelaLogin()),
@@ -224,23 +219,23 @@ class TelaLateralDialog extends StatelessWidget {
                             }
                           },
                         ),
-                        _QuickActionButton(
+                        _buildQuickAction(
+                          context,
                           icon: Icons.help_outline,
                           label: 'Ajuda',
                           onTap: () {
-                            // Adicione aqui a lógica de ajuda
+                            // Adicione lógica de ajuda aqui
                           },
                         ),
                       ],
                     ),
                   ),
-                  const Spacer(),
                   Padding(
-                    padding: const EdgeInsets.only(left: 20, bottom: 12, top: 8),
+                    padding: const EdgeInsets.only(left: 20, bottom: 12),
                     child: Text(
                       'NossoDinDin v1.0',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.18),
+                        color: Colors.white.withOpacity(0.2),
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 1.1,
@@ -251,27 +246,35 @@ class TelaLateralDialog extends StatelessWidget {
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
-}
 
-// Botão de ação rápida no rodapé
-class _QuickActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
+  Widget _buildDrawerButton(BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: const Color(0xFFB983FF)),
+      title: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
 
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildQuickAction(BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       borderRadius: BorderRadius.circular(10),
       onTap: onTap,
@@ -296,188 +299,6 @@ class _QuickActionButton extends StatelessWidget {
   }
 }
 
-// Função utilitária para abrir o menu lateral com desfoque global
-void abrirMenuLateral(BuildContext context) {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: "Menu Lateral",
-    barrierColor: Colors.black.withOpacity(0.2),
-    transitionDuration: const Duration(milliseconds: 200),
-    pageBuilder: (context, anim1, anim2) {
-      return _AnimatedLateralMenu();
-    },
-    transitionBuilder: (context, anim1, anim2, child) {
-      // Removido o SlideTransition daqui, pois será controlado internamente
-      return child;
-    },
-  );
-}
-
-// Widget com animação de slide para o menu lateral
-class _AnimatedLateralMenu extends StatefulWidget {
-  @override
-  State<_AnimatedLateralMenu> createState() => _AnimatedLateralMenuState();
-}
-
-class _AnimatedLateralMenuState extends State<_AnimatedLateralMenu> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-      value: 1.0, // Começa visível
-    );
-  }
-
-  bool _closing = false;
-
-  void _closeMenu() async {
-    if (_closing) return;
-    setState(() => _closing = true);
-    await _controller.reverse();
-    if (mounted && Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Camada que captura o clique fora do menu
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _closeMenu,
-          child: Container(
-            color: Colors.transparent,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-        ),
-        // Desfoque global
-        BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            color: Colors.black.withOpacity(0.15),
-          ),
-        ),
-        // Menu lateral animado
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (context, child) {
-            return AnimatedSlide(
-              offset: Offset(-1 + _controller.value, 0),
-              duration: Duration.zero, // controlado pelo AnimationController
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {}, // Previne propagação do tap para o fundo
-                child: child,
-              ),
-            );
-          },
-          child: const TelaLateralDialog(),
-        ),
-      ],
-    );
-  }
-}
-
-// Botão customizado para o Drawer moderno
-class _ModernDrawerButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final bool dark;
-  final bool highlight;
-
-  const _ModernDrawerButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.dark = false,
-    this.highlight = false,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final Color iconColor = highlight
-        ? const Color(0xFF7B2FF2)
-        : (dark ? const Color(0xFFB983FF) : Colors.white);
-    final Color textColor = highlight
-        ? const Color(0xFF7B2FF2)
-        : (dark ? Colors.white : Colors.white);
-    final Color? bgColor = highlight
-        ? Colors.white.withOpacity(0.10)
-        : Colors.transparent;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(13),
-            boxShadow: highlight
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF7B2FF2).withOpacity(0.10),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : [],
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: TextButton.icon(
-              onPressed: onTap,
-              icon: Icon(icon, color: iconColor, size: 23),
-              label: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              style: TextButton.styleFrom(
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                foregroundColor: textColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Adicione ao final do arquivo:
 class _LogoutConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -520,3 +341,4 @@ class _LogoutConfirmDialog extends StatelessWidget {
     );
   }
 }
+

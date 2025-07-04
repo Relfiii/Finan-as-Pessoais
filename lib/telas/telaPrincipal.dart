@@ -8,6 +8,7 @@ import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
 import '../provedor/gastoProvedor.dart';
+import '../provedor/usuarioProvedor.dart';
 import 'package:intl/intl.dart';
 
 /// Tela principal do aplicativo
@@ -60,7 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // O nome do usuário agora é obtido via Provider dentro de TelaLateral
+
     return Scaffold(
+      drawer: TelaLateral(),
       backgroundColor: const Color(0xFF181818),
       body: SafeArea(
         child: GestureDetector(
@@ -329,6 +333,10 @@ class _TopBarWithCaixaTexto extends StatefulWidget {
 }
 
 class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
+  void abrirMenuLateral(BuildContext context) {
+    Scaffold.of(context).openDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
