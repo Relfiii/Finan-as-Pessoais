@@ -3,6 +3,10 @@ import 'telas/telaPrincipal.dart';
 import 'cadastroConta.dart';
 import 'alterarSenha.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import 'provedor/transicaoProvedor.dart';
+import 'provedor/categoriaProvedor.dart';
+import 'provedor/gastoProvedor.dart';
 
 class TelaLogin extends StatefulWidget {
   static const routeName = '/login';
@@ -125,6 +129,11 @@ class _TelaLoginState extends State<TelaLogin> {
                               password: senhaController.text,
                             );
                             if (response.user != null) {
+                              // Carregue os dados dos provedores antes de navegar
+                              await context.read<TransactionProvider>().loadTransactions();
+                              await context.read<CategoryProvider>().loadCategories();
+                              await context.read<GastoProvider>().loadGastos();
+
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(builder: (context) => HomeScreen()),

@@ -5,6 +5,7 @@ import '../provedor/categoriaProvedor.dart';
 import '../telas/criarCategoria.dart';
 import '../telas/criarGasto.dart';
 import 'dart:ui';
+import '../caixaTexto/caixaTexto.dart';
 
 class DetalhesCategoriaScreen extends StatefulWidget {
   final String categoryId;
@@ -275,6 +276,70 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
           
           return Column(
             children: [
+              // Linha de botões: adicionar gasto e caixa de texto
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Botão de adicionar gasto
+                    SizedBox(
+                      height: 44,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF23272F),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          minimumSize: const Size(0, 44),
+                        ),
+                        icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                        label: const Text('Gasto'),
+                        onPressed: () async {
+                          await showDialog(
+                            context: context,
+                            builder: (context) => const AddExpenseDialog(),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // CaixaTextoWidget como botão
+                    Expanded(
+                      child: CaixaTextoWidget(
+                        asButton: true,
+                        onExpand: () {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: true,
+                            builder: (context) {
+                              return BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                child: Center(
+                                  child: FractionallySizedBox(
+                                    widthFactor: 0.95,
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: CaixaTextoWidget(
+                                        asButton: false,
+                                        autofocus: true,
+                                        onCollapse: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               // Header com mês/ano
               Container(
                 width: double.infinity,
