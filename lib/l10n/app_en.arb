@@ -1,0 +1,16 @@
+{
+  "appTitle": "NossoDinDin",
+  "idioma": "Language",
+  "selecioneIdioma": "Select the language",
+  "portugues": "Portuguese (Brazil)",
+  "ingles": "English (US)",
+  "espanhol": "Spanish (Spain)",
+  "abrirMenu": "Open menu",
+  "notificacoes": "Notifications",
+  "nenhumaNotificacao": "No notifications at the moment.",
+  "fechar": "Close",
+  "tentarNovamente": "Try again",
+  "saldoAtual": "Current balance",
+  "gastoNoMes": "Expenses this month",
+  "investimentos": "Investments"
+}

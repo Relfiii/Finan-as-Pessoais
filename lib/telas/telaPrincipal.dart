@@ -10,6 +10,7 @@ import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
 import '../provedor/gastoProvedor.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -61,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
     // O nome do usuário agora é obtido via Provider dentro de TelaLateral
     return Scaffold(
       drawer: TelaLateral(),
@@ -209,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: _loadData,
-                                child: const Text('Tentar novamente'),
+                                child: Text(localizations.tentarNovamente),
                               ),
                             ],
                           ),
@@ -225,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Padding(
                               padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
                               child: Text(
-                                DateFormat("MMMM yyyy", "pt_BR").format(DateTime.now()).capitalize(),
+                                DateFormat("MMMM yyyy", localizations.localeName).format(DateTime.now()).capitalize(),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -267,8 +269,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 children: [
                                                   const SizedBox(height: 0),
                                                   Text(
-                                                    "Saldo atual",
-                                                    style: TextStyle(
+                                                    localizations.saldoAtual,
+                                                    style: const TextStyle(
                                                         color: Colors.white70,
                                                         fontSize: 16),
                                                     softWrap: true,
@@ -319,8 +321,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 children: [
                                                   const SizedBox(height: 0),
                                                   Text(
-                                                    "Gasto no mês",
-                                                    style: TextStyle(
+                                                    localizations.gastoNoMes,
+                                                    style: const TextStyle(
                                                         color: Colors.white70,
                                                         fontSize: 16),
                                                     softWrap: true,
@@ -377,8 +379,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         children: [
                                           const SizedBox(height: 0),
                                           Text(
-                                            "Investimentos",
-                                            style: TextStyle(
+                                            localizations.investimentos,
+                                            style: const TextStyle(
                                                 color: Colors.white70, fontSize: 16),
                                             softWrap: true,
                                             overflow: TextOverflow.visible,

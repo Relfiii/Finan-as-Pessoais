@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'l10n/app_localizations.dart';
+import 'provedor/idioma_provedor.dart';
 import 'provedor/transicaoProvedor.dart';
 import 'provedor/categoriaProvedor.dart';
 import 'provedor/orcamentoProvedor.dart';
@@ -27,6 +29,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => GastoProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => IdiomaProvedor()),
       ],
       child: const MyApp(),
     ),
@@ -38,10 +41,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final idiomaProvedor = Provider.of<IdiomaProvedor>(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NossoDinDin',
       theme: ThemeData.dark(),
+      locale: idiomaProvedor.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
       home: TelaLogin(), // Tela inicial do aplicativo
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'editarPerfil.dart';
 import 'alterarSenha.dart';
+import 'idioma.dart';
 
 class ConfiguracaoPage extends StatelessWidget {
   const ConfiguracaoPage({Key? key}) : super(key: key);
@@ -82,22 +83,15 @@ class ConfiguracaoPage extends StatelessWidget {
                       const SizedBox(height: 18),
                       _SectionTitle('Preferências'),
                       _SettingsTile(
-                        icon: Icons.palette_outlined,
-                        title: 'Tema',
-                        subtitle: 'Claro / Escuro',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.notifications_outlined,
-                        title: 'Notificações',
-                        subtitle: 'Gerencie alertas e lembretes',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
                         icon: Icons.language_outlined,
                         title: 'Idioma',
                         subtitle: 'Português (Brasil)',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const IdiomaPage()),
+                          );
+                        },
                       ),
                       const SizedBox(height: 18),
                       _SectionTitle('Financeiro'),
