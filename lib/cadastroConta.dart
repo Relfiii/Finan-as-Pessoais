@@ -60,6 +60,26 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
         _senhaController.text == _confirmeController.text;
   }
 
+  Future<void> _cadastrarUsuario() async {
+    final supabase = Supabase.instance.client;
+
+    // Cadastro do usuário no Supabase Auth
+    final response = await supabase.auth.signUp(
+      email: _emailController.text,
+      password: _senhaController.text,
+    );
+
+    final user = response.user;
+    if (user != null) {
+      // Insere o usuário na tabela 'usuarios'
+      await supabase.from('usuarios').insert({
+        'id': user.id,
+        'email': user.email,
+        'nome': _nomeController.text, // se você pedir o nome no cadastro
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

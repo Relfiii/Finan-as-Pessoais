@@ -5,7 +5,7 @@ class CardInvestimento extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Detalhes do Investimento')),
-      body: Center(child: Text('Aqui vão os detalhes do investimento')),
+      body: Center(child: Text('Esta tela está em construção')),
     );
   }
 }

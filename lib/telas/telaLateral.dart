@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'criarGasto.dart';
 import 'criarCategoria.dart';
-import 'configuracao.dart';
+import 'configuracoes/configuracao.dart';
 import '../telaLogin.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TelaLateral extends StatelessWidget {
   const TelaLateral({Key? key}) : super(key: key);
+  
 
   @override
   Widget build(BuildContext context) {
@@ -75,9 +76,10 @@ class TelaLateral extends StatelessWidget {
                                       );
                                     } else {
                                       final data = snapshot.data as Map<String, dynamic>;
-                                      final nomeUsuario = data['nome'] ?? 'Usuário';
+                                      final nomeCompleto = data['nome'] ?? 'Usuário';
+                                      final primeiroNome = nomeCompleto.split(' ').first;
                                       return Text(
-                                        'Olá, $nomeUsuario!',
+                                        'Olá, $primeiroNome!',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 20,

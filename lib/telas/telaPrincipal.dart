@@ -1,3 +1,4 @@
+import 'package:NossoDinDin/cardsPrincipais/cardInvestimento.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provedor/transicaoProvedor.dart';
@@ -8,7 +9,6 @@ import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
 import '../provedor/gastoProvedor.dart';
-import '../provedor/usuarioProvedor.dart';
 import 'package:intl/intl.dart';
 
 /// Tela principal do aplicativo
@@ -62,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     // O nome do usuário agora é obtido via Provider dentro de TelaLateral
-
     return Scaffold(
       drawer: TelaLateral(),
       backgroundColor: const Color(0xFF181818),
@@ -260,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onTap: () {
                                                 Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) => CardGasto()),
+                                                  MaterialPageRoute(builder: (context) => CardInvestimento()),
                                                 );
                                               },
                                       child: Container(

@@ -31,3 +31,10 @@ create table if not exists public.gastos (
   descricao text,
   data timestamp with time zone not null default now()
 );
+
+-- Criação da tabela usuarios vinculada ao auth.users
+create table public.usuarios (
+  id uuid primary key references auth.users(id),
+  nome text,
+  email text
+);
