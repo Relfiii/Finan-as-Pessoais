@@ -3,6 +3,10 @@ import 'dart:ui';
 import 'editarPerfil.dart';
 import 'alterarSenha.dart';
 import 'idioma.dart';
+import 'contasBancarias.dart';
+import 'orcamento.dart';
+import 'seguranca.dart';
+import 'excluirConta.dart';
 
 class ConfiguracaoPage extends StatelessWidget {
   const ConfiguracaoPage({Key? key}) : super(key: key);
@@ -99,19 +103,23 @@ class ConfiguracaoPage extends StatelessWidget {
                         icon: Icons.account_balance_wallet_outlined,
                         title: 'Contas Bancárias',
                         subtitle: 'Gerencie suas contas',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.category_outlined,
-                        title: 'Categorias de Gastos',
-                        subtitle: 'Personalize categorias',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ContasBancariasPage()),
+                          );
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.pie_chart_outline,
                         title: 'Orçamentos',
                         subtitle: 'Defina limites de gastos',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const OrcamentoPage()),
+                          );
+                        },
                       ),
                       const SizedBox(height: 18),
                       _SectionTitle('Privacidade'),
@@ -119,13 +127,23 @@ class ConfiguracaoPage extends StatelessWidget {
                         icon: Icons.security_outlined,
                         title: 'Segurança',
                         subtitle: 'Autenticação e acesso',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SegurancaPage()),
+                          );
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.delete_outline,
                         title: 'Excluir Conta',
                         subtitle: 'Remova sua conta do app',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ExcluirContaPage()),
+                          );
+                        },
                       ),
                       const SizedBox(height: 32),
                       Center(
