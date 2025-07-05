@@ -157,6 +157,24 @@ class _TelaLoginState extends State<TelaLogin> {
                                           password: senhaController.text,
                                         );
                                         if (response.user != null) {
+                                          // Adiciona ou atualiza o usuário na tabela 'usuarios'
+                                          final supabase = Supabase.instance.client;
+                                          final user = response.user;
+                                          if (user != null) {
+                                            // Busca nome salvo no cadastro, se houver
+                                            String? nome;
+                                            try {
+                                              final userData = user.userMetadata;
+                                              if (userData != null && userData['nome'] != null) {
+                                                nome = userData['nome'] as String?;
+                                              }
+                                            } catch (_) {}
+                                            await supabase.from('usuarios').upsert({
+                                              'id': user.id,
+                                              'email': user.email,
+                                              if (nome != null) 'nome': nome,
+                                            });
+                                          }
                                           await context.read<TransactionProvider>().loadTransactions();
                                           await context.read<CategoryProvider>().loadCategories();
                                           await context.read<GastoProvider>().loadGastos();

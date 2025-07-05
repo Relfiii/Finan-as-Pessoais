@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'editarPerfil.dart';
+import 'alterarSenha.dart';
 
 class ConfiguracaoPage extends StatelessWidget {
   const ConfiguracaoPage({Key? key}) : super(key: key);
@@ -71,7 +72,12 @@ class ConfiguracaoPage extends StatelessWidget {
                         icon: Icons.lock_outline,
                         title: 'Alterar Senha',
                         subtitle: 'Atualize sua senha',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const AlterarSenhaPage()),
+                          );
+                        },
                       ),
                       const SizedBox(height: 18),
                       _SectionTitle('Preferências'),

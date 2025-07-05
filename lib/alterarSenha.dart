@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'telaLogin.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // Adicione esta linha
 
 class AlterarSenhaPage extends StatelessWidget {
   const AlterarSenhaPage({super.key});
@@ -121,8 +122,24 @@ class AlterarSenhaPage extends StatelessWidget {
                                       ),
                                       textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                                     ),
-                                    onPressed: () {
-                                      // Lógica para enviar link de redefinição
+                                    onPressed: () async {
+                                      final email = emailController.text.trim();
+                                      if (email.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Informe seu e-mail.')),
+                                        );
+                                        return;
+                                      }
+                                      try {
+                                        await Supabase.instance.client.auth.resetPasswordForEmail(email);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Enviamos um link de redefinição para seu e-mail!')),
+                                        );
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Erro ao enviar link: $e')),
+                                        );
+                                      }
                                     },
                                     child: const Text('Enviar Link de Redefinição'),
                                   ),
