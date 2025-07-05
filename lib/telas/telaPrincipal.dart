@@ -64,262 +64,360 @@ class _HomeScreenState extends State<HomeScreen> {
     // O nome do usuário agora é obtido via Provider dentro de TelaLateral
     return Scaffold(
       drawer: TelaLateral(),
-      backgroundColor: const Color(0xFF181818),
-      body: SafeArea(
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          child: Stack(
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  // TOPO FIXO
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 8, right: 16, top: 16, bottom: 0),
-                    child: _TopBarWithCaixaTexto(),
+      body: Stack(
+        children: [
+          // Fundo gradiente com desfoque (igual à tela de configurações)
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // AppBar customizada (igual à tela de configurações)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Row(
+                    children: [
+                      Builder(
+                        builder: (context) => IconButton(
+                          icon: const Icon(Icons.menu, color: Color(0xFFB983FF)),
+                          onPressed: () {
+                            Scaffold.of(context).openDrawer();
+                          },
+                          tooltip: 'Abrir menu',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AnimatedSwitcher(
+                        duration: Duration(milliseconds: 250),
+                        child: !CaixaTextoOverlay.isExpanded(context)
+                            ? const Text(
+                                "NossoDinDin",
+                                key: ValueKey('title'),
+                                style: TextStyle(
+                                  color: Color(0xFFB983FF),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                                  letterSpacing: 1.1,
+                                ),
+                              )
+                            : SizedBox(width: 120),
+                      ),
+                      const SizedBox(width: 8),
+                      // CaixaTextoWidget como botão
+                      Expanded(
+                        child: CaixaTextoWidget(
+                          asButton: true,
+                          onExpand: () {
+                            CaixaTextoOverlay.show(context);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      AnimatedSwitcher(
+                        duration: Duration(milliseconds: 250),
+                        child: !CaixaTextoOverlay.isExpanded(context)
+                            ? IconButton(
+                                key: ValueKey('notif'),
+                                icon: const Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
+                                tooltip: 'Notificações',
+                                onPressed: () {
+                                  showGeneralDialog(
+                                    context: context,
+                                    barrierDismissible: true,
+                                    barrierLabel: "Notificações",
+                                    barrierColor: Colors.black.withOpacity(0.3),
+                                    transitionDuration: const Duration(milliseconds: 200),
+                                    pageBuilder: (context, anim1, anim2) {
+                                      return BackdropFilter(
+                                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                        child: Center(
+                                          child: AlertDialog(
+                                            backgroundColor: const Color(0xFF181818),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12)),
+                                            title: Row(
+                                              children: const [
+                                                Icon(Icons.notifications, color: Color(0xFFB983FF)),
+                                                SizedBox(width: 8),
+                                                Text(
+                                                  'Notificações',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                            content: const Text(
+                                              'Nenhuma notificação no momento.',
+                                              style: TextStyle(color: Colors.white70, fontSize: 14),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: const Text('Fechar',
+                                                    style: TextStyle(color: Colors.white70)),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              )
+                            : SizedBox(width: 48),
+                      ),
+                    ],
                   ),
-                  // CONTEÚDO ROLÁVEL
-                  Expanded(
-                    child: Consumer<TransactionProvider>(
-                      builder: (context, transactionProvider, child) {
-                        if (transactionProvider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (transactionProvider.error != null) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 64,
-                                  color: theme.colorScheme.error,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  transactionProvider.error!,
-                                  style: theme.textTheme.bodyLarge,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: _loadData,
-                                  child: const Text('Tentar novamente'),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-
-                        return SingleChildScrollView(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                ),
+                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                // Conteúdo rolável (mantém o conteúdo original)
+                Expanded(
+                  child: Consumer<TransactionProvider>(
+                    builder: (context, transactionProvider, child) {
+                      if (transactionProvider.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (transactionProvider.error != null) {
+                        return Center(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Mês/Ano
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-                                child: Text(
-                                  DateFormat("MMMM yyyy", "pt_BR").format(DateTime.now()).capitalize(),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                  ),
+                              Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: theme.colorScheme.error,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                transactionProvider.error!,
+                                style: theme.textTheme.bodyLarge,
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _loadData,
+                                child: const Text('Tentar novamente'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Mês/Ano
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                              child: Text(
+                                DateFormat("MMMM yyyy", "pt_BR").format(DateTime.now()).capitalize(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
                                 ),
                               ),
-                              // Cards de resumo
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                                child: Column(
-                                  children: [
-                                    IntrinsicHeight(
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                                        children: [
-                                          // Saldo atual
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => CardSaldo()),
-                                                );
-                                              },
-                                              child: Container(
-                                                margin: const EdgeInsets.all(3),
-                                                padding: const EdgeInsets.all(16),
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xFF23272F),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                constraints: const BoxConstraints(
-                                                  minHeight: 80,
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    const SizedBox(height: 0),
-                                                    Text(
-                                                      "Saldo atual",
-                                                      style: TextStyle(
-                                                          color: Colors.white70,
-                                                          fontSize: 16),
-                                                      softWrap: true,
-                                                      overflow: TextOverflow.visible,
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment.start,
-                                                      children: [
-                                                        Text(
-                                                          "R\$ ${saldoAtual.toStringAsFixed(2).replaceAll('.', ',')}",
-                                                          style: TextStyle(
-                                                            color: const Color.fromARGB(
-                                                                255, 24, 119, 5),
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
-                                                          ),
+                            ),
+                            // Cards de resumo
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                              child: Column(
+                                children: [
+                                  IntrinsicHeight(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        // Saldo atual
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => CardSaldo()),
+                                              );
+                                            },
+                                            child: Container(
+                                              margin: const EdgeInsets.all(3),
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF23272F),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minHeight: 80,
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const SizedBox(height: 0),
+                                                  Text(
+                                                    "Saldo atual",
+                                                    style: TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 16),
+                                                    softWrap: true,
+                                                    overflow: TextOverflow.visible,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        "R\$ ${saldoAtual.toStringAsFixed(2).replaceAll('.', ',')}",
+                                                        style: TextStyle(
+                                                          color: const Color.fromARGB(
+                                                              255, 24, 119, 5),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
                                                         ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ),
-                                          // Gasto total no mês
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => CardGasto()),
-                                                );
-                                              },
-                                              child: Container(
-                                                margin: const EdgeInsets.all(3),
-                                                padding: const EdgeInsets.all(16),
-                                                decoration: BoxDecoration(
-                                                  color: Color(0xFF23272F),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                constraints: const BoxConstraints(
-                                                  minHeight: 80,
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    const SizedBox(height: 0),
-                                                    Text(
-                                                      "Gasto no mês",
-                                                      style: TextStyle(
-                                                          color: Colors.white70,
-                                                          fontSize: 16),
-                                                      softWrap: true,
-                                                      overflow: TextOverflow.visible,
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Consumer<GastoProvider>(
-                                                          builder: (context, gastoProvider, _) {
-                                                            final totalGasto = gastoProvider.totalGastoMes();
-                                                            return Text(
-                                                              "R\$ ${totalGasto.toStringAsFixed(2).replaceAll('.', ',')}",
-                                                              style: TextStyle(
-                                                                color: const Color.fromARGB(255, 151, 53, 53),
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 16,
-                                                              ),
-                                                            );
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
+                                        ),
+                                        // Gasto total no mês
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => CardGasto()),
+                                              );
+                                            },
+                                            child: Container(
+                                              margin: const EdgeInsets.all(3),
+                                              padding: const EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                color: Color(0xFF23272F),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minHeight: 80,
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const SizedBox(height: 0),
+                                                  Text(
+                                                    "Gasto no mês",
+                                                    style: TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 16),
+                                                    softWrap: true,
+                                                    overflow: TextOverflow.visible,
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Consumer<GastoProvider>(
+                                                        builder: (context, gastoProvider, _) {
+                                                          final totalGasto = gastoProvider.totalGastoMes();
+                                                          return Text(
+                                                            "R\$ ${totalGasto.toStringAsFixed(2).replaceAll('.', ',')}",
+                                                            style: TextStyle(
+                                                              color: const Color.fromARGB(255, 151, 53, 53),
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 16,
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
                                               ),
                                             ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Card de Investimentos abaixo
+                                  GestureDetector(
+                                    onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => CardInvestimento()),
+                                              );
+                                            },
+                                    child: Container(
+                                      margin: const EdgeInsets.all(3),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF23272F),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minHeight: 80,
+                                      ),
+                                      width: double.infinity,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(height: 0),
+                                          Text(
+                                            "Investimentos",
+                                            style: TextStyle(
+                                                color: Colors.white70, fontSize: 16),
+                                            softWrap: true,
+                                            overflow: TextOverflow.visible,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "R\$ ${investimento.toStringAsFixed(2).replaceAll('.', ',')}",
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                      255, 15, 157, 240),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
                                     ),
-                                    // Card de Investimentos abaixo
-                                    GestureDetector(
-                                      onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(builder: (context) => CardInvestimento()),
-                                                );
-                                              },
-                                      child: Container(
-                                        margin: const EdgeInsets.all(3),
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xFF23272F),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        constraints: const BoxConstraints(
-                                          minHeight: 80,
-                                        ),
-                                        width: double.infinity,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 0),
-                                            Text(
-                                              "Investimentos",
-                                              style: TextStyle(
-                                                  color: Colors.white70, fontSize: 16),
-                                              softWrap: true,
-                                              overflow: TextOverflow.visible,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "R\$ ${investimento.toStringAsFixed(2).replaceAll('.', ',')}",
-                                                  style: TextStyle(
-                                                    color: const Color.fromARGB(
-                                                        255, 15, 157, 240),
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 24),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
-              // Overlay da caixa de texto expandida
-              CaixaTextoOverlay(),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
+          // Overlay da caixa de texto expandida
+          CaixaTextoOverlay(),
+        ],
       ),
     );
   }

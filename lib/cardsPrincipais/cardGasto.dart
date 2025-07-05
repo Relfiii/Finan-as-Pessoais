@@ -8,6 +8,7 @@ import '../telas/detalhesCategoria.dart';
 import '../caixaTexto/caixaTexto.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../modelos/categoria.dart';
+import 'dart:ui';
 
 class CaixaTextoOverlay extends StatefulWidget {
   static final GlobalKey<_CaixaTextoOverlayState> _key = GlobalKey();
@@ -142,145 +143,193 @@ class CardGasto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gasto do Mês'),
-        backgroundColor: const Color(0xFF181818),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-        ),
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
-      ),
-      backgroundColor: const Color(0xFF181818),
-      body: Consumer2<CategoryProvider, GastoProvider>(
-        builder: (context, categoryProvider, gastoProvider, child) {
-          final categories = categoryProvider.categories;
-          return Stack(
-            children: [
-              Column(
-                children: [
-                  // TopBar com botões de categoria, gasto e caixa de texto
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 16, top: 16, bottom: 0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(width: 10),
-                        // Botão de categoria
-                        SizedBox(
-                          height: 44,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF23272F),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                              minimumSize: const Size(0, 44),
+      body: Stack(
+        children: [
+          // Fundo gradiente com desfoque (igual telaLogin)
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // AppBar customizada (igual telaLogin)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'Gasto do Mês',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                              letterSpacing: 1.1,
                             ),
-                            icon: const Icon(Icons.category, color: Color(0xFFB983FF)),
-                            label: const Text('Categoria'),
-                            onPressed: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => const AddCategoryDialog(),
-                              );
-                            },
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        // Botão de gasto
-                        SizedBox(
-                          height: 44,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF23272F),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                              minimumSize: const Size(0, 44),
+                      ),
+                      const SizedBox(width: 40),
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                // TopBar com botões de categoria, gasto e caixa de texto
+                Padding(
+                  padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(width: 10),
+                      // Botão de categoria
+                      SizedBox(
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF23272F),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            minimumSize: const Size(0, 44),
+                          ),
+                          icon: const Icon(Icons.category, color: Color(0xFFB983FF)),
+                          label: const Text('Categoria'),
+                          onPressed: () async {
+                            await showDialog(
+                              context: context,
+                              builder: (context) => const AddCategoryDialog(),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Botão de gasto
+                      SizedBox(
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF23272F),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            minimumSize: const Size(0, 44),
+                          ),
+                          icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                          label: const Text('Gasto'),
+                          onPressed: () async {
+                            await showDialog(
+                              context: context,
+                              builder: (context) => const AddExpenseDialog(),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // CaixaTextoWidget como botão
+                      Expanded(
+                        child: CaixaTextoWidget(
+                          asButton: true,
+                          onExpand: () {
+                            CaixaTextoOverlay.show(context);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Cards de categorias no topo, logo abaixo dos botões
+                Consumer2<CategoryProvider, GastoProvider>(
+                  builder: (context, categoryProvider, gastoProvider, child) {
+                    final categories = categoryProvider.categories;
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                      child: categories.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Nenhuma categoria cadastrada.',
+                                style: TextStyle(color: Colors.white54, fontSize: 16),
+                              ),
+                            )
+                          : GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              itemCount: categories.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 1.7,
+                              ),
+                              itemBuilder: (context, index) {
+                                final cat = categories[index];
+                                final valor = gastoProvider.totalPorCategoria(cat.id);
+                                return _CategoryCard(
+                                  categoryName: cat.name,
+                                  valor: valor,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DetalhesCategoriaScreen(
+                                          categoryId: cat.id,
+                                          categoryName: cat.name,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  onEdit: () async {
+                                    await _editarCategoriaPopup(context, categoryProvider, cat);
+                                  },
+                                  onDelete: () async {
+                                    await categoryProvider.deleteCategory(cat.id);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Categoria "${cat.name}" deletada!')),
+                                    );
+                                  },
+                                );
+                              },
                             ),
-                            icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
-                            label: const Text('Gasto'),
-                            onPressed: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => const AddExpenseDialog(),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // CaixaTextoWidget como botão
-                        Expanded(
-                          child: CaixaTextoWidget(
-                            asButton: true,
-                            onExpand: () {
-                              CaixaTextoOverlay.show(context);
-                            },
-                          ),
-                        ),
-                      ],
+                    );
+                  },
+                ),
+                // Spacer para empurrar o rodapé para baixo
+                const Spacer(),
+                Center(
+                  child: Text(
+                    'NossoDinDin v1.0',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.18),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 1.1,
                     ),
                   ),
-                  // Conteúdo principal
-                  Expanded(
-                    child: categories.isEmpty
-                        ? Center(
-                            child: Text(
-                              'Nenhuma categoria cadastrada.',
-                              style: TextStyle(color: Colors.white54, fontSize: 16),
-                            ),
-                          )
-                        : GridView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            itemCount: categories.length,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 1.7,
-                            ),
-                            itemBuilder: (context, index) {
-                              final cat = categories[index];
-                              final valor = gastoProvider.totalPorCategoria(cat.id);
-                              return _CategoryCard(
-                                categoryName: cat.name,
-                                valor: valor,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => DetalhesCategoriaScreen(
-                                        categoryId: cat.id,
-                                        categoryName: cat.name,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                onEdit: () async {
-                                  await _editarCategoriaPopup(context, categoryProvider, cat);
-                                },
-                                onDelete: () async {
-                                  await categoryProvider.deleteCategory(cat.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Categoria "${cat.name}" deletada!')),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-              // Overlay da caixa de texto expandida
-              CaixaTextoOverlay(),
-            ],
-          );
-        },
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+          // Overlay da caixa de texto expandida
+          CaixaTextoOverlay(),
+        ],
       ),
     );
   }
