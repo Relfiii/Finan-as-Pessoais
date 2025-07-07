@@ -47,11 +47,29 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final supabase = Supabase.instance.client;
-    final userId = supabase.auth.currentUser?.id ?? '';
+    final user = supabase.auth.currentUser;
+    final userId = user?.id ?? '';
+    final novoEmail = _emailController.text.trim();
+    final emailAntigo = user?.email;
+
+    // Atualiza o e-mail no Auth se mudou
+    if (novoEmail.isNotEmpty && novoEmail != emailAntigo) {
+      final response = await supabase.auth.updateUser(UserAttributes(email: novoEmail));
+      if (response.user == null) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro ao atualizar e-mail de login no Supabase Auth.')),
+        );
+        return;
+      }
+    }
+
+    // Atualiza a tabela usuarios
     await supabase.from('usuarios').update({
       'nome': _nomeController.text,
-      'email': _emailController.text,
+      'email': novoEmail,
     }).eq('id', userId);
+    await _carregarDadosUsuario();
     setState(() => _loading = false);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -244,8 +262,8 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
                                 hintText: 'E-mail',
                                 hintStyle: TextStyle(color: Colors.white38),
                               ),
-                              enabled: false,
-                              readOnly: true,
+                              enabled: _editando,
+                              readOnly: !_editando,
                             ),
                           ),
                         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'dart:io' show Platform;
 
 class SegurancaPage extends StatelessWidget {
   const SegurancaPage({Key? key}) : super(key: key);
