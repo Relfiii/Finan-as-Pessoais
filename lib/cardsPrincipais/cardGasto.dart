@@ -282,7 +282,7 @@ class CardGasto extends StatelessWidget {
                                   crossAxisCount: 2,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
-                                  childAspectRatio: 1.7,
+                                  childAspectRatio: 1.6, // valor menor deixa o card mais alto
                                 ),
                                 itemBuilder: (context, index) {
                                   final cat = categories[index];
