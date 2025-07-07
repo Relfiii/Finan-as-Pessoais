@@ -23,12 +23,11 @@ class _GraficoVisaoGeralState extends State<GraficoVisaoGeral> {
       {'mes': 'abr.', 'receita': 0.0, 'gasto': 0.0, 'invest': 0.0},
       {'mes': 'mai.', 'receita': 0.0, 'gasto': 0.0, 'invest': 0.0},
       {'mes': 'jun.', 'receita': 0.0, 'gasto': 0.0, 'invest': 0.0},
-      // A coluna de julho representa o mês atual
       {
         'mes': 'jul.',
-        'receita': widget.saldoAtual > 0 ? widget.saldoAtual : 0.01,
-        'gasto': widget.totalGastoMes > 0 ? widget.totalGastoMes : 0.01,
-        'invest': widget.investimento > 0 ? widget.investimento : 0.01,
+        'receita': widget.saldoAtual > 0 ? widget.saldoAtual : 0.00,
+        'gasto': widget.totalGastoMes > 0 ? widget.totalGastoMes : 0.00,
+        'invest': widget.investimento > 0 ? widget.investimento : 0.00,
       },
     ];
   }

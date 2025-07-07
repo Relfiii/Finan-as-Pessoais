@@ -1,4 +1,3 @@
-import 'package:NossoDinDin/cardsPrincipais/cardInvestimento.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provedor/transicaoProvedor.dart';
@@ -8,11 +7,12 @@ import 'telaLateral.dart';
 import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
-import 'graficos.dart';
+import '../graficos/graficos.dart';
 import '../provedor/gastoProvedor.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import '../cardsPrincipais/cardInvestimento.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -23,16 +23,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _firstBuild = true;
   double saldoAtual = 0.0;
   double gastoMes = 0.0;
   double investimento = 0.0;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_firstBuild) {
+      _firstBuild = false;
       _loadData();
-    });
+    }
   }
 
   Future<void> _loadData() async {
@@ -52,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final transactionProvider = context.read<TransactionProvider>();
     saldoAtual = await ReceitaUtils.buscarTotalReceitas();
     gastoMes = await transactionProvider.getGastoMesAtual();
-    investimento = await transactionProvider.getInvestimento();
+    investimento = await InvestimentoUtils.buscarTotalInvestimentos();
     setState(() {});
   }
 
@@ -311,11 +313,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                           // Gasto total no mês
                                           Expanded(
                                             child: GestureDetector(
-                                              onTap: () {
-                                                Navigator.push(
+                                              onTap: () async {
+                                                await Navigator.push(
                                                   context,
                                                   MaterialPageRoute(builder: (context) => CardGasto()),
                                                 );
+                                                await _loadResumo();
                                               },
                                               child: Container(
                                                 margin: const EdgeInsets.all(3),
@@ -368,11 +371,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     // Card de Investimentos abaixo
                                     GestureDetector(
-                                      onTap: () {
-                                                Navigator.push(
+                                      onTap: () async {
+                                                await Navigator.push(
                                                   context,
-                                                  MaterialPageRoute(builder: (context) => CardInvestimento()),
+                                                  MaterialPageRoute(builder: (context) => ControleInvestimentosPage()),
                                                 );
+                                                await _loadResumo(); // Atualiza o valor ao voltar
                                               },
                                       child: Container(
                                         margin: const EdgeInsets.all(3),
@@ -397,19 +401,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                               overflow: TextOverflow.visible,
                                             ),
                                             const SizedBox(height: 8),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  "R\$ ${investimento.toStringAsFixed(2).replaceAll('.', ',')}",
+                                            FutureBuilder<double>(
+                                              future: InvestimentoUtils.buscarTotalInvestimentos(),
+                                              builder: (context, snapshot) {
+                                                final valor = snapshot.data ?? 0.0;
+                                                return Text(
+                                                  toCurrencyString(
+                                                    valor.toString(),
+                                                    leadingSymbol: 'R\$',
+                                                    useSymbolPadding: true,
+                                                    thousandSeparator: ThousandSeparator.Period,
+                                                  ),
                                                   style: TextStyle(
-                                                    color: const Color.fromARGB(
-                                                        255, 15, 157, 240),
+                                                    color: const Color.fromARGB(255, 15, 157, 240),
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 20,
                                                   ),
-                                                ),
-                                              ],
+                                                );
+                                              },
                                             ),
                                           ],
                                         ),

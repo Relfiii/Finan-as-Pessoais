@@ -511,8 +511,6 @@ class ReceitaCard extends StatelessWidget {
 class ReceitaUtils {
   static Future<double> buscarTotalReceitas() async {
     final now = DateTime.now();
-    final firstDay = DateTime(now.year, now.month, 1);
-    final lastDay = DateTime(now.year, now.month + 1, 0);
     final response = await Supabase.instance.client
         .from('entradas')
         .select('valor, data');
