@@ -8,9 +8,11 @@ import 'telaLateral.dart';
 import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
+import 'graficos.dart';
 import '../provedor/gastoProvedor.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -48,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadResumo() async {
     final transactionProvider = context.read<TransactionProvider>();
-    saldoAtual = await transactionProvider.getSaldoAtual();
+    saldoAtual = await ReceitaUtils.buscarTotalReceitas();
     gastoMes = await transactionProvider.getGastoMesAtual();
     investimento = await transactionProvider.getInvestimento();
     setState(() {});
@@ -187,231 +189,256 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
                 // Conteúdo rolável (mantém o conteúdo original)
                 Expanded(
-                  child: Consumer<TransactionProvider>(
-                    builder: (context, transactionProvider, child) {
-                      if (transactionProvider.isLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (transactionProvider.error != null) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 64,
-                                color: theme.colorScheme.error,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                transactionProvider.error!,
-                                style: theme.textTheme.bodyLarge,
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: _loadData,
-                                child: Text(localizations.tentarNovamente),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
+                  child: RefreshIndicator(
+                    onRefresh: _loadData, // Chama a função de atualizar
+                    child: Consumer<TransactionProvider>(
+                      builder: (context, transactionProvider, child) {
+                        if (transactionProvider.isLoading) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (transactionProvider.error != null) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: theme.colorScheme.error,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  transactionProvider.error!,
+                                  style: theme.textTheme.bodyLarge,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: _loadData,
+                                  child: Text(localizations.tentarNovamente),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
 
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Mês/Ano
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-                              child: Text(
-                                DateFormat("MMMM yyyy", localizations.localeName).format(DateTime.now()).capitalize(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
+                        return SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(), // Permite o pull-to-refresh mesmo sem scroll
+                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Data (Mês/Ano)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                                child: Text(
+                                  DateFormat("MMMM yyyy", localizations.localeName).format(DateTime.now()).capitalize(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
                                 ),
                               ),
-                            ),
-                            // Cards de resumo
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                              child: Column(
-                                children: [
-                                  IntrinsicHeight(
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                                        // Saldo atual
-                                        Expanded(
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => CardSaldo()),
-                                              );
-                                            },
-                                            child: Container(
-                                              margin: const EdgeInsets.all(3),
-                                              padding: const EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                color: Color(0xFF23272F),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              constraints: const BoxConstraints(
-                                                minHeight: 80,
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  const SizedBox(height: 0),
-                                                  Text(
-                                                    localizations.saldoAtual,
-                                                    style: const TextStyle(
-                                                        color: Colors.white70,
-                                                        fontSize: 16),
-                                                    softWrap: true,
-                                                    overflow: TextOverflow.visible,
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        "R\$ ${saldoAtual.toStringAsFixed(2).replaceAll('.', ',')}",
-                                                        style: TextStyle(
-                                                          color: const Color.fromARGB(
-                                                              255, 24, 119, 5),
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 16,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        // Gasto total no mês
-                                        Expanded(
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => CardGasto()),
-                                              );
-                                            },
-                                            child: Container(
-                                              margin: const EdgeInsets.all(3),
-                                              padding: const EdgeInsets.all(16),
-                                              decoration: BoxDecoration(
-                                                color: Color(0xFF23272F),
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              constraints: const BoxConstraints(
-                                                minHeight: 80,
-                                              ),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  const SizedBox(height: 0),
-                                                  Text(
-                                                    localizations.gastoNoMes,
-                                                    style: const TextStyle(
-                                                        color: Colors.white70,
-                                                        fontSize: 16),
-                                                    softWrap: true,
-                                                    overflow: TextOverflow.visible,
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Consumer<GastoProvider>(
-                                                        builder: (context, gastoProvider, _) {
-                                                          final totalGasto = gastoProvider.totalGastoMes();
-                                                          return Text(
-                                                            "R\$ ${totalGasto.toStringAsFixed(2).replaceAll('.', ',')}",
-                                                            style: TextStyle(
-                                                              color: const Color.fromARGB(255, 151, 53, 53),
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 16,
-                                                            ),
-                                                          );
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  // Card de Investimentos abaixo
-                                  GestureDetector(
-                                    onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(builder: (context) => CardInvestimento()),
-                                              );
-                                            },
-                                    child: Container(
-                                      margin: const EdgeInsets.all(3),
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFF23272F),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      constraints: const BoxConstraints(
-                                        minHeight: 80,
-                                      ),
-                                      width: double.infinity,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                              // Cards de resumo
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                child: Column(
+                                  children: [
+                                    IntrinsicHeight(
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
                                         children: [
-                                          const SizedBox(height: 0),
-                                          Text(
-                                            localizations.investimentos,
-                                            style: const TextStyle(
-                                                color: Colors.white70, fontSize: 16),
-                                            softWrap: true,
-                                            overflow: TextOverflow.visible,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "R\$ ${investimento.toStringAsFixed(2).replaceAll('.', ',')}",
-                                                style: TextStyle(
-                                                  color: const Color.fromARGB(
-                                                      255, 15, 157, 240),
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
+                                          // Saldo atual
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () async {
+                                                  await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => ControleReceitasPage()),
+                                                  );
+                                                  await _loadResumo(); // Atualiza o saldo ao voltar
+                                                },
+                                              child: Container(
+                                                margin: const EdgeInsets.all(3),
+                                                padding: const EdgeInsets.all(16),
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFF23272F),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                constraints: const BoxConstraints(
+                                                  minHeight: 80,
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    const SizedBox(height: 0),
+                                                    Text(
+                                                      localizations.saldoAtual,
+                                                      style: const TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 16),
+                                                      softWrap: true,
+                                                      overflow: TextOverflow.visible,
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          toCurrencyString(
+                                                            saldoAtual.toString(),
+                                                            leadingSymbol: 'R\$',
+                                                            useSymbolPadding: true,
+                                                            thousandSeparator: ThousandSeparator.Period,
+                                                          ),
+                                                          style: TextStyle(
+                                                            color: const Color.fromARGB(
+                                                                255, 24, 119, 5),
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 16,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            ],
+                                            ),
+                                          ),
+                                          // Gasto total no mês
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => CardGasto()),
+                                                );
+                                              },
+                                              child: Container(
+                                                margin: const EdgeInsets.all(3),
+                                                padding: const EdgeInsets.all(16),
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFF23272F),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                constraints: const BoxConstraints(
+                                                  minHeight: 80,
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    const SizedBox(height: 0),
+                                                    Text(
+                                                      localizations.gastoNoMes,
+                                                      style: const TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 16),
+                                                      softWrap: true,
+                                                      overflow: TextOverflow.visible,
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Consumer<GastoProvider>(
+                                                          builder: (context, gastoProvider, _) {
+                                                            final totalGasto = gastoProvider.totalGastoMes();
+                                                            return Text(
+                                                              "R\$ ${totalGasto.toStringAsFixed(2).replaceAll('.', ',')}",
+                                                              style: TextStyle(
+                                                                color: const Color.fromARGB(255, 151, 53, 53),
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                              ),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    // Card de Investimentos abaixo
+                                    GestureDetector(
+                                      onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => CardInvestimento()),
+                                                );
+                                              },
+                                      child: Container(
+                                        margin: const EdgeInsets.all(3),
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFF23272F),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minHeight: 80,
+                                        ),
+                                        width: double.infinity,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(height: 0),
+                                            Text(
+                                              localizations.investimentos,
+                                              style: const TextStyle(
+                                                  color: Colors.white70, fontSize: 16),
+                                              softWrap: true,
+                                              overflow: TextOverflow.visible,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "R\$ ${investimento.toStringAsFixed(2).replaceAll('.', ',')}",
+                                                  style: TextStyle(
+                                                    color: const Color.fromARGB(
+                                                        255, 15, 157, 240),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      );
-                    },
+                              const SizedBox(height: 24),
+                              // Gráfico de visão geral financeira
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                child: Consumer<GastoProvider>(
+                                  builder: (context, gastoProvider, _) {
+                                    final totalGasto = gastoProvider.totalGastoMes();
+                                    return GraficoVisaoGeral(
+                                      totalGastoMes: totalGasto,
+                                      saldoAtual: saldoAtual,
+                                      investimento: investimento,
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

@@ -50,30 +50,37 @@ class CardInvestimento extends StatelessWidget {
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
                 Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Container(
-                        padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.03),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        width: 320,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.trending_up, color: Color(0xFFB983FF), size: 48),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Esta tela está em construção',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      // Aqui você pode adicionar a lógica de atualização dos dados de investimento futuramente
+                      await Future.delayed(Duration(milliseconds: 800));
+                    },
+                    child: Center(
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.03),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          width: 320,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.trending_up, color: Color(0xFFB983FF), size: 48),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Esta tela está em construção',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
