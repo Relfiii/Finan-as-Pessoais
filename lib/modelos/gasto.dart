@@ -1,9 +1,9 @@
 class Gasto {
-  final String id;
-  final String descricao;
-  final double valor;
-  final DateTime data;
-  final String categoriaId;
+  String id;
+  String descricao; // Removido o modificador final
+  double valor; // Removido o modificador final
+  DateTime data;
+  String categoriaId;
 
   Gasto({
     required this.id,

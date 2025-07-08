@@ -67,6 +67,30 @@ class GastoProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateGasto(String id, String novaDescricao, double novoValor) async {
+    try {
+      // Atualiza o gasto na base de dados
+      final response = await Supabase.instance.client
+          .from('gastos')
+          .update({'descricao': novaDescricao, 'valor': novoValor})
+          .eq('id', id);
+
+      if (response.error != null) {
+        throw Exception('Erro ao atualizar gasto: ${response.error!.message}');
+      }
+
+      // Atualiza o gasto na lista local
+      final index = _gastos.indexWhere((gasto) => gasto.id == id);
+      if (index != -1) {
+        _gastos[index].descricao = novaDescricao;
+        _gastos[index].valor = novoValor;
+        notifyListeners(); // Notifica os consumidores sobre a mudança
+      }
+    } catch (e) {
+      throw Exception('Erro ao atualizar gasto: $e');
+    }
+  }
+
   double totalPorCategoria(String categoriaId) {
     return _gastos
         .where((g) => g.categoriaId == categoriaId)
@@ -78,6 +102,11 @@ class GastoProvider with ChangeNotifier {
     return _gastos
         .where((g) => g.data.month == now.month && g.data.year == now.year)
         .fold(0.0, (soma, g) => soma + g.valor);
+  }
+
+  // Adiciona o getter totalGastos
+  double get totalGastos {
+    return _gastos.fold(0.0, (sum, gasto) => sum + gasto.valor);
   }
 
   /// Define o estado de carregamento

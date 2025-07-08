@@ -9,16 +9,18 @@ import '../caixaTexto/caixaTexto.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../modelos/categoria.dart';
 import 'dart:ui';
+import 'package:intl/intl.dart';
 
 class CaixaTextoOverlay extends StatefulWidget {
-  static final GlobalKey<_CaixaTextoOverlayState> _key = GlobalKey();
-  CaixaTextoOverlay({Key? key}) : super(key: _key);
+  final GlobalKey<_CaixaTextoOverlayState> _key = GlobalKey();
 
-  static void show(BuildContext context) {
+  CaixaTextoOverlay({Key? key}) : super(key: key);
+
+  void show(BuildContext context) {
     _key.currentState?.expand();
   }
 
-  static bool isExpanded(BuildContext context) {
+  bool isExpanded(BuildContext context) {
     return _key.currentState?.expanded ?? false;
   }
 
@@ -254,7 +256,7 @@ class CardGasto extends StatelessWidget {
                           child: CaixaTextoWidget(
                             asButton: true,
                             onExpand: () {
-                              CaixaTextoOverlay.show(context);
+                              caixaTextoOverlay.show(context);
                             },
                           ),
                         ),
@@ -361,6 +363,8 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF232323),
@@ -421,7 +425,7 @@ class _CategoryCard extends StatelessWidget {
                     children: [
                       const SizedBox(width: 6),
                       Text(
-                        'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}',
+                        formatter.format(valor),
                         style: const TextStyle(
                           color: Color.fromARGB(255, 214, 158, 158),
                           fontSize: 16,
@@ -442,3 +446,6 @@ class _CategoryCard extends StatelessWidget {
     );
   }
 }
+
+// Declare a instância de CaixaTextoOverlay no escopo correto
+final CaixaTextoOverlay caixaTextoOverlay = CaixaTextoOverlay();

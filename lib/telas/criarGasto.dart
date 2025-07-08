@@ -12,7 +12,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
 class AddExpenseDialog extends StatefulWidget {
-  const AddExpenseDialog({super.key});
+  final Category? categoriaSelecionada; // Adiciona o parâmetro opcional
+
+  const AddExpenseDialog({
+    super.key,
+    this.categoriaSelecionada,
+  });
 
   @override
   State<AddExpenseDialog> createState() => _AddExpenseDialogState();
@@ -28,11 +33,17 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
   final List<String> _tipos = ['Gasto único', 'Recorrente'];
 
+  // Adiciona variáveis para mensagens de erro
+  String? _descError;
+  String? _valueError;
+  String? _categoriaError;
+
   @override
   void initState() {
     super.initState();
     _initLocale();
     _valueController = MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: '.', initialValue: 0.0);
+    _selectedCategoria = widget.categoriaSelecionada; // Inicializa com a categoria selecionada
   }
 
   Future<void> _initLocale() async {
@@ -142,6 +153,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         // Aqui pode chamar a IA para sugerir categoria
                       },
                     ),
+                    errorText: _descError, // Exibe mensagem de erro
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -162,6 +174,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    errorText: _valueError, // Exibe mensagem de erro
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -186,6 +199,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    errorText: _categoriaError, // Exibe mensagem de erro
                   ),
                   icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
                 ),
@@ -254,12 +268,22 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 onPressed: () async {
-                  if (_selectedCategoria == null) return;
-                
+                  setState(() {
+                    // Valida os campos e define mensagens de erro
+                    _descError = _descController.text.isEmpty ? 'Por favor, preencha a descrição.' : null;
+                    _valueError = _valueController.text == '0,00' ? 'Por favor, preencha o valor.' : null;
+                    _categoriaError = _selectedCategoria == null ? 'Por favor, selecione uma categoria.' : null;
+                  });
+
+                  // Se houver erros, não prossegue
+                  if (_descError != null || _valueError != null || _categoriaError != null) {
+                    return;
+                  }
+
                   final valor = double.tryParse(
                     _valueController.text.replaceAll('.', '').replaceAll(',', '.')
                   ) ?? 0.0;
-                
+
                   try {
                     // Salva no Supabase
                     final result = await Supabase.instance.client
@@ -272,7 +296,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         })
                         .select()
                         .single();
-                
+
                     // Adiciona no provedor local (ajuste conforme seu modelo Gasto)
                     final gastoProvider = context.read<GastoProvider>();
                     gastoProvider.addGasto(
@@ -284,7 +308,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         categoriaId: _selectedCategoria!.id,
                       ),
                     );
-                
+
                     Navigator.of(context).pop();
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(

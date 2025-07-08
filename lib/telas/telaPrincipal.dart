@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 8),
                       AnimatedSwitcher(
                         duration: Duration(milliseconds: 250),
-                        child: !CaixaTextoOverlay.isExpanded(context)
+                        child: !caixaTextoOverlay.isExpanded(context)
                             ? const Text(
                                 "NossoDinDin",
                                 key: ValueKey('title'),
@@ -126,14 +126,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: CaixaTextoWidget(
                           asButton: true,
                           onExpand: () {
-                            CaixaTextoOverlay.show(context);
+                            caixaTextoOverlay.show(context);
                           },
                         ),
                       ),
                       const SizedBox(width: 8),
                       AnimatedSwitcher(
                         duration: Duration(milliseconds: 250),
-                        child: !CaixaTextoOverlay.isExpanded(context)
+                        child: !caixaTextoOverlay.isExpanded(context)
                             ? IconButton(
                                 key: ValueKey('notif'),
                                 icon: const Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
@@ -351,8 +351,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         Consumer<GastoProvider>(
                                                           builder: (context, gastoProvider, _) {
                                                             final totalGasto = gastoProvider.totalGastoMes();
+                                                            final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
                                                             return Text(
-                                                              "R\$ ${totalGasto.toStringAsFixed(2).replaceAll('.', ',')}",
+                                                              formatter.format(totalGasto),
                                                               style: TextStyle(
                                                                 color: const Color.fromARGB(255, 151, 53, 53),
                                                                 fontWeight: FontWeight.bold,
@@ -492,7 +493,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
         // Título
         AnimatedSwitcher(
           duration: Duration(milliseconds: 250),
-          child: !CaixaTextoOverlay.isExpanded(context)
+          child: !caixaTextoOverlay.isExpanded(context)
               ? Text(
                   "NossoDinDin",
                   key: ValueKey('title'),
@@ -510,7 +511,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
           child: CaixaTextoWidget(
             asButton: true,
             onExpand: () {
-              CaixaTextoOverlay.show(context);
+              caixaTextoOverlay.show(context);
             },
           ),
         ),
@@ -518,7 +519,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
         // Botão de notificação
         AnimatedSwitcher(
           duration: Duration(milliseconds: 250),
-          child: !CaixaTextoOverlay.isExpanded(context)
+          child: !caixaTextoOverlay.isExpanded(context)
               ? IconButton(
                   key: ValueKey('notif'),
                   icon: Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
@@ -579,14 +580,15 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
 
 /// Overlay global para caixa de texto expandida
 class CaixaTextoOverlay extends StatefulWidget {
-  static final GlobalKey<_CaixaTextoOverlayState> _key = GlobalKey();
-  CaixaTextoOverlay({Key? key}) : super(key: _key);
+  final GlobalKey<_CaixaTextoOverlayState> _key = GlobalKey();
 
-  static void show(BuildContext context) {
+  CaixaTextoOverlay({Key? key}) : super(key: key);
+
+  void show(BuildContext context) {
     _key.currentState?.expand();
   }
 
-  static bool isExpanded(BuildContext context) {
+  bool isExpanded(BuildContext context) {
     return _key.currentState?.expanded ?? false;
   }
 
@@ -619,6 +621,8 @@ class _CaixaTextoOverlayState extends State<CaixaTextoOverlay> {
     );
   }
 }
+
+final CaixaTextoOverlay caixaTextoOverlay = CaixaTextoOverlay();
 
 extension StringCasingExtension on String {
   String capitalize() {
