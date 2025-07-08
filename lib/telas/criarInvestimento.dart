@@ -161,6 +161,7 @@ Future<bool?> showCriarInvestimentoDialog(BuildContext context) async {
                                 'data': data,
                                 'tipo': tipo,
                                 'tipo_outro': tipoSelecionado == 'Outro' ? tipoOutroController.text : null,
+                                'user_id': Supabase.instance.client.auth.currentUser!.id,
                               });
 
                           setState(() => _loading = false);

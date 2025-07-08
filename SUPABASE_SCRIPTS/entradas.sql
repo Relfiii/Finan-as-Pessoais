@@ -10,3 +10,8 @@ create table entradas (
 -- Índice para busca rápida por data
 grant all on table entradas to authenticated;
 create index idx_entradas_data on entradas(data);
+
+ALTER TABLE entradas
+ADD COLUMN user_id uuid references auth.users(id);
+
+CREATE INDEX idx_entradas_user_id ON entradas(user_id);

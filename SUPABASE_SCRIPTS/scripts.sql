@@ -83,3 +83,23 @@ before insert or update of senha
 on public.usuarios
 for each row
 execute function public.criptografar_senha();
+
+ALTER TABLE public.gastos
+ADD COLUMN user_id uuid references auth.users(id);
+
+CREATE INDEX idx_gastos_user_id ON public.gastos(user_id);
+
+-- Exemplo para gastos
+ALTER TABLE public.gastos ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Gastos apenas do usuário" ON public.gastos
+  FOR SELECT USING (user_id = auth.uid());
+
+CREATE POLICY "Inserir gastos do próprio usuário" ON public.gastos
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Atualizar gastos do próprio usuário" ON public.gastos
+  FOR UPDATE USING (user_id = auth.uid());
+
+CREATE POLICY "Deletar gastos do próprio usuário" ON public.gastos
+  FOR DELETE USING (user_id = auth.uid());

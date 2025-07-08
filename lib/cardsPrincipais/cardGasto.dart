@@ -39,24 +39,25 @@ class _CaixaTextoOverlayState extends State<CaixaTextoOverlay> {
       final nome = comando.replaceFirst(RegExp(r'(?i)criar categoria|nova categoria|adicionar categoria'), '').trim();
       if (nome.isNotEmpty) {
         // Simula o mesmo fluxo do botão de criar categoria
-        final supabase = Supabase.instance.client;
-        final response = await supabase
-            .from('categorias')
-            .insert({'nome': nome})
-            .select()
-            .single();
-        final newCategory = Category(
-          id: response['id'],
-          name: nome,
-          description: '',
-          color: const Color(0xFFB983FF),
-          icon: Icons.category,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        await categoryProvider.addCategory(newCategory);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Categoria "$nome" criada!')),
+        final userId = Supabase.instance.client.auth.currentUser!.id;
+        final response = await Supabase.instance.client
+          .from('categorias')
+          .insert({'nome': nome, 'user_id': userId})
+          .select()
+          .single();
+
+          final newCategory = Category(
+            id: response['id'],
+            name: nome,
+            description: '',
+            color: const Color(0xFFB983FF),
+            icon: Icons.category,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          await categoryProvider.addCategory(newCategory);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Categoria "$nome" criada!')),
         );
       }
     }

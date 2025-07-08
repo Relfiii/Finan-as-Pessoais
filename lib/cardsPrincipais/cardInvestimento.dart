@@ -16,9 +16,11 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
   double _totalInvestimentos = 0.0;
 
   Future<void> _carregarInvestimentos() async {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
     final response = await Supabase.instance.client
         .from('investimentos')
         .select()
+        .eq('user_id', userId)
         .order('data', ascending: false);
 
     setState(() {
@@ -30,6 +32,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
           'valor': double.tryParse(item['valor'].toString()) ?? 0.0,
           'data': DateTime.parse(item['data']),
           'tipo': item['tipo'] ?? 'Outro',
+          'user_id': Supabase.instance.client.auth.currentUser!.id,
         });
       }
     });

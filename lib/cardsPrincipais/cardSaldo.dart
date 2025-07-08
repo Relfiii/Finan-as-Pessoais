@@ -204,9 +204,11 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
   }
 
   Future<void> _carregarReceitas() async {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
     final response = await Supabase.instance.client
         .from('entradas')
         .select()
+        .eq('user_id', userId)
         .order('data', ascending: false);
 
     setState(() {

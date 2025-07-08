@@ -17,3 +17,8 @@ create index idx_investimentos_data on investimentos(data);
 
 -- Índice para busca por tipo de investimento
 create index idx_investimentos_tipo on investimentos(tipo);
+
+ALTER TABLE investimentos
+ADD COLUMN user_id uuid references auth.users(id);
+
+CREATE INDEX idx_investimentos_user_id ON investimentos(user_id);

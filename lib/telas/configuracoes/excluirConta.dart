@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../telaLogin.dart';
+import '../../../provedor/transicaoProvedor.dart';
 
 class ExcluirContaPage extends StatefulWidget {
   const ExcluirContaPage({Key? key}) : super(key: key);
@@ -11,6 +15,14 @@ class ExcluirContaPage extends StatefulWidget {
 class _ExcluirContaPageState extends State<ExcluirContaPage> {
   final TextEditingController _controller = TextEditingController();
   bool _confirmado = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TransactionProvider>(context, listen: false).loadTransactions();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +106,7 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
                           ),
                           onChanged: (value) {
                             setState(() {
-                              _confirmado = value.trim().toUpperCase() == 'EXCLUIR';
+                              _confirmado = value.trim() == 'EXCLUIR';
                             });
                           },
                         ),
@@ -116,23 +128,24 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             onPressed: _confirmado
-                                ? () {
-                                    // Ação de exclusão de conta
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: const Text('Conta excluída'),
-                                        content: const Text('Sua conta foi excluída com sucesso.'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).popUntil((route) => route.isFirst);
-                                            },
-                                            child: const Text('OK'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
+                                ? () async {
+                                    final supabase = Supabase.instance.client;
+                                    try {
+                                      await supabase.rpc('delete_current_user');
+                                      await supabase.auth.signOut();
+
+                                      if (mounted) {
+                                        showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (context) => const ContaExcluidaDialog(),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Erro ao excluir conta: $e')),
+                                      );
+                                    }
                                   }
                                 : null,
                           ),
@@ -166,6 +179,48 @@ class _SectionTitle extends StatelessWidget {
           fontSize: 15,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+class ContaExcluidaDialog extends StatelessWidget {
+  const ContaExcluidaDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+      child: Center(
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF181818),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: const Text(
+            'Conta excluída',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Sua conta foi excluída (logout realizado). Para exclusão total, contate o suporte.',
+            style: TextStyle(color: Colors.white70, fontSize: 15),
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFB983FF),
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => TelaLogin()),
+                  (route) => false,
+                );
+              },
+              child: const Text('OK'),
+            ),
+          ],
         ),
       ),
     );
