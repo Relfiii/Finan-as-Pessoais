@@ -37,6 +37,7 @@ create table public.usuarios (
   id uuid primary key references auth.users(id),
   nome text,
   email text
+  apelido text,
 );
 
 -- 1. Adiciona a coluna 'senha' na tabela usuarios

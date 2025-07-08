@@ -21,6 +21,7 @@ class _TelaLoginState extends State<TelaLogin> {
 
   bool loginInvalido = false;
   bool _senhaVisivel = false;
+  String? mensagemErro;
 
   @override
   Widget build(BuildContext context) {
@@ -127,12 +128,12 @@ class _TelaLoginState extends State<TelaLogin> {
                                   ),
                                   style: const TextStyle(color: Colors.white),
                                 ),
-                                if (loginInvalido)
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 8.0, left: 4.0),
+                                if (mensagemErro != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0, left: 4.0),
                                     child: Text(
-                                      'E-mail ou senha inválidos.',
-                                      style: TextStyle(color: Colors.red, fontSize: 14),
+                                      mensagemErro!,
+                                      style: const TextStyle(color: Colors.red, fontSize: 14),
                                     ),
                                   ),
                                 const SizedBox(height: 24),
@@ -150,18 +151,20 @@ class _TelaLoginState extends State<TelaLogin> {
                                     onPressed: () async {
                                       setState(() {
                                         loginInvalido = false;
+                                        mensagemErro = null;
                                       });
+                                      final supabase = Supabase.instance.client;
+                                      final email = emailController.text.trim();
+
                                       try {
-                                        final response = await Supabase.instance.client.auth.signInWithPassword(
-                                          email: emailController.text,
+                                        final response = await supabase.auth.signInWithPassword(
+                                          email: email,
                                           password: senhaController.text,
                                         );
                                         if (response.user != null) {
                                           // Adiciona ou atualiza o usuário na tabela 'usuarios'
-                                          final supabase = Supabase.instance.client;
                                           final user = response.user;
                                           if (user != null) {
-                                            // Busca nome salvo no cadastro, se houver
                                             String? nome;
                                             try {
                                               final userData = user.userMetadata;
@@ -185,6 +188,7 @@ class _TelaLoginState extends State<TelaLogin> {
                                           );
                                         } else {
                                           setState(() {
+                                            mensagemErro = 'E-mail ou senha inválidos.';
                                             loginInvalido = true;
                                           });
                                         }
@@ -205,17 +209,13 @@ class _TelaLoginState extends State<TelaLogin> {
                                         } else {
                                           mensagem = 'Erro: ' + mensagem;
                                         }
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(mensagem),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
                                         setState(() {
+                                          mensagemErro = mensagem;
                                           loginInvalido = true;
                                         });
                                       } catch (e) {
                                         setState(() {
+                                          mensagemErro = 'Erro ao tentar login.';
                                           loginInvalido = true;
                                         });
                                       }

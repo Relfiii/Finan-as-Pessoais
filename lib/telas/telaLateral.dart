@@ -46,60 +46,75 @@ class TelaLateral extends StatelessWidget {
                           child: const Icon(Icons.account_circle, size: 50, color: Colors.white),
                         ),
                         const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Builder(
-                              builder: (context) {
-                                final supabase = Supabase.instance.client;
-                                final userId = supabase.auth.currentUser?.id ?? '';
-                                return FutureBuilder(
-                                  future: supabase.from('usuarios').select('nome').eq('id', userId).single(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return const Text(
-                                        'Olá, carregando...',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      );
-                                    } else if (snapshot.hasError || !snapshot.hasData) {
-                                      return const Text(
-                                        'Olá, Usuário!',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      );
-                                    } else {
-                                      final data = snapshot.data as Map<String, dynamic>;
-                                      final nomeCompleto = data['nome'] ?? 'Usuário';
-                                      final primeiroNome = nomeCompleto.split(' ').first;
-                                      return Text(
-                                        'Olá, $primeiroNome!',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      );
-                                    }
-                                  },
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 4),
-                            const Text(
-                              'Bem-vindo de volta',
-                              style: TextStyle(
-                                color: Color(0xFFB983FF),
-                                fontSize: 14,
+                        // Adicione o Flexible aqui
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Builder(
+                                builder: (context) {
+                                  final supabase = Supabase.instance.client;
+                                  final userId = supabase.auth.currentUser?.id ?? '';
+                                  return FutureBuilder(
+                                    future: supabase.from('usuarios').select('nome, apelido').eq('id', userId).single(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const Text(
+                                          'Carregando...',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                        );
+                                      } else if (snapshot.hasError || !snapshot.hasData) {
+                                        return const Text(
+                                          'Olá, Usuário!',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                        );
+                                      } else {
+                                        final data = snapshot.data as Map<String, dynamic>;
+                                        final apelido = (data['apelido'] ?? '').toString().trim();
+                                        final nomeCompleto = data['nome'] ?? 'Usuário';
+                                        final primeiroNome = apelido.isNotEmpty
+                                            ? apelido
+                                            : nomeCompleto.split(' ').first;
+                                        return Text(
+                                          'Olá, $primeiroNome!',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          softWrap: true,
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Bem-vindo de volta',
+                                style: TextStyle(
+                                  color: Color(0xFFB983FF),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

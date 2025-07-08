@@ -16,6 +16,7 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
+  final _apelidoController = TextEditingController();
   bool _loading = false;
   bool _editando = false;
   bool _carregandoDados = true;
@@ -35,10 +36,11 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
       setState(() => _carregandoDados = false);
       return;
     }
-    final data = await supabase.from('usuarios').select('nome, email').eq('id', userId).single();
+    final data = await supabase.from('usuarios').select('nome, email, apelido').eq('id', userId).single();
     setState(() {
       _nomeController.text = data['nome'] ?? '';
       _emailController.text = data['email'] ?? '';
+      _apelidoController.text = data['apelido'] ?? '';
       _carregandoDados = false;
     });
   }
@@ -67,6 +69,8 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
     // Atualiza a tabela usuarios
     await supabase.from('usuarios').update({
       'nome': _nomeController.text,
+      'apelido': _apelidoController.text,
+      // Se a imagem foi selecionada, você pode implementar o upload aqui
       'email': novoEmail,
     }).eq('id', userId);
     await _carregarDadosUsuario();
@@ -218,6 +222,31 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
                     child: ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       children: [
+                        const Text(
+                          'Como quer ser chamado?',
+                          style: TextStyle(color: Color(0xFFB983FF), fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        Card(
+                          color: Colors.white.withOpacity(0.03),
+                          elevation: 0,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: TextFormField(
+                              controller: _apelidoController,
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Apelido',
+                                hintStyle: TextStyle(color: Colors.white38),
+                              ),
+                              enabled: _editando,
+                              readOnly: !_editando,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
                         const Text(
                           'Nome',
                           style: TextStyle(color: Color(0xFFB983FF), fontWeight: FontWeight.bold, fontSize: 15),

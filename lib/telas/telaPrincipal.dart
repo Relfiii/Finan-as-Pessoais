@@ -33,7 +33,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.didChangeDependencies();
     if (_firstBuild) {
       _firstBuild = false;
-      _loadData();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadData();
+      });
     }
   }
 
