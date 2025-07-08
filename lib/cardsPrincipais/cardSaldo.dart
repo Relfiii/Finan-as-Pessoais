@@ -95,7 +95,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(false);
                     },
                     child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
                   ),
@@ -139,7 +139,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                             // Opcional: recarrega tudo do banco para garantir sincronismo
                             await _carregarReceitas();
 
-                            Navigator.of(context).pop();
+                            Navigator.of(context).pop(true);
                           },
                     child: _loading
                         ? const SizedBox(

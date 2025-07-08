@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter/services.dart';
 import '../../modelos/gasto.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
 class AddExpenseDialog extends StatefulWidget {
   const AddExpenseDialog({super.key});
@@ -19,7 +20,7 @@ class AddExpenseDialog extends StatefulWidget {
 
 class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final TextEditingController _descController = TextEditingController();
-  final TextEditingController _valueController = TextEditingController(text: '0,00');
+  late final MoneyMaskedTextController _valueController;
   Category? _selectedCategoria;
   String _tipoGasto = 'Gasto único';
   DateTime _selectedDate = DateTime.now();
@@ -31,6 +32,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   void initState() {
     super.initState();
     _initLocale();
+    _valueController = MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: '.', initialValue: 0.0);
   }
 
   Future<void> _initLocale() async {
@@ -147,7 +149,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                 TextField(
                   controller: _valueController,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [CurrencyInputFormatter()],
                   style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   decoration: InputDecoration(
                     prefixText: 'R\$ ',
@@ -297,23 +298,6 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class CurrencyInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    String digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (digits.isEmpty) digits = '0';
-
-    double value = double.parse(digits) / 100;
-    final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: '', decimalDigits: 2);
-    String newText = formatter.format(value).trim();
-
-    return TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }

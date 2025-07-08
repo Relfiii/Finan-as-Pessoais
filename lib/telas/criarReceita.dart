@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
 class AddReceitaDialog extends StatefulWidget {
   final TextEditingController? descricaoController;
@@ -21,20 +22,25 @@ class AddReceitaDialog extends StatefulWidget {
 
 class _AddReceitaDialogState extends State<AddReceitaDialog> {
   late final TextEditingController _descricaoController;
-  late final TextEditingController _valorController;
+  late final MoneyMaskedTextController _valorController;
   bool _loading = false;
 
   @override
   void initState() {
     super.initState();
     _descricaoController = widget.descricaoController ?? TextEditingController();
-    _valorController = widget.valorController ?? TextEditingController();
+    _valorController = widget.valorController != null
+        ? widget.valorController as MoneyMaskedTextController
+        : MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: '.', initialValue: 0.0);
   }
 
   @override
   void dispose() {
     if (widget.descricaoController == null) _descricaoController.dispose();
-    if (widget.valorController == null) _valorController.dispose();
+    if (widget.valorController == null) {
+      _valorController.updateValue(0.0); // Garante que o valor seja válido antes de limpar
+      _valorController.dispose();
+    }
     super.dispose();
   }
 
@@ -42,14 +48,16 @@ class _AddReceitaDialogState extends State<AddReceitaDialog> {
     final descricao = _descricaoController.text.trim();
     String valorTexto = _valorController.text.trim();
 
-    // Remove símbolo, pontos de milhar e troca vírgula decimal por ponto
-    valorTexto = valorTexto.replaceAll('R\$', '').replaceAll('.', '').replaceAll(',', '.').replaceAll(' ', '');
+    // Remove símbolo de moeda e espaços extras
+    valorTexto = valorTexto.replaceAll('R\$', '').replaceAll(' ', '');
+    valorTexto = valorTexto.replaceAll('.', '').replaceAll(',', '.');
     double valor = 0.0;
     try {
       valor = double.parse(valorTexto);
     } catch (_) {
       valor = 0.0;
     }
+
     final data = DateTime.now();
 
     if (descricao.isEmpty || valor <= 0) return;
@@ -129,16 +137,11 @@ class _AddReceitaDialogState extends State<AddReceitaDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _valorController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: TextInputType.number,
                 style: const TextStyle(color: Colors.white),
-                inputFormatters: [
-                  MoneyInputFormatter(
-                    leadingSymbol: 'R\$',
-                    useSymbolPadding: true,
-                    thousandSeparator: ThousandSeparator.Period,
-                  ),
-                ],
                 decoration: InputDecoration(
+                  prefixText: 'R\$ ',
+                  prefixStyle: const TextStyle(color: Colors.white),
                   hintText: 'Valor',
                   hintStyle: const TextStyle(color: Colors.white54),
                   filled: true,

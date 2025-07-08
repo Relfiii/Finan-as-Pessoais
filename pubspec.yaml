@@ -37,6 +37,7 @@ dependencies:
   shimmer: ^3.0.0
   flutter_launcher_icons: ^0.14.4
   flutter_multi_formatter: ^2.13.7
+  flutter_masked_text2: ^0.9.1
 
 dev_dependencies:
   flutter_test:

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 
 Future<bool?> showCriarInvestimentoDialog(BuildContext context) async {
   final descricaoController = TextEditingController();
-  final valorController = TextEditingController();
+  final valorController = MoneyMaskedTextController(decimalSeparator: ',', thousandSeparator: '.', initialValue: 0.0);
   String tipoSelecionado = 'Renda Fixa';
   bool _loading = false;
   final tipoOutroController = TextEditingController();
@@ -46,16 +46,11 @@ Future<bool?> showCriarInvestimentoDialog(BuildContext context) async {
                   const SizedBox(height: 12),
                   TextField(
                     controller: valorController,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: TextInputType.number,
                     style: const TextStyle(color: Colors.white),
-                    inputFormatters: [
-                      MoneyInputFormatter(
-                        leadingSymbol: 'R\$',
-                        useSymbolPadding: true,
-                        thousandSeparator: ThousandSeparator.Period,
-                      ),
-                    ],
                     decoration: InputDecoration(
+                      prefixText: 'R\$ ',
+                      prefixStyle: const TextStyle(color: Colors.white),
                       hintText: 'Valor investido',
                       hintStyle: const TextStyle(color: Colors.white54),
                       filled: true,

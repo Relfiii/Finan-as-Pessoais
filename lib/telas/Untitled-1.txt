@@ -1,0 +1,7 @@
+onPressed: () async {
+  await showDialog(
+    context: context,
+    builder: (context) => const AddReceitaDialog(),
+  );
+  await _carregarReceitas();
+},
