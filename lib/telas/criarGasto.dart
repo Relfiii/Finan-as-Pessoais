@@ -27,16 +27,20 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final TextEditingController _descController = TextEditingController();
   late final MoneyMaskedTextController _valueController;
   Category? _selectedCategoria;
-  String _tipoGasto = 'Gasto único';
+  String _tipoGasto = 'Despesa única';
   DateTime _selectedDate = DateTime.now();
   bool _localeReady = false;
 
-  final List<String> _tipos = ['Gasto único', 'Recorrente'];
+  final List<String> _tipos = ['Despesa única', 'Recorrente'];
 
   // Adiciona variáveis para mensagens de erro
   String? _descError;
   String? _valueError;
   String? _categoriaError;
+
+  // Adicionar lista de intervalos de meses
+  final List<int> _intervalosMeses = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  int? _intervaloSelecionado;
 
   @override
   void initState() {
@@ -114,7 +118,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Adicionar gasto',
+                'Adicionar despesa',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
               ),
               IconButton(
@@ -129,7 +133,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Preencha os detalhes da sua despesa. Use a IA para sugerir uma categoria!',
+                  'Preencha os detalhes da sua despesa.',
+                  //Use a IA para sugerir uma categoria!',
                   style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 20),
@@ -216,7 +221,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   onChanged: (tipo) => setState(() => _tipoGasto = tipo!),
                   dropdownColor: const Color(0xFF23272F),
                   decoration: InputDecoration(
-                    hintText: 'Tipo de gasto',
+                    hintText: 'Tipo de despesa',
                     hintStyle: const TextStyle(color: Colors.white54),
                     filled: true,
                     fillColor: const Color(0xFF23272F),
@@ -228,6 +233,36 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   ),
                   icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
                 ),
+                const SizedBox(height: 14),
+                // Intervalo de meses (apenas para despesas recorrentes)
+                if (_tipoGasto == 'Recorrente') ...[
+                  DropdownButtonFormField<int>(
+                    value: _intervaloSelecionado,
+                    items: _intervalosMeses.map((meses) {
+                      return DropdownMenuItem(
+                        value: meses,
+                        child: Text('$meses meses', style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (meses) => setState(() => _intervaloSelecionado = meses),
+                    dropdownColor: const Color(0xFF23272F),
+                    decoration: InputDecoration(
+                      hintText: 'Intervalo de meses',
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xFF23272F),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      errorText: _tipoGasto == 'Recorrente' && _intervaloSelecionado == null
+                          ? 'Por favor, selecione o intervalo de meses.'
+                          : null,
+                    ),
+                    icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 // Data
                 GestureDetector(
@@ -273,6 +308,10 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     _descError = _descController.text.isEmpty ? 'Por favor, preencha a descrição.' : null;
                     _valueError = _valueController.text == '0,00' ? 'Por favor, preencha o valor.' : null;
                     _categoriaError = _selectedCategoria == null ? 'Por favor, selecione uma categoria.' : null;
+
+                    if (_tipoGasto == 'Recorrente') {
+                      _categoriaError ??= _intervaloSelecionado == null ? 'Por favor, selecione o intervalo de meses.' : null;
+                    }
                   });
 
                   // Se houver erros, não prossegue
@@ -301,6 +340,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           'data': _selectedDate.toIso8601String(),
                           'categoria_id': _selectedCategoria!.id,
                           'user_id': Supabase.instance.client.auth.currentUser?.id,
+                          'recorrente': _tipoGasto == 'Recorrente',
+                          'intervalo_meses': _tipoGasto == 'Recorrente' ? _intervaloSelecionado : null,
                         })
                         .select()
                         .single();
@@ -324,7 +365,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     );
                   }
                 },
-                child: const Text('Adicionar Gasto'),
+                child: const Text('Adicionar despesa'),
               ),
             ),
           ],

@@ -319,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             color: const Color.fromARGB(
                                                                 255, 24, 119, 5),
                                                             fontWeight: FontWeight.bold,
-                                                            fontSize: 20,
+                                                            fontSize: 16,
                                                           ),
                                                         ),
                                                         Icon(
@@ -397,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               style: TextStyle(
                                                                 color: const Color.fromARGB(255, 151, 53, 53),
                                                                 fontWeight: FontWeight.bold,
-                                                                fontSize: 20,
+                                                                fontSize: 16,
                                                               ),
                                                             );
                                                           },

@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS public.gastos (
   categoria_id uuid REFERENCES public.categorias_gastos(id),
   descricao text,
   data timestamp with time zone NOT NULL DEFAULT now(),
-  user_id uuid REFERENCES auth.users(id)
+  user_id uuid REFERENCES auth.users(id),
+  recorrente boolean DEFAULT false,
+  intervalo_meses integer
 );
 
 -- Criar índice para user_id
@@ -25,10 +27,17 @@ CREATE POLICY "Gastos apenas do usuário" ON public.gastos
   FOR SELECT USING (user_id = auth.uid());
 
 CREATE POLICY "Inserir gastos do próprio usuário" ON public.gastos
-  FOR INSERT WITH CHECK (user_id = auth.uid());
+  FOR INSERT WITH CHECK (
+    user_id = auth.uid() AND 
+    (recorrente IS NOT TRUE OR (recorrente IS TRUE AND intervalo_meses IS NOT NULL))
+  );
 
 CREATE POLICY "Atualizar gastos do próprio usuário" ON public.gastos
-  FOR UPDATE USING (user_id = auth.uid());
+  FOR UPDATE USING (user_id = auth.uid())
+  WITH CHECK (
+    user_id = auth.uid() AND 
+    (recorrente IS NOT TRUE OR (recorrente IS TRUE AND intervalo_meses IS NOT NULL))
+  );
 
 CREATE POLICY "Deletar gastos do próprio usuário" ON public.gastos
   FOR DELETE USING (user_id = auth.uid());

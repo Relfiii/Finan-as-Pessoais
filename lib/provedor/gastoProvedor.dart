@@ -124,4 +124,71 @@ class GastoProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<List<Gasto>> getGastosPorMes(String categoryId, DateTime date) async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser!.id;
+  
+      // Consulta os gastos na base de dados para o mês/ano e categoria especificados
+      final response = await Supabase.instance.client
+          .from('gastos')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('categoria_id', categoryId)
+          .gte('data', DateTime(date.year, date.month, 1).toIso8601String())
+          .lt('data', DateTime(date.year, date.month + 1, 1).toIso8601String());
+  
+      // Verifica se há dados na resposta
+      if (response.isEmpty) {
+        return []; // Retorna uma lista vazia se não houver dados
+      }
+  
+      // Mapeia os resultados para a lista de objetos Gasto
+      return response.map((item) {
+        return Gasto(
+          id: item['id'] as String,
+          categoriaId: item['categoria_id'] as String,
+          descricao: item['descricao'] ?? '',
+          valor: (item['valor'] as num).toDouble(),
+          data: DateTime.parse(item['data']),
+        );
+      }).toList();
+    } catch (e) {
+      throw Exception('Erro ao buscar gastos por mês: $e');
+    }
+  }
+
+  Future<void> getGastosPorCategoria(String categoryId) async {
+    _setLoading(true);
+    _setError(null);
+  
+    try {
+      final userId = Supabase.instance.client.auth.currentUser!.id;
+  
+      // Consulta os gastos na base de dados para a categoria especificada
+      final response = await Supabase.instance.client
+          .from('gastos')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('categoria_id', categoryId) as List;
+  
+      // Atualiza a lista local de gastos
+      _gastos.clear();
+      for (final item in response) {
+        _gastos.add(Gasto(
+          id: item['id'] as String,
+          descricao: item['descricao'] ?? '',
+          valor: (item['valor'] as num).toDouble(),
+          data: DateTime.parse(item['data']),
+          categoriaId: item['categoria_id'] as String,
+        ));
+      }
+  
+      notifyListeners(); // Notifica os consumidores sobre a mudança
+    } catch (e) {
+      _setError('Erro ao buscar gastos por categoria: $e');
+    } finally {
+      _setLoading(false);
+    }
+  }
 }

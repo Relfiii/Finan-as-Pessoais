@@ -8,6 +8,7 @@ import 'dart:ui';
 import '../caixaTexto/caixaTexto.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
+import '../extensao/stringExtensao.dart';
 
 class DetalhesCategoriaScreen extends StatefulWidget {
   final String categoryId;
@@ -26,6 +27,10 @@ class DetalhesCategoriaScreen extends StatefulWidget {
 class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   String _sortBy = 'data';
   bool _ascending = false;
+  DateTime _currentDate = DateTime.now();
+
+  // Lista para armazenar os gastos do mês atual
+  List<dynamic> _gastosDoMes = [];
 
   // Controladores movidos para membros da classe
   final TextEditingController descricaoController = TextEditingController();
@@ -40,6 +45,47 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     descricaoController.dispose();
     valorController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final gastoProvider = context.read<GastoProvider>();
+    gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+  }
+
+  String _formatMonthYear(DateTime date) {
+    return DateFormat("MMMM y", 'pt_BR').format(date).capitalize();
+  }
+
+  void _nextMonth() async {
+    setState(() {
+      _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+    });
+  
+    // Consulta os valores da base para o próximo mês
+    final gastoProvider = context.read<GastoProvider>();
+    final gastos = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+  
+    // Atualiza o estado com os valores retornados
+    setState(() {
+      _gastosDoMes = gastos;
+    });
+  }
+  
+  void _previousMonth() async {
+    setState(() {
+      _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+    });
+  
+    // Consulta os valores da base para o mês anterior
+    final gastoProvider = context.read<GastoProvider>();
+    final gastos = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+  
+    // Atualiza o estado com os valores retornados
+    setState(() {
+      _gastosDoMes = gastos;
+    });
   }
 
   // Método para confirmar deleção do gasto
@@ -75,7 +121,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Tem certeza que deseja deletar este gasto?',
+                    'Tem certeza que deseja deletar este despesa?',
                     style: TextStyle(color: Colors.white70, fontSize: 16),
                   ),
                   const SizedBox(height: 16),
@@ -152,7 +198,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Gasto deletado com sucesso!'),
+                                content: Text('Despesa deletada com sucesso!'),
                                 backgroundColor: Colors.green,
                               ),
                             );
@@ -160,7 +206,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Erro ao deletar gasto: $e'),
+                                content: Text('Erro ao deletar despesa: $e'),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -183,10 +229,11 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   }
 
   // Método para editar gasto
-  Future<void> _editarGasto(BuildContext context, dynamic gasto, GastoProvider gastoProvider) async {
+    Future<void> _editarGasto(BuildContext context, dynamic gasto, GastoProvider gastoProvider) async {
+    // Preenche os controladores com os dados do gasto atual
     descricaoController.text = gasto.descricao;
     valorController.updateValue(gasto.valor);
-
+  
     await showDialog(
       context: context,
       builder: (context) {
@@ -197,7 +244,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
               backgroundColor: const Color(0xFF181818),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               title: const Text(
-                'Editar Gasto',
+                'Editar Despesa',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               content: SingleChildScrollView(
@@ -206,7 +253,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Altere as informações do gasto.',
+                      'Altere as informações da despesa.',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     const SizedBox(height: 16),
@@ -214,7 +261,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                       controller: descricaoController,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        hintText: 'Descrição do Gasto',
+                        hintText: 'Descrição da Despesa',
                         hintStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: const Color(0xFF23272F),
@@ -252,7 +299,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
                 ),
-                                ElevatedButton(
+                ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB983FF),
                     foregroundColor: Colors.black,
@@ -261,10 +308,12 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   ),
                   onPressed: () async {
                     final novaDescricao = descricaoController.text.trim();
+                    final categoryProvider = context.read<CategoryProvider>();
+                    _editarCategoriaPopup(context, categoryProvider);
                     final novoValor = double.tryParse(
                       valorController.text.replaceAll('.', '').replaceAll(',', '.'),
                     );
-                
+  
                     if (novaDescricao.isNotEmpty && novoValor != null) {
                       try {
                         // Atualiza o gasto na base de dados
@@ -273,18 +322,17 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                           novaDescricao,
                           novoValor,
                         );
-                
-                        // Atualiza a tela para refletir os valores atualizados
-                        final categoryProvider = context.read<CategoryProvider>();
-                        await _editarCategoriaPopup(context, categoryProvider);
-                
-                        // Recarrega os dados da base para atualizar o card
-                        setState(() {});
-                
+  
+                        // Recarrega os dados da base para atualizar a lista de gastos
+                        final gastosAtualizados = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+                        setState(() {
+                          _gastosDoMes = gastosAtualizados;
+                        });
+  
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Gasto atualizado com sucesso!'),
+                            content: Text('Despesa atualizada com sucesso!'),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -292,11 +340,18 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Erro ao atualizar gasto: ${e.toString()}'),
+                            content: Text('Erro ao atualizar despesa: ${e.toString()}'),
                             backgroundColor: Colors.red,
                           ),
                         );
                       }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Preencha todos os campos corretamente.'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
                     }
                   },
                   child: const Text('Salvar Alteração'),
@@ -332,7 +387,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     return gastos.fold(0.0, (sum, gasto) => sum + gasto.valor);
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -379,7 +434,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                           final gastos = gastoProvider.gastosPorCategoria(widget.categoryId);
                           final totalGastos = _calcularTotal(gastos);
                           final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-
+  
                           return Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
@@ -400,356 +455,326 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                // Conteúdo principal
-                Expanded(
-                  child: Consumer<GastoProvider>(
-                    builder: (context, gastoProvider, child) {
-                      final gastos = gastoProvider.gastosPorCategoria(widget.categoryId);
-                      final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-
-                      return Column(
-                        children: [
-                          // Linha de botões: adicionar gasto e caixa de texto
-                          Padding(
-                            padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                // Botão de adicionar gasto
-                                SizedBox(
-                                  height: 44,
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF23272F),
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                      minimumSize: const Size(0, 44),
-                                    ),
-                                    icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
-                                    label: const Text('Gasto'),
-                                    onPressed: () async {
-                                      final categoryProvider = context.read<CategoryProvider>();
-                                      final selectedCategory = categoryProvider.getCategoryById(widget.categoryId);
-
-                                      await showDialog(
-                                        context: context,
-                                        builder: (context) => AddExpenseDialog(
-                                          categoriaSelecionada: selectedCategory,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                // CaixaTextoWidget como botão
-                                Expanded(
-                                  child: CaixaTextoWidget(
-                                    asButton: true,
-                                    onExpand: () {
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (context) {
-                                          return BackdropFilter(
-                                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                            child: Center(
-                                              child: FractionallySizedBox(
-                                                widthFactor: 0.95,
-                                                child: Material(
-                                                  color: Colors.transparent,
-                                                  child: CaixaTextoWidget(
-                                                    asButton: false,
-                                                    autofocus: true,
-                                                    onCollapse: () {
-                                                      Navigator.of(context).pop();
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
+                // Linha de botões: adicionar gasto e caixa de texto
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Botão de adicionar gasto
+                      SizedBox(
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF23272F),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            minimumSize: const Size(0, 44),
                           ),
-                          // Header com mês/ano
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Julho 2025',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.chevron_left, color: Colors.white70),
-                                      onPressed: () {},
+                          icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                          label: const Text('Despesa'),
+                          onPressed: () async {
+                            final categoryProvider = context.read<CategoryProvider>();
+                            final selectedCategory = categoryProvider.getCategoryById(widget.categoryId);
+  
+                            await showDialog(
+                              context: context,
+                              builder: (context) => AddExpenseDialog(
+                                categoriaSelecionada: selectedCategory,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // CaixaTextoWidget como botão
+                      Expanded(
+                        child: CaixaTextoWidget(
+                          asButton: true,
+                          onExpand: () {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) {
+                                return BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                  child: Center(
+                                    child: FractionallySizedBox(
+                                      widthFactor: 0.95,
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: CaixaTextoWidget(
+                                          asButton: false,
+                                          autofocus: true,
+                                          onCollapse: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(Icons.chevron_right, color: Colors.white70),
-                                      onPressed: () {},
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Navegação de mês/ano
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                        onPressed: _previousMonth,
+                      ),
+                      Text(
+                        _formatMonthYear(_currentDate),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                        onPressed: _nextMonth,
+                      ),
+                    ],
+                  ),
+                ),
+                // Cabeçalho da tabela
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF23272F),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_sortBy == 'descricao') {
+                                _ascending = !_ascending;
+                              } else {
+                                _sortBy = 'descricao';
+                                _ascending = true;
+                              }
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              const Text(
+                                'Descrição',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (_sortBy == 'descricao')
+                                Icon(
+                                  _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                  color: Colors.white70,
+                                  size: 18,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_sortBy == 'data') {
+                                _ascending = !_ascending;
+                              } else {
+                                _sortBy = 'data';
+                                _ascending = false;
+                              }
+                            });
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Data',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (_sortBy == 'data')
+                                Icon(
+                                  _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                  color: Colors.white70,
+                                  size: 18,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_sortBy == 'valor') {
+                                _ascending = !_ascending;
+                              } else {
+                                _sortBy = 'valor';
+                                _ascending = false;
+                              }
+                            });
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              const Text(
+                                'Valor',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (_sortBy == 'valor')
+                                Icon(
+                                  _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                  color: Colors.white70,
+                                  size: 18,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 40), // Espaço para coluna "Ações"
+                      const Text(
+                        'Ações',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Lista de gastos com RefreshIndicator
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      final gastoProvider = context.read<GastoProvider>();
+                      final gastosAtualizados = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+                      setState(() {
+                        _gastosDoMes = gastosAtualizados;
+                      });
+                    },
+                    child: _gastosDoMes.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'Nenhuma despesa encontrada.',
+                              style: TextStyle(color: Colors.white54, fontSize: 16),
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            itemCount: _gastosDoMes.length,
+                            itemBuilder: (context, index) {
+                              final gasto = _gastosDoMes[index];
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 4),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF23272F),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        gasto.descricao.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Align(
+                                        alignment: Alignment.topLeft,
+                                        child: Text(
+                                          NumberFormat.currency(
+                                            locale: 'pt_BR',
+                                            symbol: 'R\$',
+                                            decimalDigits: 2,
+                                          ).format(gasto.valor),
+                                          style: const TextStyle(
+                                            color: Colors.greenAccent,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    PopupMenuButton<String>(
+                                      icon: const Icon(Icons.more_vert, color: Colors.white70),
+                                      onSelected: (value) async {
+                                        final gastoProvider = context.read<GastoProvider>();
+                                        if (value == 'editar') {
+                                          _editarGasto(context, gasto, gastoProvider);
+                                        } else if (value == 'deletar') {
+                                          _confirmarDeletarGasto(context, gasto, gastoProvider);
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'editar',
+                                          child: Text('Editar'),
+                                        ),
+                                        const PopupMenuItem(
+                                          value: 'deletar',
+                                          child: Text('Deletar'),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
-                          
-                          // Cabeçalho da tabela
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF23272F),
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        if (_sortBy == 'descricao') {
-                                          _ascending = !_ascending;
-                                        } else {
-                                          _sortBy = 'descricao';
-                                          _ascending = true;
-                                        }
-                                      });
-                                    },
-                                    child: Row(
-                                      children: [
-                                        const Text(
-                                          'Descrição',
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        if (_sortBy == 'descricao')
-                                          Icon(
-                                            _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                            color: Colors.white70,
-                                            size: 18,
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        if (_sortBy == 'data') {
-                                          _ascending = !_ascending;
-                                        } else {
-                                          _sortBy = 'data';
-                                          _ascending = false;
-                                        }
-                                      });
-                                    },
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'Data',
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        if (_sortBy == 'data')
-                                          Icon(
-                                            _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                            color: Colors.white70,
-                                            size: 18,
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        if (_sortBy == 'valor') {
-                                          _ascending = !_ascending;
-                                        } else {
-                                          _sortBy = 'valor';
-                                          _ascending = false;
-                                        }
-                                      });
-                                    },
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        const Text(
-                                          'Valor',
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        if (_sortBy == 'valor')
-                                          Icon(
-                                            _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                            color: Colors.white70,
-                                            size: 18,
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 40), // Espaço para coluna "Ações"
-                                const Text(
-                                  'Ações',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Lista de gastos
-                          Expanded(
-                            child: gastos.isEmpty
-                                ? const Center(
-                                    child: Text(
-                                      'Nenhum gasto encontrado nesta categoria.',
-                                      style: TextStyle(color: Colors.white54, fontSize: 16),
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    itemCount: gastos.length,
-                                    itemBuilder: (context, index) {
-                                      final gasto = gastos[index];
-                                      return Container(
-                                        margin: const EdgeInsets.only(bottom: 8),
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF23272F),
-                                          borderRadius: BorderRadius.circular(8),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.2),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            // Descrição
-                                            Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                gasto.descricao.toString(),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                                textAlign: TextAlign.start, // Alinhado à esquerda
-                                              ),
-                                            ),
-                                            // Data
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
-                                                style: const TextStyle(
-                                                  color: Colors.white70,
-                                                  fontSize: 14,
-                                                ),
-                                                textAlign: TextAlign.start, // Alinhado à esquerda
-                                              ),
-                                            ),
-                                            // Valor
-                                            Expanded(
-                                              flex: 2,
-                                              child: Align(
-                                                alignment: Alignment.centerLeft, // Alinhado um pouco mais à esquerda
-                                                child: Text(
-                                                  formatter.format(gasto.valor),
-                                                  style: const TextStyle(
-                                                    color: Colors.greenAccent,
-                                                    fontSize: 15,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Ações (três pontos)
-                                            SizedBox(
-                                              width: 40,
-                                              child: Align(
-                                                alignment: Alignment.centerRight, // Alinhado à direita
-                                                child: Consumer<GastoProvider>(
-                                                  builder: (context, gastoProvider, child) {
-                                                    return PopupMenuButton<String>(
-                                                      icon: const Icon(Icons.more_vert, color: Colors.white70, size: 20),
-                                                      color: const Color(0xFF23272F),
-                                                      onSelected: (value) async {
-                                                        if (value == 'editar') {
-                                                          await _editarGasto(context, gasto, gastoProvider);
-                                                        } else if (value == 'deletar') {
-                                                          await _confirmarDeletarGasto(context, gasto, gastoProvider);
-                                                        }
-                                                      },
-                                                      itemBuilder: (context) => [
-                                                        const PopupMenuItem(
-                                                          value: 'editar',
-                                                          child: Text('Editar', style: TextStyle(color: Colors.white)),
-                                                        ),
-                                                        const PopupMenuItem(
-                                                          value: 'deletar',
-                                                          child: Text('Deletar', style: TextStyle(color: Colors.red)),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        ],
-                      );
-                    },
                   ),
                 ),
                 // Rodapé
