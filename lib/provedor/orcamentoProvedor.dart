@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../modelos/orcamento.dart';
 import '../services/orcamento.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Provider para gerenciar o estado dos orçamentos
 class BudgetProvider with ChangeNotifier {
@@ -23,7 +24,16 @@ class BudgetProvider with ChangeNotifier {
     _setError(null);
 
     try {
-      _budgets = await BudgetService.getAll();
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser!.id; // Obtém o ID do usuário logado
+      final response = await supabase
+          .from('orcamentos')
+          .select()
+          .eq('user_id', userId); // Filtra os orçamentos pelo ID do usuário
+
+      _budgets = (response as List)
+          .map((data) => Budget.fromMap(data)) // Certifique-se de que Budget tenha um método `fromMap`
+          .toList();
       notifyListeners();
     } catch (e) {
       _setError('Erro ao carregar orçamentos: $e');
@@ -38,7 +48,17 @@ class BudgetProvider with ChangeNotifier {
     _setError(null);
 
     try {
-      _budgets = await BudgetService.getActive();
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser!.id; // Obtém o ID do usuário logado
+      final response = await supabase
+          .from('orcamentos')
+          .select()
+          .eq('user_id', userId) // Filtra os orçamentos pelo ID do usuário
+          .eq('ativo', true); // Filtra apenas os orçamentos ativos
+
+      _budgets = (response as List)
+          .map((data) => Budget.fromMap(data)) // Certifique-se de que Budget tenha um método `fromMap`
+          .toList();
       notifyListeners();
     } catch (e) {
       _setError('Erro ao carregar orçamentos ativos: $e');

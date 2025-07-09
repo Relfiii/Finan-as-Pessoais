@@ -80,7 +80,10 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                   // Insere na base e obtém o id gerado
                   final response = await supabase
                       .from('categorias')
-                      .insert({'nome': name})
+                      .insert({
+                        'nome': name,
+                        'user_id': Supabase.instance.client.auth.currentUser!.id
+                      })
                       .select()
                       .single();
               

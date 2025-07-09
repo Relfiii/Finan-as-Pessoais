@@ -285,6 +285,13 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   ) ?? 0.0;
 
                   try {
+                    // Verifica se a categoria selecionada existe no banco de dados
+                    await Supabase.instance.client
+                        .from('categorias')
+                        .select()
+                        .eq('id', _selectedCategoria!.id)
+                        .single();
+
                     // Salva no Supabase
                     final result = await Supabase.instance.client
                         .from('gastos')
@@ -293,6 +300,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           'valor': valor,
                           'data': _selectedDate.toIso8601String(),
                           'categoria_id': _selectedCategoria!.id,
+                          'user_id': Supabase.instance.client.auth.currentUser?.id,
                         })
                         .select()
                         .single();

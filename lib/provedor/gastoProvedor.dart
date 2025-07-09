@@ -19,9 +19,11 @@ class GastoProvider with ChangeNotifier {
     _setError(null);
 
     try {
+      final userId = Supabase.instance.client.auth.currentUser!.id;
       final data = await Supabase.instance.client
           .from('gastos')
-          .select('*');
+          .select('*')
+          .eq('user_id', userId);
       
       _gastos.clear();
       for (final item in data) {

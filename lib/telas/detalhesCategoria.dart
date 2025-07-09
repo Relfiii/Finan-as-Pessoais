@@ -108,7 +108,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}/${gasto.data.year}',
+                          '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
                           style: const TextStyle(
                             color: Colors.white54,
                             fontSize: 12,
@@ -572,7 +572,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                       });
                                     },
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center, // Alinha ao centro
                                       children: [
                                         const Text(
                                           'Data',
@@ -601,12 +601,12 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                           _ascending = !_ascending;
                                         } else {
                                           _sortBy = 'valor';
-                                          _ascending = false;
+                                          _ascending = true;
                                         }
                                       });
                                     },
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      mainAxisAlignment: MainAxisAlignment.center, // Alinha ao centro
                                       children: [
                                         const Text(
                                           'Valor',
@@ -685,7 +685,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                             Expanded(
                                               flex: 2,
                                               child: Text(
-                                                '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}/${gasto.data.year}',
+                                                '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
                                                 style: const TextStyle(
                                                   color: Colors.white70,
                                                   fontSize: 14,

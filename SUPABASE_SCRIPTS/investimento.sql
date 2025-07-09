@@ -1,24 +1,49 @@
--- Script para criar tabela de investimentos no Supabase
-create table investimentos (
-  id uuid primary key default uuid_generate_v4(),
-  descricao text not null,
-  valor numeric not null,
-  data date not null,
-  tipo text not null default 'Outro',
+-- Criação da tabela de investimentos
+CREATE TABLE IF NOT EXISTS investimentos (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  descricao text NOT NULL,
+  valor numeric NOT NULL,
+  data date NOT NULL,
+  tipo text NOT NULL DEFAULT 'Outro',
   tipo_outro text,
-  created_at timestamp with time zone default timezone('utc', now())
+  created_at timestamp with time zone DEFAULT timezone('utc', now()),
+  user_id uuid REFERENCES auth.users(id)
 );
 
--- Permissões para usuários autenticados
-grant all on table investimentos to authenticated;
+-- Criar índice para user_id
+CREATE INDEX IF NOT EXISTS idx_investimentos_user_id ON investimentos(user_id);
 
--- Índice para busca rápida por data
-create index idx_investimentos_data on investimentos(data);
+-- Habilitar RLS
+ALTER TABLE investimentos ENABLE ROW LEVEL SECURITY;
 
--- Índice para busca por tipo de investimento
-create index idx_investimentos_tipo on investimentos(tipo);
+-- Políticas de segurança
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'investimentos' AND policyname = 'Investimentos apenas do usuário'
+  ) THEN
+    CREATE POLICY "Investimentos apenas do usuário" ON investimentos
+      FOR SELECT USING (user_id = auth.uid());
+  END IF;
 
-ALTER TABLE investimentos
-ADD COLUMN user_id uuid references auth.users(id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'investimentos' AND policyname = 'Inserir investimentos do próprio usuário'
+  ) THEN
+    CREATE POLICY "Inserir investimentos do próprio usuário" ON investimentos
+      FOR INSERT WITH CHECK (user_id = auth.uid());
+  END IF;
 
-CREATE INDEX idx_investimentos_user_id ON investimentos(user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'investimentos' AND policyname = 'Atualizar investimentos do próprio usuário'
+  ) THEN
+    CREATE POLICY "Atualizar investimentos do próprio usuário" ON investimentos
+      FOR UPDATE USING (user_id = auth.uid());
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'investimentos' AND policyname = 'Deletar investimentos do próprio usuário'
+  ) THEN
+    CREATE POLICY "Deletar investimentos do próprio usuário" ON investimentos
+      FOR DELETE USING (user_id = auth.uid());
+  END IF;
+END $$;

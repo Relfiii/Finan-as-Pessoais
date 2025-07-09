@@ -76,6 +76,7 @@ class _AddReceitaDialogState extends State<AddReceitaDialog> {
           'descricao': descricao,
           'valor': valor,
           'data': data.toIso8601String().substring(0, 10),
+          'user_id': Supabase.instance.client.auth.currentUser!.id,
         })
         .select('id')
         .single();
@@ -138,11 +139,11 @@ class _AddReceitaDialogState extends State<AddReceitaDialog> {
               TextField(
                 controller: _valorController,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                 decoration: InputDecoration(
                   prefixText: 'R\$ ',
-                  prefixStyle: const TextStyle(color: Colors.white),
-                  hintText: 'Valor',
+                  prefixStyle: const TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
+                  hintText: '0,00',
                   hintStyle: const TextStyle(color: Colors.white54),
                   filled: true,
                   fillColor: const Color(0xFF23272F),

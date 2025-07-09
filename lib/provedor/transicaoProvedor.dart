@@ -115,9 +115,11 @@ class TransactionProvider with ChangeNotifier {
   }
 
   Future<double> getSaldoAtual() async {
+    final userId = Supabase.instance.client.auth.currentUser!.id; // Obtém o ID do usuário logado
     final data = await Supabase.instance.client
         .from('transacoes')
-        .select('valor');
+        .select('valor')
+        .eq('user_id', userId); // Filtra as transações pelo ID do usuário
     final list = data as List<dynamic>;
     return list.fold<double>(
       0.0,
@@ -126,6 +128,7 @@ class TransactionProvider with ChangeNotifier {
   }
   
   Future<double> getGastoMesAtual() async {
+    final userId = Supabase.instance.client.auth.currentUser!.id; // Obtém o ID do usuário logado
     final now = DateTime.now();
     final inicio = DateTime(now.year, now.month, 1);
     final fim = DateTime(now.year, now.month + 1, 0);
@@ -134,7 +137,8 @@ class TransactionProvider with ChangeNotifier {
         .select('valor')
         .gte('data', inicio.toIso8601String())
         .lte('data', fim.toIso8601String())
-        .eq('tipo', 'gasto');
+        .eq('tipo', 'gasto')
+        .eq('user_id', userId); // Filtra as transações pelo ID do usuário
     final list = data as List<dynamic>;
     return list.fold<double>(
       0.0,
@@ -143,10 +147,12 @@ class TransactionProvider with ChangeNotifier {
   }
   
   Future<double> getInvestimento() async {
+    final userId = Supabase.instance.client.auth.currentUser!.id; // Obtém o ID do usuário logado
     final data = await Supabase.instance.client
         .from('transacoes')
         .select('valor')
-        .eq('tipo', 'investimento');
+        .eq('tipo', 'investimento')
+        .eq('user_id', userId); // Filtra as transações pelo ID do usuário
     final list = data as List<dynamic>;
     return list.fold<double>(
       0.0,

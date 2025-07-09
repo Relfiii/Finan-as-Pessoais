@@ -45,7 +45,11 @@ class CategoryProvider with ChangeNotifier {
       _setLoading(true);
       try {
         final supabase = Supabase.instance.client;
-        final response = await supabase.from('categorias').select();
+        final userId = supabase.auth.currentUser!.id; // Obtém o ID do usuário logado
+        final response = await supabase
+            .from('categorias')
+            .select()
+            .eq('user_id', userId); // Filtra as categorias pelo ID do usuário
         _categories = (response as List)
             .map((data) => Category(
                   id: data['id'],

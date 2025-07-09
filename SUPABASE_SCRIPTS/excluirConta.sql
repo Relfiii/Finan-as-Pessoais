@@ -1,12 +1,13 @@
-create or replace function delete_current_user()
-returns void
-language plpgsql
-security definer
-as $$
-begin
-  delete from auth.users where id = auth.uid();
-end;
+-- Função para excluir o usuário atual
+CREATE OR REPLACE FUNCTION delete_current_user()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  DELETE FROM auth.users WHERE id = auth.uid();
+END;
 $$;
 
 -- Permitir que apenas o próprio usuário execute
-grant execute on function delete_current_user() to authenticated;
+GRANT EXECUTE ON FUNCTION delete_current_user() TO authenticated;

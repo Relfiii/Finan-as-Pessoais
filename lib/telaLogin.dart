@@ -156,6 +156,14 @@ class _TelaLoginState extends State<TelaLogin> {
                                       final supabase = Supabase.instance.client;
                                       final email = emailController.text.trim();
 
+                                      if (email.isEmpty || senhaController.text.isEmpty) {
+                                        setState(() {
+                                          mensagemErro = 'Por favor, preencha todos os campos.';
+                                          loginInvalido = true;
+                                        });
+                                        return;
+                                      }
+
                                       try {
                                         final response = await supabase.auth.signInWithPassword(
                                           email: email,

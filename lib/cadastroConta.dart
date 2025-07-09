@@ -327,24 +327,25 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                                             if (_senhaController.text.isEmpty || _confirmeController.text.isEmpty) {
                                               setState(() {
                                                 _mostrarErroSenhaVazia = true;
+                                                _erroCamposVazios = null; // Remove mensagem de comprimento
                                               });
+                                              return;
+                                            } else if (_senhaController.text.length < 6) {
+                                              setState(() {
+                                                _mostrarErroSenhaVazia = false; // Remove erro de campos vazios
+                                                _erroCamposVazios = 'A senha deve ter pelo menos 6 caracteres.';
+                                              });
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('A senha deve ter pelo menos 6 caracteres.'),
+                                                ),
+                                              );
                                               return;
                                             } else {
                                               setState(() {
                                                 _mostrarErroSenhaVazia = false;
+                                                _erroCamposVazios = null;
                                               });
-                                            }
-                                            if (_senhaController.text != _confirmeController.text) {
-                                              setState(() {
-                                                _confirmeBorderColor = Colors.red;
-                                              });
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('As senhas não coincidem.'),
-                                                  backgroundColor: Colors.red,
-                                                ),
-                                              );
-                                              return;
                                             }
                                             try {
                                               final response = await Supabase.instance.client.auth.signUp(
