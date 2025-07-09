@@ -417,90 +417,108 @@ class ReceitaCard extends StatelessWidget {
       useSymbolPadding: true,
       thousandSeparator: ThousandSeparator.Period,
     );
-    return Container(
-      height: 130, // Defina a altura desejada aqui
-      decoration: BoxDecoration(
-        color: const Color(0xFF232323),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () {},
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          descricao,
+
+    return GestureDetector(
+      onTap: () {},
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        height: 140, // Altura ajustada
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2A2A2A), Color(0xFF1E1E1E)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              splashColor: Colors.purple.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            descricao,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
+                          color: const Color(0xFF2A2A2A),
+                          padding: EdgeInsets.zero,
+                          onSelected: (value) {
+                            if (value == 'editar') {
+                              onEdit();
+                            } else if (value == 'deletar') {
+                              onDelete();
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'editar',
+                              child: Text('Editar', style: TextStyle(color: Colors.white)),
+                            ),
+                            const PopupMenuItem(
+                              value: 'deletar',
+                              child: Text('Deletar', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.attach_money, color: Color(0xFFB983FF), size: 20),
+                        const SizedBox(width: 6),
+                        Text(
+                          valorFormatado,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Color.fromARGB(255, 158, 214, 158),
                             fontWeight: FontWeight.bold,
-                            fontSize: 17,
+                            fontSize: 16,
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
-                        color: const Color(0xFF23272F),
-                        padding: EdgeInsets.zero,
-                        onSelected: (value) {
-                          if (value == 'editar') {
-                            onEdit();
-                          } else if (value == 'deletar') {
-                            onDelete();
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'editar',
-                            child: Text('Editar', style: TextStyle(color: Colors.white)),
-                          ),
-                          const PopupMenuItem(
-                            value: 'deletar',
-                            child: Text('Deletar', style: TextStyle(color: Colors.red)),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.attach_money, color: Color(0xFFB983FF), size: 18),
-                      const SizedBox(width: 6),
-                      Text(
-                        valorFormatado,
+                      ],
+                    ),
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Text(
+                        '${data.day.toString().padLeft(2, '0')}/'
+                        '${data.month.toString().padLeft(2, '0')}/'
+                        '${data.year}',
                         style: const TextStyle(
-                          color: Color.fromARGB(255, 158, 214, 158),
-                          fontSize: 16,
+                          color: Colors.white54,
+                          fontSize: 13,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Text(
-                      '${data.day.toString().padLeft(2, '0')}/'
-                      '${data.month.toString().padLeft(2, '0')}/'
-                      '${data.year}',
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 13,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

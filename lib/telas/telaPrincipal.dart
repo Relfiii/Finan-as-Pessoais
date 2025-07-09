@@ -7,7 +7,7 @@ import 'telaLateral.dart';
 import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
-import '../graficos/graficos.dart';
+import '../graficos/graficoColunaPrincipal.dart';
 import '../provedor/gastoProvedor.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';

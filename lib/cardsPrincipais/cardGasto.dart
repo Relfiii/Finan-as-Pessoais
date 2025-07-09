@@ -183,7 +183,7 @@ class CardGasto extends StatelessWidget {
                         const Expanded(
                           child: Center(
                             child: Text(
-                              'Gasto do Mês',
+                              'Despesa do Mês',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -241,7 +241,7 @@ class CardGasto extends StatelessWidget {
                               minimumSize: const Size(0, 44),
                             ),
                             icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
-                            label: const Text('Gasto'),
+                            label: const Text('Despesa'),
                             onPressed: () async {
                               await showDialog(
                                 context: context,
@@ -363,85 +363,119 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ValueNotifier<bool> isPressed = ValueNotifier(false);
     final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF232323),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          categoryName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
-                        color: const Color(0xFF23272F),
-                        padding: EdgeInsets.zero,
-                        onSelected: (value) {
-                          if (value == 'editar') {
-                            onEdit();
-                          } else if (value == 'deletar') {
-                            onDelete();
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'editar',
-                            child: Text('Editar', style: TextStyle(color: Colors.white)),
-                          ),
-                          const PopupMenuItem(
-                            value: 'deletar',
-                            child: Text('Deletar', style: TextStyle(color: Colors.red)),
-                          ),
-                        ],
-                      ),
-                    ],
+    return GestureDetector(
+      onTap: onTap,
+      onTapDown: (_) => isPressed.value = true,
+      onTapUp: (_) => isPressed.value = false,
+      onTapCancel: () => isPressed.value = false,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: isPressed,
+        builder: (context, pressed, child) {
+          return AnimatedScale(
+            scale: pressed ? 0.98 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2A2A2A), Color(0xFF1E1E1E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const SizedBox(width: 6),
-                      Text(
-                        formatter.format(valor),
-                        style: const TextStyle(
-                          color: Color.fromARGB(255, 214, 158, 158),
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  BoxShadow(
+                    color: Colors.red.withOpacity(0.2).withOpacity(0.10), 
+                    blurRadius: 20,
+                    spreadRadius: -4,
                   ),
                 ],
               ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    splashColor: Colors.red.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  categoryName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
+                                color: const Color(0xFF2A2A2A),
+                                padding: EdgeInsets.zero,
+                                onSelected: (value) {
+                                  if (value == 'editar') {
+                                    onEdit();
+                                  } else if (value == 'deletar') {
+                                    onDelete();
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'editar',
+                                    child: Text('Editar', style: TextStyle(color: Colors.white)),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'deletar',
+                                    child: Text('Deletar', style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              const Icon(Icons.attach_money, color: Color(0xFFB983FF), size: 20),
+                              const SizedBox(width: 6),
+                              Text(
+                                formatter.format(valor),
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 214, 158, 158),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
