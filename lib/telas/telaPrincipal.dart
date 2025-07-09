@@ -267,11 +267,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 margin: const EdgeInsets.all(3),
                                                 padding: const EdgeInsets.all(16),
                                                 decoration: BoxDecoration(
-                                                  color: Color(0xFF23272F),
-                                                  borderRadius: BorderRadius.circular(12),
+                                                  gradient: LinearGradient(
+                                                    colors: [Color(0xFF2A2D3E), Color(0xFF1C1F2A)],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.5),
+                                                      offset: Offset(4, 4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.2),
+                                                      offset: Offset(-4, -4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                  ],
                                                 ),
                                                 constraints: const BoxConstraints(
-                                                  minHeight: 80,
+                                                  minHeight: 100,
                                                 ),
                                                 child: Column(
                                                   crossAxisAlignment:
@@ -281,15 +297,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Text(
                                                       localizations.saldoAtual,
                                                       style: const TextStyle(
-                                                          color: Colors.white70,
-                                                          fontSize: 16),
+                                                        color: Colors.white70,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
                                                       softWrap: true,
                                                       overflow: TextOverflow.visible,
                                                     ),
-                                                    const SizedBox(height: 8),
-                                                    Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment.start,
+                                                    const SizedBox(height: 12),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                       children: [
                                                         Text(
                                                           toCurrencyString(
@@ -302,8 +319,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             color: const Color.fromARGB(
                                                                 255, 24, 119, 5),
                                                             fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
+                                                            fontSize: 20,
                                                           ),
+                                                        ),
+                                                        Icon(
+                                                          Icons.account_balance_wallet,
+                                                          color: const Color.fromARGB(255, 24, 119, 5),
+                                                          size: 28,
                                                         ),
                                                       ],
                                                     ),
@@ -326,11 +348,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 margin: const EdgeInsets.all(3),
                                                 padding: const EdgeInsets.all(16),
                                                 decoration: BoxDecoration(
-                                                  color: Color(0xFF23272F),
-                                                  borderRadius: BorderRadius.circular(12),
+                                                  gradient: LinearGradient(
+                                                    colors: [Color(0xFF3A1C1C), Color(0xFF2A1A1A)],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.5),
+                                                      offset: Offset(4, 4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.2),
+                                                      offset: Offset(-4, -4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                  ],
                                                 ),
                                                 constraints: const BoxConstraints(
-                                                  minHeight: 80,
+                                                  minHeight: 100,
                                                 ),
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,14 +377,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Text(
                                                       localizations.gastoNoMes,
                                                       style: const TextStyle(
-                                                          color: Colors.white70,
-                                                          fontSize: 16),
+                                                        color: Colors.white70,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
                                                       softWrap: true,
                                                       overflow: TextOverflow.visible,
                                                     ),
-                                                    const SizedBox(height: 8),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                    const SizedBox(height: 12),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                       children: [
                                                         Consumer<GastoProvider>(
                                                           builder: (context, gastoProvider, _) {
@@ -357,10 +397,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               style: TextStyle(
                                                                 color: const Color.fromARGB(255, 151, 53, 53),
                                                                 fontWeight: FontWeight.bold,
-                                                                fontSize: 16,
+                                                                fontSize: 20,
                                                               ),
                                                             );
                                                           },
+                                                        ),
+                                                        Icon(
+                                                          Icons.trending_down,
+                                                          color: const Color.fromARGB(255, 151, 53, 53),
+                                                          size: 28,
                                                         ),
                                                       ],
                                                     ),
@@ -385,11 +430,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                         margin: const EdgeInsets.all(3),
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
-                                          color: Color(0xFF23272F),
-                                          borderRadius: BorderRadius.circular(12),
+                                          gradient: LinearGradient(
+                                            colors: [Color(0xFF1C2A3A), Color(0xFF1A2A2F)],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.5),
+                                              offset: Offset(4, 4),
+                                              blurRadius: 8,
+                                            ),
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.2),
+                                              offset: Offset(-4, -4),
+                                              blurRadius: 8,
+                                            ),
+                                          ],
                                         ),
                                         constraints: const BoxConstraints(
-                                          minHeight: 80,
+                                          minHeight: 100,
                                         ),
                                         width: double.infinity,
                                         child: Column(
@@ -403,25 +464,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                               softWrap: true,
                                               overflow: TextOverflow.visible,
                                             ),
-                                            const SizedBox(height: 8),
-                                            FutureBuilder<double>(
-                                              future: InvestimentoUtils.buscarTotalInvestimentos(),
-                                              builder: (context, snapshot) {
-                                                final valor = snapshot.data ?? 0.0;
-                                                return Text(
-                                                  toCurrencyString(
-                                                    valor.toString(),
-                                                    leadingSymbol: 'R\$',
-                                                    useSymbolPadding: true,
-                                                    thousandSeparator: ThousandSeparator.Period,
-                                                  ),
-                                                  style: TextStyle(
-                                                    color: const Color.fromARGB(255, 15, 157, 240),
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                  ),
-                                                );
-                                              },
+                                            const SizedBox(height: 12),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                FutureBuilder<double>(
+                                                  future: InvestimentoUtils.buscarTotalInvestimentos(),
+                                                  builder: (context, snapshot) {
+                                                    final valor = snapshot.data ?? 0.0;
+                                                    return Text(
+                                                      toCurrencyString(
+                                                        valor.toString(),
+                                                        leadingSymbol: 'R\$',
+                                                        useSymbolPadding: true,
+                                                        thousandSeparator: ThousandSeparator.Period,
+                                                      ),
+                                                      style: TextStyle(
+                                                        color: const Color.fromARGB(255, 15, 157, 240),
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 20,
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                                Icon(
+                                                  Icons.trending_up,
+                                                  color: const Color.fromARGB(255, 15, 157, 240),
+                                                  size: 28,
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),

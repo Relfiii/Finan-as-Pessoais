@@ -572,7 +572,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                       });
                                     },
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center, // Alinha ao centro
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         const Text(
                                           'Data',
@@ -601,12 +601,12 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                           _ascending = !_ascending;
                                         } else {
                                           _sortBy = 'valor';
-                                          _ascending = true;
+                                          _ascending = false;
                                         }
                                       });
                                     },
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center, // Alinha ao centro
+                                      mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
                                         const Text(
                                           'Valor',
@@ -679,6 +679,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.bold,
                                                 ),
+                                                textAlign: TextAlign.start, // Alinhado à esquerda
                                               ),
                                             ),
                                             // Data
@@ -690,49 +691,54 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                   color: Colors.white70,
                                                   fontSize: 14,
                                                 ),
-                                                textAlign: TextAlign.center,
+                                                textAlign: TextAlign.start, // Alinhado à esquerda
                                               ),
                                             ),
                                             // Valor
                                             Expanded(
                                               flex: 2,
-                                              child: Text(
-                                                formatter.format(gasto.valor),
-                                                style: const TextStyle(
-                                                  color: Colors.greenAccent,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.bold,
+                                              child: Align(
+                                                alignment: Alignment.centerLeft, // Alinhado um pouco mais à esquerda
+                                                child: Text(
+                                                  formatter.format(gasto.valor),
+                                                  style: const TextStyle(
+                                                    color: Colors.greenAccent,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
-                                                textAlign: TextAlign.end,
                                               ),
                                             ),
-                                            // Ações
+                                            // Ações (três pontos)
                                             SizedBox(
                                               width: 40,
-                                              child: Consumer<GastoProvider>(
-                                                builder: (context, gastoProvider, child) {
-                                                  return PopupMenuButton<String>(
-                                                    icon: const Icon(Icons.more_vert, color: Colors.white70, size: 20),
-                                                    color: const Color(0xFF23272F),
-                                                    onSelected: (value) async {
-                                                      if (value == 'editar') {
-                                                        await _editarGasto(context, gasto, gastoProvider);
-                                                      } else if (value == 'deletar') {
-                                                        await _confirmarDeletarGasto(context, gasto, gastoProvider);
-                                                      }
-                                                    },
-                                                    itemBuilder: (context) => [
-                                                      const PopupMenuItem(
-                                                        value: 'editar',
-                                                        child: Text('Editar', style: TextStyle(color: Colors.white)),
-                                                      ),
-                                                      const PopupMenuItem(
-                                                        value: 'deletar',
-                                                        child: Text('Deletar', style: TextStyle(color: Colors.red)),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
+                                              child: Align(
+                                                alignment: Alignment.centerRight, // Alinhado à direita
+                                                child: Consumer<GastoProvider>(
+                                                  builder: (context, gastoProvider, child) {
+                                                    return PopupMenuButton<String>(
+                                                      icon: const Icon(Icons.more_vert, color: Colors.white70, size: 20),
+                                                      color: const Color(0xFF23272F),
+                                                      onSelected: (value) async {
+                                                        if (value == 'editar') {
+                                                          await _editarGasto(context, gasto, gastoProvider);
+                                                        } else if (value == 'deletar') {
+                                                          await _confirmarDeletarGasto(context, gasto, gastoProvider);
+                                                        }
+                                                      },
+                                                      itemBuilder: (context) => [
+                                                        const PopupMenuItem(
+                                                          value: 'editar',
+                                                          child: Text('Editar', style: TextStyle(color: Colors.white)),
+                                                        ),
+                                                        const PopupMenuItem(
+                                                          value: 'deletar',
+                                                          child: Text('Deletar', style: TextStyle(color: Colors.red)),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                ),
                                               ),
                                             ),
                                           ],
