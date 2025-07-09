@@ -5,6 +5,7 @@ import 'criarCategoria.dart';
 import 'configuracoes/configuracao.dart';
 import '../telaLogin.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'controleFamiliar/controleFamiliar.dart';
 
 class TelaLateral extends StatelessWidget {
   const TelaLateral({Key? key}) : super(key: key);
@@ -171,17 +172,15 @@ class TelaLateral extends StatelessWidget {
                           icon: Icons.family_restroom_outlined,
                           label: 'Controle Familiar',
                           onTap: () {
+                            final navigator = Navigator.of(context);
                             Navigator.pop(context);
-                            showGeneralDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              barrierLabel: "Controle Familiar",
-                              barrierColor: Colors.black.withOpacity(0.3),
-                              transitionDuration: const Duration(milliseconds: 200),
-                              pageBuilder: (context, anim1, anim2) {
-                                return const AddCategoryDialog();
-                              },
-                            );
+                            Future.delayed(const Duration(milliseconds: 220), () {
+                              navigator.push(
+                                MaterialPageRoute(
+                                  builder: (context) => const ControleFamiliarPage(),
+                                ),
+                              );
+                            });
                           },
                         ),
                         _buildDrawerButton(
