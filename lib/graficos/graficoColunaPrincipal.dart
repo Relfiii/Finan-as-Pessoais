@@ -1,5 +1,7 @@
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import '../services/supabase_graficos.dart';
 
 class GraficoColunaPrincipal extends StatefulWidget {
   final double saldoAtual;
@@ -45,84 +47,66 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal> {
       periodoSelecionado = novoPeriodo;
       carregando = true;
     });
-    if (widget.onPeriodoChanged != null) {
-      final valores = await widget.onPeriodoChanged!(novoPeriodo);
-      setState(() {
-        saldoAtual = valores['saldo'] ?? 0;
-        totalGastoMes = valores['gasto'] ?? 0;
-        investimento = valores['invest'] ?? 0;
-        carregando = false;
-      });
-    } else {
-      // Se não houver callback, mantém os valores iniciais
+    if (novoPeriodo == 'Atual') {
       setState(() {
         saldoAtual = widget.saldoAtual;
         totalGastoMes = widget.totalGastoMes;
         investimento = widget.investimento;
         carregando = false;
       });
+      return;
     }
+    // Busca dados reais do Supabase
+    final gastos = await SupabaseGraficosService.getGastosPorPeriodo(novoPeriodo);
+    final entradas = await SupabaseGraficosService.getEntradasPorPeriodo(novoPeriodo);
+    final investimentos = await SupabaseGraficosService.getInvestimentosPorPeriodo(novoPeriodo);
+    // Monta labels únicos ordenados
+    final Set<String> labels = {
+      ...gastos.map((e) => e['label'] as String),
+      ...entradas.map((e) => e['label'] as String),
+      ...investimentos.map((e) => e['label'] as String),
+    };
+    final sortedLabels = labels.toList()..sort();
+    // Monta valores para cada label
+    List<List<double>> novosValores = sortedLabels.map((label) {
+      final entrada = entradas.firstWhere((e) => e['label'] == label, orElse: () => {'total': 0.0});
+      final gasto = gastos.firstWhere((e) => e['label'] == label, orElse: () => {'total': 0.0});
+      final invest = investimentos.firstWhere((e) => e['label'] == label, orElse: () => {'total': 0.0});
+      return [
+        (entrada['total'] as num?)?.toDouble() ?? 0.0,
+        (gasto['total'] as num?)?.toDouble() ?? 0.0,
+        (invest['total'] as num?)?.toDouble() ?? 0.0,
+      ];
+    }).toList();
+    setState(() {
+      xLabels = sortedLabels;
+      valores = novosValores;
+      carregando = false;
+    });
+  }
+
+  // Variáveis para labels e valores dinâmicos
+  List<String> xLabels = [];
+  List<List<double>> valores = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializa com o período atual
+    final now = DateTime.now();
+    final meses = [
+      'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+      'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+    ];
+    String mesAtual = '${meses[now.month - 1]}\n${now.year}';
+    xLabels = [mesAtual];
+    valores = [
+      [saldoAtual, totalGastoMes, investimento]
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    // Geração dinâmica dos labels e valores conforme o período selecionado
-    List<String> xLabels = [];
-    List<List<double>> valores = []; // [ [saldo, gasto, invest], ... ]
-    final now = DateTime.now();
-
-    if (periodoSelecionado == 'Atual') {
-      // Apenas o mês atual
-      final meses = [
-        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-      ];
-      String mesAtual = '${meses[now.month - 1]}\n${now.year}';
-      xLabels = [mesAtual];
-      valores = [
-        [saldoAtual, totalGastoMes, investimento]
-      ];
-    } else if (periodoSelecionado == 'Semana') {
-      // Exemplo: últimas 4 semanas
-      xLabels = List.generate(4, (i) => 'Semana ${i + 1}');
-      // Simulação: valores variando para cada semana
-      valores = List.generate(4, (i) => [
-        saldoAtual - i * 200,
-        totalGastoMes - i * 100,
-        investimento + i * 50,
-      ]);
-    } else if (periodoSelecionado == 'Mês') {
-      // Exemplo: últimos 6 meses
-      final meses = [
-        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-      ];
-      int mesAtual = now.month - 1;
-      int anoAtual = now.year;
-      xLabels = List.generate(6, (i) {
-        int idx = (mesAtual - (5 - i));
-        int ano = anoAtual;
-        if (idx < 0) {
-          idx += 12;
-          ano--;
-        }
-        return '${meses[idx]}\n$ano';
-      });
-      valores = List.generate(6, (i) => [
-        saldoAtual - i * 300,
-        totalGastoMes - i * 150,
-        investimento + i * 80,
-      ]);
-    } else if (periodoSelecionado == 'Ano') {
-      // Exemplo: últimos 5 anos
-      int anoAtual = now.year;
-      xLabels = List.generate(5, (i) => '${anoAtual - 4 + i}');
-      valores = List.generate(5, (i) => [
-        saldoAtual - i * 1000,
-        totalGastoMes - i * 500,
-        investimento + i * 400,
-      ]);
-    }
 
     // Calcula o novo maxY para o gráfico
     final double maxY = valores.isNotEmpty

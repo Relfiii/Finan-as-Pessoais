@@ -26,3 +26,34 @@ CREATE POLICY "Atualizar entradas do próprio usuário" ON entradas
 
 CREATE POLICY "Deletar entradas do próprio usuário" ON entradas
   FOR DELETE USING (user_id = auth.uid());
+
+create or replace function public.entradas_por_periodo(
+  periodo text
+)
+returns table(
+  label text,
+  total numeric
+)
+language sql
+as $$
+  with base as (
+    select
+      case
+        when periodo = 'Semana' then to_char(date_trunc('week', data), 'IW/YYYY')
+        when periodo = 'Mês' then to_char(date_trunc('month', data), 'MM/YYYY')
+        when periodo = 'Ano' then to_char(date_trunc('year', data), 'YYYY')
+      end as label,
+      valor
+    from public.entradas
+    where user_id = auth.uid()
+      and (
+        (periodo = 'Semana' and data >= date_trunc('week', now()) - interval '3 week')
+        or (periodo = 'Mês' and data >= date_trunc('month', now()) - interval '5 month')
+        or (periodo = 'Ano' and data >= date_trunc('year', now()) - interval '4 year')
+      )
+  )
+  select label, sum(valor) as total
+  from base
+  group by label
+  order by label;
+$$;
