@@ -501,20 +501,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                     ),
+                                    // Adiciona o gráfico de colunas logo abaixo do card de investimentos
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                      child: Container(
+                                        height: 260,
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: GraficoColunaPrincipal(
+                                          saldoAtual: saldoAtual,
+                                          totalGastoMes: gastoMes,
+                                          investimento: investimento,
+                                        ),
+                                      ),
+                                    ),
                                   ],
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Gráfico de visão geral financeira (colunas)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                                child: Container(
-                                  height: 300,
-                                  child: GraficoColunaPrincipal(
-                                    saldoAtual: saldoAtual,
-                                    totalGastoMes: gastoMes,
-                                    investimento: investimento,
-                                  ),
                                 ),
                               ),
                               const SizedBox(height: 16),
