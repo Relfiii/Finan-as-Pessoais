@@ -7,12 +7,12 @@ import 'telaLateral.dart';
 import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
-import '../graficos/graficoColunaPrincipal.dart';
 import '../provedor/gastoProvedor.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../cardsPrincipais/cardInvestimento.dart';
+import '../graficos/graficoColunaPrincipal.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -54,9 +54,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadResumo() async {
     final transactionProvider = context.read<TransactionProvider>();
+    final gastoProvider = context.read<GastoProvider>();
     saldoAtual = await ReceitaUtils.buscarTotalReceitas();
     gastoMes = await transactionProvider.getGastoMesAtual();
     investimento = await InvestimentoUtils.buscarTotalInvestimentos();
+    gastoMes = gastoProvider.totalGastos; // Corrige para usar o getter corretamente
     setState(() {});
   }
 
@@ -69,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final localizations = AppLocalizations.of(context)!;
-    // O nome do usuário agora é obtido via Provider dentro de TelaLateral
+
     return Scaffold(
       drawer: TelaLateral(),
       body: Stack(
@@ -198,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Consumer<TransactionProvider>(
                       builder: (context, transactionProvider, child) {
                         if (transactionProvider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return Center(child: CircularProgressIndicator());
                         }
                         if (transactionProvider.error != null) {
                           return Center(
@@ -505,19 +507,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               // Gráfico de visão geral financeira
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                                child: Consumer<GastoProvider>(
-                                  builder: (context, gastoProvider, _) {
-                                    final totalGasto = gastoProvider.totalGastoMes();
-                                    return GraficoVisaoGeral(
-                                      totalGastoMes: totalGasto,
-                                      saldoAtual: saldoAtual,
-                                      investimento: investimento,
-                                    );
-                                  },
+                                child: Container(
+                                  height: 300, // Define a altura fixa para o gráfico
+                                  child: GraficoVisaoGeral(
+                                    saldoAtual: saldoAtual, // Valor dinâmico do saldo
+                                    totalGastoMes: gastoMes, // Valor dinâmico do gasto
+                                    investimento: investimento, // Valor dinâmico do investimento
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 24),
-                            ],
+                                                        ],
                           ),
                         );
                       },
@@ -533,6 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 }
 
 /// TopBar customizada com CaixaTextoWidget como botão central

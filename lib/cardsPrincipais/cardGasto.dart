@@ -195,12 +195,11 @@ class _CardGastoState extends State<CardGasto> {
                           const Expanded(
                             child: Center(
                               child: Text(
-                                'Despesa do Mês',
+                                'Gastos',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color(0xFFB983FF),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22,
-                                  letterSpacing: 1.1,
                                 ),
                               ),
                             ),
@@ -210,6 +209,37 @@ class _CardGastoState extends State<CardGasto> {
                       ),
                     ),
                     const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                    // Exibição do valor total de gastos
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Consumer<GastoProvider>(
+                        builder: (context, gastoProvider, child) {
+                          final totalGasto = gastoProvider.totalGastos;
+                          final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total de Gastos:',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                formatter.format(totalGasto),
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
                     // TopBar com botões de categoria, gasto e caixa de texto
                     Padding(
                       padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 0),
@@ -306,11 +336,6 @@ class _CardGastoState extends State<CardGasto> {
                                       categoryName: cat.name,
                                       valor: valor,
                                       onTap: () async {
-                                        final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
-                                        
-                                        // Recarrega os dados da base para a categoria selecionada
-                                        await gastoProvider.getGastosPorCategoria(cat.id);
-                                      
                                         // Navega para a tela de detalhes da categoria
                                         Navigator.push(
                                           context,

@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GastoProvider with ChangeNotifier {
   final List<Gasto> _gastos = [];
+  final Map<String, List<Gasto>> _gastosPorCategoria = {}; // Cache para gastos por categoria
   bool _isLoading = false;
   String? _error;
 
@@ -24,16 +25,25 @@ class GastoProvider with ChangeNotifier {
           .from('gastos')
           .select('*')
           .eq('user_id', userId);
-      
+
       _gastos.clear();
+      _gastosPorCategoria.clear(); // Limpa o cache
+
       for (final item in data) {
-        _gastos.add(Gasto(
+        final gasto = Gasto(
           id: item['id'],
           descricao: item['descricao'],
           valor: (item['valor'] as num).toDouble(),
           data: DateTime.parse(item['data']),
           categoriaId: item['categoria_id'],
-        ));
+        );
+        _gastos.add(gasto);
+
+        // Adiciona ao cache por categoria
+        if (!_gastosPorCategoria.containsKey(gasto.categoriaId)) {
+          _gastosPorCategoria[gasto.categoriaId] = [];
+        }
+        _gastosPorCategoria[gasto.categoriaId]!.add(gasto);
       }
       notifyListeners();
     } catch (e) {
@@ -44,7 +54,7 @@ class GastoProvider with ChangeNotifier {
   }
 
   List<Gasto> gastosPorCategoria(String categoryId) {
-    return _gastos.where((gasto) => gasto.categoriaId == categoryId).toList();
+    return _gastosPorCategoria[categoryId] ?? [];
   }
 
   void addGasto(Gasto gasto) {
@@ -94,9 +104,8 @@ class GastoProvider with ChangeNotifier {
   }
 
   double totalPorCategoria(String categoriaId) {
-    return _gastos
-        .where((g) => g.categoriaId == categoriaId)
-        .fold(0.0, (soma, g) => soma + g.valor);
+    final gastos = _gastosPorCategoria[categoriaId] ?? [];
+    return gastos.fold(0.0, (soma, g) => soma + g.valor);
   }
 
   double totalGastoMes({DateTime? referencia}) {
