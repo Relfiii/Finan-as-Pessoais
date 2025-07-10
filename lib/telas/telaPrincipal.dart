@@ -13,6 +13,7 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../cardsPrincipais/cardInvestimento.dart';
 import '../graficos/graficoColunaPrincipal.dart';
+import '../graficos/graficoRoscaPrincipal.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -504,20 +505,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              // Gráfico de visão geral financeira
+                              // Gráfico de visão geral financeira (colunas)
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                                 child: Container(
-                                  height: 300, // Define a altura fixa para o gráfico
-                                  child: GraficoVisaoGeral(
-                                    saldoAtual: saldoAtual, // Valor dinâmico do saldo
-                                    totalGastoMes: gastoMes, // Valor dinâmico do gasto
-                                    investimento: investimento, // Valor dinâmico do investimento
+                                  height: 300,
+                                  child: GraficoColunaPrincipal(
+                                    saldoAtual: saldoAtual,
+                                    totalGastoMes: gastoMes,
+                                    investimento: investimento,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 24),
-                                                        ],
+                              const SizedBox(height: 16),
+                              // Gráfico de rosca logo abaixo
+                              // Padding(
+                              //   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                              //   child: Container(
+                              //     height: 220,
+                              //     child: GraficoRoscaPrincipal(
+                              //       saldoAtual: saldoAtual,
+                              //       totalGastoMes: gastoMes,
+                              //       investimento: investimento,
+                              //     ),
+                              //   ),
+                              // ),
+                              // const SizedBox(height: 24),
+                            ],
                           ),
                         );
                       },

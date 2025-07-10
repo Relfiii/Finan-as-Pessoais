@@ -41,3 +41,35 @@ CREATE POLICY "Atualizar gastos do próprio usuário" ON public.gastos
 
 CREATE POLICY "Deletar gastos do próprio usuário" ON public.gastos
   FOR DELETE USING (user_id = auth.uid());
+
+-- Função para retornar total de gastos por período
+create or replace function public.total_gastos_por_periodo(
+  periodo text
+)
+returns table(
+  label text,
+  total numeric
+)
+language sql
+as $$
+  with base as (
+    select
+      case
+        when periodo = 'Semana' then to_char(date_trunc('week', data), 'IW/YYYY')
+        when periodo = 'Mês' then to_char(date_trunc('month', data), 'MM/YYYY')
+        when periodo = 'Ano' then to_char(date_trunc('year', data), 'YYYY')
+      end as label,
+      valor
+    from public.gastos
+    where user_id = auth.uid()
+      and (
+        (periodo = 'Semana' and data >= date_trunc('week', now()) - interval '3 week')
+        or (periodo = 'Mês' and data >= date_trunc('month', now()) - interval '5 month')
+        or (periodo = 'Ano' and data >= date_trunc('year', now()) - interval '4 year')
+      )
+  )
+  select label, sum(valor) as total
+  from base
+  group by label
+  order by label;
+$$;
