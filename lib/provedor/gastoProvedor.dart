@@ -4,30 +4,34 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GastoProvider with ChangeNotifier {
   final List<Gasto> _gastos = [];
-  final Map<String, List<Gasto>> _gastosPorCategoria = {}; // Cache para gastos por categoria
+  final Map<String, List<Gasto>> _gastosPorCategoria = {};
   bool _isLoading = false;
   String? _error;
 
-  /// Estado de carregamento
   bool get isLoading => _isLoading;
-
-  /// Mensagem de erro
   String? get error => _error;
 
-  /// Carrega todos os gastos da base de dados
+  List<Gasto> get gastos => _gastos;
+
   Future<void> loadGastos() async {
     _setLoading(true);
     _setError(null);
 
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      _setError('Usuário não autenticado.');
+      _setLoading(false);
+      return;
+    }
+
     try {
-      final userId = Supabase.instance.client.auth.currentUser!.id;
       final data = await Supabase.instance.client
           .from('gastos')
           .select('*')
-          .eq('user_id', userId);
+          .eq('user_id', user.id);
 
       _gastos.clear();
-      _gastosPorCategoria.clear(); // Limpa o cache
+      _gastosPorCategoria.clear();
 
       for (final item in data) {
         final gasto = Gasto(
@@ -39,10 +43,7 @@ class GastoProvider with ChangeNotifier {
         );
         _gastos.add(gasto);
 
-        // Adiciona ao cache por categoria
-        if (!_gastosPorCategoria.containsKey(gasto.categoriaId)) {
-          _gastosPorCategoria[gasto.categoriaId] = [];
-        }
+        _gastosPorCategoria[gasto.categoriaId] ??= [];
         _gastosPorCategoria[gasto.categoriaId]!.add(gasto);
       }
       notifyListeners();
@@ -59,20 +60,21 @@ class GastoProvider with ChangeNotifier {
 
   void addGasto(Gasto gasto) {
     _gastos.add(gasto);
+    _gastosPorCategoria[gasto.categoriaId] ??= [];
+    _gastosPorCategoria[gasto.categoriaId]!.add(gasto);
     notifyListeners();
   }
 
-  // Método para deletar gasto
   Future<void> deleteGasto(String gastoId) async {
     try {
-      // Remove do Supabase
       await Supabase.instance.client
           .from('gastos')
           .delete()
           .eq('id', gastoId);
 
-      // Remove da lista local
-      _gastos.removeWhere((gasto) => gasto.id == gastoId);
+      final gastoRemovido = _gastos.firstWhere((g) => g.id == gastoId);
+      _gastos.remove(gastoRemovido);
+      _gastosPorCategoria[gastoRemovido.categoriaId]?.remove(gastoRemovido);
       notifyListeners();
     } catch (e) {
       throw Exception('Erro ao deletar gasto: $e');
@@ -81,22 +83,23 @@ class GastoProvider with ChangeNotifier {
 
   Future<void> updateGasto(String id, String novaDescricao, double novoValor) async {
     try {
-      // Atualiza o gasto na base de dados
-      final response = await Supabase.instance.client
-          .from('gastos')
-          .update({'descricao': novaDescricao, 'valor': novoValor})
-          .eq('id', id);
-
-      if (response.error != null) {
-        throw Exception('Erro ao atualizar gasto: ${response.error!.message}');
-      }
-
-      // Atualiza o gasto na lista local
       final index = _gastos.indexWhere((gasto) => gasto.id == id);
       if (index != -1) {
+        final categoriaId = _gastos[index].categoriaId;
         _gastos[index].descricao = novaDescricao;
         _gastos[index].valor = novoValor;
-        notifyListeners(); // Notifica os consumidores sobre a mudança
+
+        // Atualiza no cache
+        final cache = _gastosPorCategoria[categoriaId];
+        if (cache != null) {
+          final i = cache.indexWhere((g) => g.id == id);
+          if (i != -1) {
+            cache[i].descricao = novaDescricao;
+            cache[i].valor = novoValor;
+          }
+        }
+
+        notifyListeners();
       }
     } catch (e) {
       throw Exception('Erro ao atualizar gasto: $e');
@@ -108,6 +111,13 @@ class GastoProvider with ChangeNotifier {
     return gastos.fold(0.0, (soma, g) => soma + g.valor);
   }
 
+  double totalPorCategoriaMes(String categoriaId, DateTime mes) {
+    final gastos = _gastosPorCategoria[categoriaId] ?? [];
+    return gastos
+        .where((g) => g.data.month == mes.month && g.data.year == mes.year)
+        .fold(0.0, (sum, g) => sum + g.valor);
+  }
+
   double totalGastoMes({DateTime? referencia}) {
     final now = referencia ?? DateTime.now();
     return _gastos
@@ -115,29 +125,25 @@ class GastoProvider with ChangeNotifier {
         .fold(0.0, (soma, g) => soma + g.valor);
   }
 
-  // Adiciona o getter totalGastos
   double get totalGastos {
     return _gastos.fold(0.0, (sum, gasto) => sum + gasto.valor);
   }
 
-  /// Define o estado de carregamento
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
-  /// Define uma mensagem de erro
   void _setError(String? error) {
     _error = error;
-    if (error != null) {
-      notifyListeners();
-    }
+    if (error != null) notifyListeners();
   }
 
   Future<List<Gasto>> getGastosPorMes(String? categoryId, DateTime mes) async {
     try {
       final inicioMes = DateTime(mes.year, mes.month, 1);
       final fimMes = DateTime(mes.year, mes.month + 1, 1).subtract(const Duration(days: 1));
+
       final query = Supabase.instance.client
           .from('gastos')
           .select()
@@ -149,24 +155,15 @@ class GastoProvider with ChangeNotifier {
       }
 
       final response = await query;
+      final lista = List<Map<String, dynamic>>.from(response);
 
-      // Limpa a lista atual de gastos
-      _gastos.clear();
-
-      // Adiciona os novos gastos à lista
-      for (final item in response) {
-        final gasto = Gasto(
-          id: item['id'],
-          descricao: item['descricao'],
-          valor: (item['valor'] as num).toDouble(),
-          data: DateTime.parse(item['data']),
-          categoriaId: item['categoria_id'],
-        );
-        _gastos.add(gasto);
-      }
-
-      notifyListeners();
-      return _gastos;
+      return lista.map((item) => Gasto(
+        id: item['id'],
+        descricao: item['descricao'],
+        valor: (item['valor'] as num).toDouble(),
+        data: DateTime.parse(item['data']),
+        categoriaId: item['categoria_id'],
+      )).toList();
     } catch (e) {
       throw Exception('Erro ao buscar gastos por mês: $e');
     }
@@ -175,30 +172,35 @@ class GastoProvider with ChangeNotifier {
   Future<void> getGastosPorCategoria(String categoryId) async {
     _setLoading(true);
     _setError(null);
-  
+
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      _setError('Usuário não autenticado.');
+      _setLoading(false);
+      return;
+    }
+
     try {
-      final userId = Supabase.instance.client.auth.currentUser!.id;
-  
-      // Consulta os gastos na base de dados para a categoria especificada
       final response = await Supabase.instance.client
           .from('gastos')
           .select('*')
-          .eq('user_id', userId)
-          .eq('categoria_id', categoryId) as List;
-  
-      // Atualiza a lista local de gastos
+          .eq('user_id', user.id)
+          .eq('categoria_id', categoryId);
+
+      final lista = List<Map<String, dynamic>>.from(response);
       _gastos.clear();
-      for (final item in response) {
+
+      for (final item in lista) {
         _gastos.add(Gasto(
-          id: item['id'] as String,
+          id: item['id'],
           descricao: item['descricao'] ?? '',
           valor: (item['valor'] as num).toDouble(),
           data: DateTime.parse(item['data']),
-          categoriaId: item['categoria_id'] as String,
+          categoriaId: item['categoria_id'],
         ));
       }
-  
-      notifyListeners(); // Notifica os consumidores sobre a mudança
+
+      notifyListeners();
     } catch (e) {
       _setError('Erro ao buscar gastos por categoria: $e');
     } finally {
@@ -206,13 +208,45 @@ class GastoProvider with ChangeNotifier {
     }
   }
 
-  double totalPorCategoriaMes(String categoriaId, DateTime mes) {
-    final gastos = _gastosPorCategoria[categoriaId] ?? [];
-    return gastos
-        .where((g) =>
-            g.categoriaId == categoriaId &&
-            g.data.month == mes.month &&
-            g.data.year == mes.year)
-        .fold(0.0, (sum, g) => sum + g.valor);
+  // Função genérica para buscar por tipo (ex: receita, investimento)
+  static Future<List<Gasto>> _buscarPorTipoEMes(String tipo, DateTime mes) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return [];
+
+    final inicioMes = DateTime(mes.year, mes.month, 1);
+    final fimMes = DateTime(mes.year, mes.month + 1, 1).subtract(const Duration(days: 1));
+
+    final response = await Supabase.instance.client
+        .from('gastos')
+        .select()
+        .eq('user_id', user.id)
+        .eq('tipo', tipo)
+        .gte('data', inicioMes.toIso8601String())
+        .lte('data', fimMes.toIso8601String());
+
+    final lista = List<Map<String, dynamic>>.from(response);
+    return lista.map((item) => Gasto(
+      id: item['id'],
+      descricao: item['descricao'],
+      valor: (item['valor'] as num).toDouble(),
+      data: DateTime.parse(item['data']),
+      categoriaId: item['categoria_id'],
+    )).toList();
+  }
+
+  static Future<List<Gasto>> buscarInvestimentosPorMes(DateTime mes) =>
+      _buscarPorTipoEMes('investimento', mes);
+
+  static Future<List<Gasto>> buscarReceitasPorMes(DateTime mes) =>
+      _buscarPorTipoEMes('receita', mes);
+
+  static Future<double> buscarTotalInvestimentos({required DateTime mes}) async {
+    final investimentos = await buscarInvestimentosPorMes(mes);
+    return investimentos.fold<double>(0.0, (soma, i) => soma + i.valor); // <-- Removido "as double"
+  }
+
+  static Future<double> buscarTotalReceitas({required DateTime mes}) async {
+    final receitas = await buscarReceitasPorMes(mes);
+    return receitas.fold<double>(0.0, (soma, r) => soma + r.valor); // <-- Removido "as double"
   }
 }

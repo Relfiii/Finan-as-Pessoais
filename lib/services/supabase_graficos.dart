@@ -51,4 +51,67 @@ class SupabaseGraficosService {
     }
     return totals.entries.map((e) => {'label': e.key, 'total': e.value}).toList();
   }
+
+  static Future<List<Map<String, dynamic>>> getGastosPorAno(int ano) async {
+    final response = await _client
+        .from('sua_tabela_gastos')
+        .select('data, total')
+        .gte('data', '$ano-01-01')
+        .lte('data', '$ano-12-31');
+    // Agrupe por mês e monte o label no formato yyyy/MM
+    final Map<String, double> agrupado = {};
+    for (var item in response) {
+      final data = DateTime.parse(item['data']);
+      final label = '${data.year}/${data.month.toString().padLeft(2, '0')}';
+      agrupado[label] = (agrupado[label] ?? 0) + (item['total'] as num).toDouble();
+    }
+    return agrupado.entries
+        .map((e) => {'label': e.key, 'total': e.value})
+        .toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> getEntradasPorAno(int ano) async {
+    // Repita a lógica acima para entradas
+    // ...
+    return [];
+  }
+
+  static Future<List<Map<String, dynamic>>> getInvestimentosPorAno(int ano) async {
+    // Repita a lógica acima para investimentos
+    // ...
+    return [];
+  }
+
+  static Future<List<Map<String, dynamic>>> getGastosPorMes(int ano, int mes) async {
+    final inicio = DateTime(ano, mes, 1);
+    final fim = DateTime(ano, mes + 1, 0);
+    final response = await _client
+        .from('sua_tabela_gastos')
+        .select('data, total')
+        .gte('data', inicio.toIso8601String())
+        .lte('data', fim.toIso8601String());
+    // Agrupe por dia e monte o label no formato yyyy/MM/dd
+    final Map<String, double> agrupado = {};
+    for (var item in response) {
+      final data = DateTime.parse(item['data']);
+      final label =
+          '${data.year}/${data.month.toString().padLeft(2, '0')}/${data.day.toString().padLeft(2, '0')}';
+      agrupado[label] = (agrupado[label] ?? 0) + (item['total'] as num).toDouble();
+    }
+    return agrupado.entries
+        .map((e) => {'label': e.key, 'total': e.value})
+        .toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> getEntradasPorMes(int ano, int mes) async {
+    // Repita a lógica acima para entradas
+    // ...
+    return [];
+  }
+
+  static Future<List<Map<String, dynamic>>> getInvestimentosPorMes(int ano, int mes) async {
+    // Repita a lógica acima para investimentos
+    // ...
+    return [];
+  }
 }

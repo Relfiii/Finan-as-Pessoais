@@ -3,6 +3,7 @@ import 'dart:ui';
 import '../telas/criarReceita.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
+import 'package:intl/intl.dart';
 
 class ControleReceitasPage extends StatefulWidget {
   const ControleReceitasPage({Key? key}) : super(key: key);
@@ -14,6 +15,7 @@ class ControleReceitasPage extends StatefulWidget {
 class _ControleReceitasPageState extends State<ControleReceitasPage> {
   final List<Map<String, dynamic>> receitas = [];
   double _totalReceitas = 0.0;
+  DateTime _currentDate = DateTime.now();
 
   Future<void> _editarReceita(int index) async {
     final receita = receitas[index];
@@ -158,9 +160,9 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
     );
   }
 
-    Future<void> _deletarReceita(int index) async {
+  Future<void> _deletarReceita(int index) async {
     final receita = receitas[index];
-        final confirm = await showDialog<bool>(
+    final confirm = await showDialog<bool>(
       context: context,
       barrierColor: Colors.black.withOpacity(0.4), // escurece o fundo
       builder: (context) => BackdropFilter(
@@ -189,14 +191,14 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
         ),
       ),
     );
-  
+
     if (confirm == true) {
       // Remove do Supabase
       await Supabase.instance.client
           .from('entradas')
           .delete()
           .match({'id': receita['id']});
-  
+
       setState(() {
         receitas.removeAt(index);
       });
@@ -205,10 +207,14 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
 
   Future<void> _carregarReceitas() async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
+    final inicioMes = DateTime(_currentDate.year, _currentDate.month, 1);
+    final fimMes = DateTime(_currentDate.year, _currentDate.month + 1, 1).subtract(const Duration(days: 1));
     final response = await Supabase.instance.client
         .from('entradas')
         .select()
         .eq('user_id', userId)
+        .gte('data', inicioMes.toIso8601String())
+        .lte('data', fimMes.toIso8601String())
         .order('data', ascending: false);
 
     setState(() {
@@ -221,13 +227,31 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
           'data': DateTime.parse(item['data']),
         });
       }
+      _totalReceitas = receitas.fold(0.0, (soma, r) => soma + (r['valor'] ?? 0.0));
     });
+  }
 
-    // Atualiza o total das receitas
-    final total = await ReceitaUtils.buscarTotalReceitas();
+  String _formatMonthYear(DateTime date) {
+    return '${_capitalizeMonth(DateFormat('MMMM', 'pt_BR').format(date))} ${date.year}';
+  }
+
+  String _capitalizeMonth(String month) {
+    if (month.isEmpty) return month;
+    return month[0].toUpperCase() + month.substring(1);
+  }
+
+  void _nextMonth() async {
     setState(() {
-      _totalReceitas = total;
+      _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
     });
+    await _carregarReceitas();
+  }
+
+  void _previousMonth() async {
+    setState(() {
+      _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+    });
+    await _carregarReceitas();
   }
 
   @override
@@ -256,7 +280,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
           ),
           SafeArea(
             child: RefreshIndicator(
-              onRefresh: _carregarReceitas, // <-- Adicione esta linha
+              onRefresh: _carregarReceitas,
               child: Column(
                 children: [
                   // AppBar customizada
@@ -287,6 +311,31 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                     ),
                   ),
                   const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                  // Navegação de mês/ano
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                          onPressed: _previousMonth,
+                        ),
+                        Text(
+                          _formatMonthYear(_currentDate),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                          onPressed: _nextMonth,
+                        ),
+                      ],
+                    ),
+                  ),
                   // Botão de adicionar receita + total receitas
                   Padding(
                     padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 0),

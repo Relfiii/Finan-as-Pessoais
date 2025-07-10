@@ -28,6 +28,13 @@ class _HomeScreenState extends State<HomeScreen> {
   double saldoAtual = 0.0;
   double gastoMes = 0.0;
   double investimento = 0.0;
+  PeriodoFiltro _periodoSelecionado = PeriodoFiltro.mes;
+
+  // Adicione estas linhas:
+  List<double> receitasPorMes = [];
+  List<double> gastosPorMes = [];
+  List<double> investimentosPorMes = [];
+  List<DateTime> meses = [];
 
   @override
   void didChangeDependencies() {
@@ -44,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final transactionProvider = context.read<TransactionProvider>();
     final categoryProvider = context.read<CategoryProvider>();
     final gastoProvider = context.read<GastoProvider>();
-
+    
     await Future.wait([
       transactionProvider.loadTransactions(),
       categoryProvider.loadCategories(),
@@ -53,13 +60,22 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadResumo();
   }
 
+  // Atualize para receber o período
   Future<void> _loadResumo() async {
-    final transactionProvider = context.read<TransactionProvider>();
     final gastoProvider = context.read<GastoProvider>();
-    saldoAtual = await ReceitaUtils.buscarTotalReceitas();
-    gastoMes = await transactionProvider.getGastoMesAtual();
-    investimento = await InvestimentoUtils.buscarTotalInvestimentos();
-    gastoMes = gastoProvider.totalGastos; // Corrige para usar o getter corretamente
+    final transactionProvider = context.read<TransactionProvider>();
+    final meses = getUltimos6Meses();
+
+    receitasPorMes.clear();
+    gastosPorMes.clear();
+    investimentosPorMes.clear();
+
+    for (final mes in meses) {
+      receitasPorMes.add(await transactionProvider.getReceitaPorMes(mes));
+      gastosPorMes.add(gastoProvider.totalGastoMes(referencia: mes));
+      investimentosPorMes.add(await transactionProvider.getInvestimentoPorMes(mes));
+    }
+
     setState(() {});
   }
 
@@ -194,6 +210,59 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                // Filtro de período no topo
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                  child: Row(
+                    children: [
+                      ToggleButtons(
+                        borderRadius: BorderRadius.circular(8),
+                        fillColor: Color(0xFFB983FF).withOpacity(0.15),
+                        selectedColor: Color(0xFFB983FF),
+                        color: Colors.white70,
+                        isSelected: [
+                          _periodoSelecionado == PeriodoFiltro.mes,
+                          _periodoSelecionado == PeriodoFiltro.ano,
+                          _periodoSelecionado == PeriodoFiltro.dia,
+                        ],
+                        onPressed: (i) {
+                          setState(() {
+                            _periodoSelecionado = PeriodoFiltro.values[i];
+                          });
+                          _loadResumo(); // Atualiza tudo ao trocar o filtro
+                        },
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('Por meses'),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('Por anos'),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text('Por dias'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+                      // Mostra o período selecionado
+                      Text(
+                        _periodoSelecionado == PeriodoFiltro.mes
+                            ? DateFormat("MMMM yyyy", localizations.localeName).format(DateTime.now()).capitalize()
+                            : _periodoSelecionado == PeriodoFiltro.ano
+                                ? DateFormat("yyyy").format(DateTime.now())
+                                : DateFormat("dd/MM/yyyy").format(DateTime.now()),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 // Conteúdo rolável (mantém o conteúdo original)
                 Expanded(
                   child: RefreshIndicator(
@@ -235,18 +304,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Data (Mês/Ano)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-                                child: Text(
-                                  DateFormat("MMMM yyyy", localizations.localeName).format(DateTime.now()).capitalize(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
                               // Cards de resumo
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
@@ -501,20 +558,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                     ),
+                                    // NOVO GRÁFICO DE BARRAS ABAIXO DO CARD DE INVESTIMENTO
+                                    SizedBox(height: 16),
+                                    Container(
+                                      height: 320,
+                                      child: GraficoColunaPrincipal(
+                                        saldoAtual: saldoAtual,
+                                        totalGastoMes: gastoMes,
+                                        investimento: investimento,
+                                        periodo: _periodoSelecionado,
+                                        meses: _periodoSelecionado == PeriodoFiltro.mes ? getUltimos6Meses() : null,
+                                        labels: meses.map((m) => DateFormat("MMM. yyyy", "pt_BR").format(m)).toList(),
+                                      ),
+                                    ),
                                   ],
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Gráfico de visão geral financeira (colunas)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                                child: Container(
-                                  height: 300,
-                                  child: GraficoColunaPrincipal(
-                                    saldoAtual: saldoAtual,
-                                    totalGastoMes: gastoMes,
-                                    investimento: investimento,
-                                  ),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -716,3 +773,11 @@ extension StringCasingExtension on String {
     return this[0].toUpperCase() + substring(1);
   }
 }
+
+List<DateTime> getUltimos6Meses() {
+  final agora = DateTime.now();
+  return List.generate(6, (i) {
+    return DateTime(agora.year, agora.month - (5 - i), 1);
+  });
+}
+
