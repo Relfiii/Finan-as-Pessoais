@@ -149,13 +149,54 @@ class _CardGastoState extends State<CardGasto> {
     controller.dispose();
   }
 
+  DateTime _currentDate = DateTime.now();
+  List<dynamic> _categoriasDoMes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarCategoriasDoMes();
+  }
+
+  Future<void> _carregarCategoriasDoMes() async {
+    final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
+    final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+    // Carrega os gastos do mês selecionado
+    final gastosMes = await gastoProvider.getGastosPorMes(null, _currentDate);
+    
+    // Filtra as categorias que possuem gastos neste mês
+    final idsCategorias = gastosMes.map((g) => g.categoriaId).toSet();
+    final categorias = categoryProvider.categories.where((cat) => idsCategorias.contains(cat.id)).toList();
+    setState(() {
+      _categoriasDoMes = categorias;
+    });
+  }
+
+  String _formatMonthYear(DateTime date) {
+    return DateFormat("MMMM y", 'pt_BR').format(date);
+  }
+
+  void _nextMonth() async {
+    setState(() {
+      _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+    });
+    await _carregarCategoriasDoMes();
+  }
+
+  void _previousMonth() async {
+    setState(() {
+      _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+    });
+    await _carregarCategoriasDoMes();
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
-        // Atualiza categorias e gastos
         await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
         await Provider.of<GastoProvider>(context, listen: false).loadGastos();
+        await _carregarCategoriasDoMes();
       },
       child: Scaffold(
         body: Stack(
@@ -176,9 +217,9 @@ class _CardGastoState extends State<CardGasto> {
             SafeArea(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  // Atualiza categorias e gastos
                   await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
                   await Provider.of<GastoProvider>(context, listen: false).loadGastos();
+                  await _carregarCategoriasDoMes();
                 },
                 child: Column(
                   children: [
@@ -238,6 +279,31 @@ class _CardGastoState extends State<CardGasto> {
                             ],
                           );
                         },
+                      ),
+                    ),
+                    // Navegação de mês/ano
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                            onPressed: _previousMonth,
+                          ),
+                          Text(
+                            _formatMonthYear(_currentDate),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                            onPressed: _nextMonth,
+                          ),
+                        ],
                       ),
                     ),
                     // TopBar com botões de categoria, gasto e caixa de texto
@@ -305,62 +371,60 @@ class _CardGastoState extends State<CardGasto> {
                         ],
                       ),
                     ),
-                    // Cards de categorias no topo, logo abaixo dos botões
-                    Consumer2<CategoryProvider, GastoProvider>(
-                      builder: (context, categoryProvider, gastoProvider, child) {
-                        final categories = categoryProvider.categories;
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-                          child: categories.isEmpty
-                              ? Center(
-                                  child: Text(
-                                    'Nenhuma categoria cadastrada.',
-                                    style: TextStyle(color: Colors.white54, fontSize: 16),
-                                  ),
-                                )
-                              : GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  padding: EdgeInsets.zero,
-                                  itemCount: categories.length,
-                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 12,
-                                    mainAxisSpacing: 12,
-                                    childAspectRatio: 1.6, // valor menor deixa o card mais alto
-                                  ),
-                                  itemBuilder: (context, index) {
-                                    final cat = categories[index];
-                                    final valor = gastoProvider.totalPorCategoria(cat.id);
-                                    return _CategoryCard(
-                                      categoryName: cat.name,
-                                      valor: valor,
-                                      onTap: () async {
-                                        // Navega para a tela de detalhes da categoria
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => DetalhesCategoriaScreen(
-                                              categoryId: cat.id,
-                                              categoryName: cat.name,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      onEdit: () async {
-                                        await _editarCategoriaPopup(context, categoryProvider, cat);
-                                      },
-                                      onDelete: () async {
-                                        await categoryProvider.deleteCategory(cat.id);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Categoria "${cat.name}" deletada!')),
-                                        );
-                                      },
+                    // Cards de categorias do mês selecionado
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                      child: _categoriasDoMes.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Nenhuma categoria com gasto neste mês.',
+                                style: TextStyle(color: Colors.white54, fontSize: 16),
+                              ),
+                            )
+                          : GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
+                              itemCount: _categoriasDoMes.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 1.6,
+                              ),
+                              itemBuilder: (context, index) {
+                                final cat = _categoriasDoMes[index];
+                                final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
+                                final valor = gastoProvider.totalPorCategoriaMes(cat.id, _currentDate);
+                                return _CategoryCard(
+                                  categoryName: cat.name,
+                                  valor: valor,
+                                  onTap: () async {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DetalhesCategoriaScreen(
+                                          categoryId: cat.id,
+                                          categoryName: cat.name,
+                                        ),
+                                      ),
                                     );
                                   },
-                                ),
-                        );
-                      },
+                                  onEdit: () async {
+                                    final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+                                    await _editarCategoriaPopup(context, categoryProvider, cat);
+                                  },
+                                  onDelete: () async {
+                                    final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+                                    await categoryProvider.deleteCategory(cat.id);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Categoria "${cat.name}" deletada!')),
+                                    );
+                                    await _carregarCategoriasDoMes();
+                                  },
+                                );
+                              },
+                            ),
                     ),
                     // Spacer para empurrar o rodapé para baixo
                     const Spacer(),

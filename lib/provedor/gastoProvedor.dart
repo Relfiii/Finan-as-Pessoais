@@ -134,34 +134,39 @@ class GastoProvider with ChangeNotifier {
     }
   }
 
-  Future<List<Gasto>> getGastosPorMes(String categoryId, DateTime date) async {
+  Future<List<Gasto>> getGastosPorMes(String? categoryId, DateTime mes) async {
     try {
-      final userId = Supabase.instance.client.auth.currentUser!.id;
-  
-      // Consulta os gastos na base de dados para o mês/ano e categoria especificados
-      final response = await Supabase.instance.client
+      final inicioMes = DateTime(mes.year, mes.month, 1);
+      final fimMes = DateTime(mes.year, mes.month + 1, 1).subtract(const Duration(days: 1));
+      final query = Supabase.instance.client
           .from('gastos')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('categoria_id', categoryId)
-          .gte('data', DateTime(date.year, date.month, 1).toIso8601String())
-          .lt('data', DateTime(date.year, date.month + 1, 1).toIso8601String());
-  
-      // Verifica se há dados na resposta
-      if (response.isEmpty) {
-        return []; // Retorna uma lista vazia se não houver dados
+          .select()
+          .gte('data', inicioMes.toIso8601String())
+          .lte('data', fimMes.toIso8601String());
+
+      if (categoryId != null && categoryId.isNotEmpty) {
+        query.eq('categoria_id', categoryId);
       }
-  
-      // Mapeia os resultados para a lista de objetos Gasto
-      return response.map((item) {
-        return Gasto(
-          id: item['id'] as String,
-          categoriaId: item['categoria_id'] as String,
-          descricao: item['descricao'] ?? '',
+
+      final response = await query;
+
+      // Limpa a lista atual de gastos
+      _gastos.clear();
+
+      // Adiciona os novos gastos à lista
+      for (final item in response) {
+        final gasto = Gasto(
+          id: item['id'],
+          descricao: item['descricao'],
           valor: (item['valor'] as num).toDouble(),
           data: DateTime.parse(item['data']),
+          categoriaId: item['categoria_id'],
         );
-      }).toList();
+        _gastos.add(gasto);
+      }
+
+      notifyListeners();
+      return _gastos;
     } catch (e) {
       throw Exception('Erro ao buscar gastos por mês: $e');
     }
@@ -199,5 +204,15 @@ class GastoProvider with ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  double totalPorCategoriaMes(String categoriaId, DateTime mes) {
+    final gastos = _gastosPorCategoria[categoriaId] ?? [];
+    return gastos
+        .where((g) =>
+            g.categoriaId == categoriaId &&
+            g.data.month == mes.month &&
+            g.data.year == mes.year)
+        .fold(0.0, (sum, g) => sum + g.valor);
   }
 }
