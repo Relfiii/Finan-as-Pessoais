@@ -7,11 +7,11 @@ import 'telaLateral.dart';
 import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
 import '../cardsPrincipais/cardGasto.dart';
+import '../cardsPrincipais/cardInvestimento.dart';
 import '../provedor/gastoProvedor.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
-import '../cardsPrincipais/cardInvestimento.dart';
 import '../graficos/graficoColunaPrincipal.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
