@@ -8,6 +8,7 @@ class TransactionProvider with ChangeNotifier {
   /// Retorna o ano mais antigo das transações do usuário
   Future<int?> getAnoMaisAntigo() async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
+    print('🔍 Buscando ano mais antigo para usuário: $userId');
     
     // Buscar o ano mais antigo em todas as tabelas
     List<int> anos = [];
@@ -23,9 +24,12 @@ class TransactionProvider with ChangeNotifier {
       if (entradas.isNotEmpty) {
         final data = DateTime.parse(entradas.first['data']);
         anos.add(data.year);
+        print('📅 Ano mais antigo em entradas: ${data.year}');
+      } else {
+        print('⚠️ Nenhuma entrada encontrada');
       }
     } catch (e) {
-      print('Erro ao buscar ano mais antigo em entradas: $e');
+      print('❌ Erro ao buscar ano mais antigo em entradas: $e');
     }
     
     // Tabela investimentos
@@ -39,15 +43,18 @@ class TransactionProvider with ChangeNotifier {
       if (investimentos.isNotEmpty) {
         final data = DateTime.parse(investimentos.first['data']);
         anos.add(data.year);
+        print('📅 Ano mais antigo em investimentos: ${data.year}');
+      } else {
+        print('⚠️ Nenhum investimento encontrado');
       }
     } catch (e) {
-      print('Erro ao buscar ano mais antigo em investimentos: $e');
+      print('❌ Erro ao buscar ano mais antigo em investimentos: $e');
     }
     
-    // Tabela gasto
+    // Tabela gastos
     try {
       final gastos = await Supabase.instance.client
-          .from('gasto')
+          .from('gastos')
           .select('data')
           .eq('user_id', userId)
           .order('data');
@@ -55,18 +62,28 @@ class TransactionProvider with ChangeNotifier {
       if (gastos.isNotEmpty) {
         final data = DateTime.parse(gastos.first['data']);
         anos.add(data.year);
+        print('📅 Ano mais antigo em gastos: ${data.year}');
+      } else {
+        print('⚠️ Nenhum gasto encontrado');
       }
     } catch (e) {
-      print('Erro ao buscar ano mais antigo em gastos: $e');
+      print('❌ Erro ao buscar ano mais antigo em gastos: $e');
     }
     
-    if (anos.isEmpty) return null;
-    return anos.reduce((a, b) => a < b ? a : b);
+    print('📊 Anos encontrados: $anos');
+    if (anos.isEmpty) {
+      print('⚠️ Nenhum ano encontrado, retornando null');
+      return null;
+    }
+    final anoMaisAntigo = anos.reduce((a, b) => a < b ? a : b);
+    print('✅ Ano mais antigo final: $anoMaisAntigo');
+    return anoMaisAntigo;
   }
 
   /// Retorna o ano mais recente das transações do usuário
   Future<int?> getAnoMaisRecente() async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
+    print('🔍 Buscando ano mais recente para usuário: $userId');
     
     // Buscar o ano mais recente em todas as tabelas
     List<int> anos = [];
@@ -82,9 +99,12 @@ class TransactionProvider with ChangeNotifier {
       if (entradas.isNotEmpty) {
         final data = DateTime.parse(entradas.first['data']);
         anos.add(data.year);
+        print('📅 Ano mais recente em entradas: ${data.year}');
+      } else {
+        print('⚠️ Nenhuma entrada encontrada');
       }
     } catch (e) {
-      print('Erro ao buscar ano mais recente em entradas: $e');
+      print('❌ Erro ao buscar ano mais recente em entradas: $e');
     }
     
     // Tabela investimentos
@@ -98,15 +118,18 @@ class TransactionProvider with ChangeNotifier {
       if (investimentos.isNotEmpty) {
         final data = DateTime.parse(investimentos.first['data']);
         anos.add(data.year);
+        print('📅 Ano mais recente em investimentos: ${data.year}');
+      } else {
+        print('⚠️ Nenhum investimento encontrado');
       }
     } catch (e) {
-      print('Erro ao buscar ano mais recente em investimentos: $e');
+      print('❌ Erro ao buscar ano mais recente em investimentos: $e');
     }
     
-    // Tabela gasto
+    // Tabela gastos
     try {
       final gastos = await Supabase.instance.client
-          .from('gasto')
+          .from('gastos')
           .select('data')
           .eq('user_id', userId)
           .order('data', ascending: false);
@@ -114,13 +137,22 @@ class TransactionProvider with ChangeNotifier {
       if (gastos.isNotEmpty) {
         final data = DateTime.parse(gastos.first['data']);
         anos.add(data.year);
+        print('📅 Ano mais recente em gastos: ${data.year}');
+      } else {
+        print('⚠️ Nenhum gasto encontrado');
       }
     } catch (e) {
-      print('Erro ao buscar ano mais recente em gastos: $e');
+      print('❌ Erro ao buscar ano mais recente em gastos: $e');
     }
     
-    if (anos.isEmpty) return null;
-    return anos.reduce((a, b) => a > b ? a : b);
+    print('📊 Anos encontrados: $anos');
+    if (anos.isEmpty) {
+      print('⚠️ Nenhum ano encontrado, retornando null');
+      return null;
+    }
+    final anoMaisRecente = anos.reduce((a, b) => a > b ? a : b);
+    print('✅ Ano mais recente final: $anoMaisRecente');
+    return anoMaisRecente;
   }
 
   /// Soma todas as receitas do ano informado

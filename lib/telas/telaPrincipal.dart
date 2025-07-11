@@ -106,8 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
     meses.clear();
 
     if (_periodoSelecionado == PeriodoFiltro.mes) {
-      // Últimos 6 meses
-      meses.addAll(getUltimos6Meses());
+      // Últimos 12 meses
+      meses.addAll(getUltimos12Meses());
       for (final mes in meses) {
         receitasPorMes.add(await transactionProvider.getReceitaPorMes(mes));
         gastosPorMes.add(gastoProvider.totalGastoMes(referencia: mes));
@@ -115,20 +115,52 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } else if (_periodoSelecionado == PeriodoFiltro.ano) {
       // Agrupar por ano: buscar todos os anos em que o usuário tem dados
-      // Supondo que TransactionProvider e GastoProvider tenham métodos para buscar o ano mais antigo e mais recente
-      int anoMaisAntigo = await transactionProvider.getAnoMaisAntigo() ?? DateTime.now().year;
-      int anoMaisRecente = await transactionProvider.getAnoMaisRecente() ?? DateTime.now().year;
-      // Garante que o range está correto
-      if (anoMaisAntigo > anoMaisRecente) {
-        anoMaisAntigo = anoMaisRecente;
-      }
-      for (int ano = anoMaisAntigo; ano <= anoMaisRecente; ano++) {
-        final referenciaAno = DateTime(ano, 1, 1);
-        meses.add(referenciaAno); // Aqui, cada item representa um ano
-        // Buscar totais do ano inteiro
-        double totalReceitaAno = await transactionProvider.getReceitaPorAno(ano);
-        double totalGastoAno = await gastoProvider.totalGastoAno(ano: ano);
-        double totalInvestimentoAno = await transactionProvider.getInvestimentoPorAno(ano);
+      try {
+        print('🔍 Iniciando busca de anos com dados...');
+        
+        int anoMaisAntigo = await transactionProvider.getAnoMaisAntigo() ?? DateTime.now().year;
+        int anoMaisRecente = await transactionProvider.getAnoMaisRecente() ?? DateTime.now().year;
+        
+        print('📅 Ano mais antigo encontrado: $anoMaisAntigo');
+        print('📅 Ano mais recente encontrado: $anoMaisRecente');
+        
+        // Garantir que o range está correto
+        if (anoMaisAntigo > anoMaisRecente) {
+          anoMaisAntigo = anoMaisRecente;
+        }
+        
+        print('✅ Carregando dados de anos de $anoMaisAntigo até $anoMaisRecente');
+        
+        for (int ano = anoMaisAntigo; ano <= anoMaisRecente; ano++) {
+          final referenciaAno = DateTime(ano, 1, 1);
+          meses.add(referenciaAno); // Aqui, cada item representa um ano
+          
+          print('📊 Processando ano $ano...');
+          
+          // Buscar totais do ano inteiro
+          double totalReceitaAno = await transactionProvider.getReceitaPorAno(ano);
+          double totalGastoAno = await gastoProvider.totalGastoAno(ano: ano);
+          double totalInvestimentoAno = await transactionProvider.getInvestimentoPorAno(ano);
+          
+          receitasPorMes.add(totalReceitaAno);
+          gastosPorMes.add(totalGastoAno);
+          investimentosPorMes.add(totalInvestimentoAno);
+          
+          print('💰 Ano $ano: Receitas=R\$${totalReceitaAno.toStringAsFixed(2)}, Gastos=R\$${totalGastoAno.toStringAsFixed(2)}, Investimentos=R\$${totalInvestimentoAno.toStringAsFixed(2)}');
+        }
+        
+        print('🎯 Total de anos carregados: ${meses.length}');
+      } catch (e) {
+        print('❌ Erro ao carregar dados por ano: $e');
+        // Em caso de erro, mostrar pelo menos o ano atual
+        final anoAtual = DateTime.now().year;
+        final referenciaAno = DateTime(anoAtual, 1, 1);
+        meses.add(referenciaAno);
+        
+        double totalReceitaAno = await transactionProvider.getReceitaPorAno(anoAtual);
+        double totalGastoAno = await gastoProvider.totalGastoAno(ano: anoAtual);
+        double totalInvestimentoAno = await transactionProvider.getInvestimentoPorAno(anoAtual);
+        
         receitasPorMes.add(totalReceitaAno);
         gastosPorMes.add(totalGastoAno);
         investimentosPorMes.add(totalInvestimentoAno);
@@ -853,10 +885,10 @@ extension StringCasingExtension on String {
   }
 }
 
-List<DateTime> getUltimos6Meses() {
+List<DateTime> getUltimos12Meses() {
   final agora = DateTime.now();
-  return List.generate(6, (i) {
-    return DateTime(agora.year, agora.month - (5 - i), 1);
+  return List.generate(12, (i) { // Aumentei para 12 meses para ter mais contexto histórico
+    return DateTime(agora.year, agora.month - (11 - i), 1);
   });
 }
 

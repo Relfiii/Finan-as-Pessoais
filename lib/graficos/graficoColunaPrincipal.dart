@@ -27,7 +27,7 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late ScrollController _scrollController;
-  int _currentVisibleMonth = 6;
+  // int _currentVisibleMonth = 6;
   bool _hasAutoScrolled = false; // Controle do scroll único
 
   @override
@@ -55,110 +55,53 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
     super.dispose();
   }
 
-  // Gerar os últimos 12 meses a partir do mês atual
-  List<String> _gerarUltimos12Meses() {
-    List<String> meses = [];
-    DateTime agora = DateTime.now();
-    
-    for (int i = 11; i >= 0; i--) {
-      DateTime mesData = DateTime(agora.year, agora.month - i, 1);
-      String mesFormatado = DateFormat('MMM/yy', 'pt_BR').format(mesData);
-      meses.add(mesFormatado);
-    }
-    
-    return meses;
-  }
-
-  // Mapear dados existentes para os 12 meses
-  List<double> _mapearDadosParaMeses(List<double> dadosOriginais, List<String> labelsOriginais, List<String> mesesAlvo) {
-    List<double> dadosMapeados = List.filled(12, 0.0);
-    
-    for (int i = 0; i < labelsOriginais.length && i < dadosOriginais.length; i++) {
-      String labelOriginal = labelsOriginais[i];
-      
-      // Encontrar correspondência nos meses alvo
-      for (int j = 0; j < mesesAlvo.length; j++) {
-        if (_compararLabels(labelOriginal, mesesAlvo[j])) {
-          dadosMapeados[j] = dadosOriginais[i];
-          break;
-        }
-      }
-    }
-    
-    return dadosMapeados;
-  }
-
-  // Comparar labels considerando diferentes formatos
-  bool _compararLabels(String labelOriginal, String mesAlvo) {
-    // Remover caracteres especiais e normalizar
-    String original = labelOriginal.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    String alvo = mesAlvo.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    
-    return original == alvo || original.contains(alvo.substring(0, 3)) || alvo.contains(original.substring(0, 3));
-  }
-
-  Widget _buildLegendItem(String title, Color color, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            title,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScrollIndicator() {
-    return Container(
-      height: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white10,
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: Row(
-        children: List.generate(12, (index) {
-          bool isVisible = index >= _currentVisibleMonth - 6 && index < _currentVisibleMonth;
-          return Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 1),
-              decoration: BoxDecoration(
-                color: isVisible ? Colors.white70 : Colors.transparent,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    List<String> mesesDoGrafico = _gerarUltimos12Meses();
-    List<double> receitasDoGrafico = _mapearDadosParaMeses(widget.receitas, widget.labels, mesesDoGrafico);
-    List<double> despesasDoGrafico = _mapearDadosParaMeses(widget.despesas, widget.labels, mesesDoGrafico);
-    List<double> investimentosDoGrafico = _mapearDadosParaMeses(widget.investimentos, widget.labels, mesesDoGrafico);
+    // Usar os dados reais passados pelo widget em vez de gerar novos
+    List<String> mesesDoGrafico = widget.labels;
+    List<double> receitasDoGrafico = widget.receitas;
+    List<double> despesasDoGrafico = widget.despesas;
+    List<double> investimentosDoGrafico = widget.investimentos;
+
+    // Verificar se há dados válidos
+    if (mesesDoGrafico.isEmpty || 
+        receitasDoGrafico.isEmpty || 
+        despesasDoGrafico.isEmpty || 
+        investimentosDoGrafico.isEmpty) {
+      return Center(
+        child: Text(
+          'Nenhum dado disponível para exibir',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
+
+    // Garantir que todas as listas tenham o mesmo tamanho
+    int minLength = [
+      mesesDoGrafico.length,
+      receitasDoGrafico.length,
+      despesasDoGrafico.length,
+      investimentosDoGrafico.length
+    ].reduce((a, b) => a < b ? a : b);
+
+    if (minLength == 0) {
+      return Center(
+        child: Text(
+          'Dados insuficientes para exibir o gráfico',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
+
+    // Ajustar listas para ter o mesmo tamanho
+    mesesDoGrafico = mesesDoGrafico.take(minLength).toList();
+    receitasDoGrafico = receitasDoGrafico.take(minLength).toList();
+    despesasDoGrafico = despesasDoGrafico.take(minLength).toList();
+    investimentosDoGrafico = investimentosDoGrafico.take(minLength).toList();
 
     // Calcular o valor máximo de forma mais precisa
     double maxY = 0;
-    for (int i = 0; i < 12; i++) {
+    for (int i = 0; i < minLength; i++) {
       if (receitasDoGrafico[i] > maxY) maxY = receitasDoGrafico[i];
       if (despesasDoGrafico[i] > maxY) maxY = despesasDoGrafico[i];
       if (investimentosDoGrafico[i] > maxY) maxY = investimentosDoGrafico[i];
@@ -189,7 +132,7 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
     final double screenHeight = MediaQuery.of(context).size.height;
     // Ajuste: itemWidth maior e totalWidth mais generosa para garantir scroll
     final double itemWidth = 65; // Aumentado para dar mais espaço
-    final double totalWidth = 12 * itemWidth + 60; // Margem extra para scroll
+    final double totalWidth = minLength * itemWidth + 60; // Margem extra para scroll baseada no número real de elementos
     final double availableWidth = screenWidth - 80; // Mais margem
 
     // Scroll automático único para iniciar no mês atual (apenas se habilitado)
@@ -246,7 +189,7 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                           texto = '${(value / 1000000).toStringAsFixed(1)}M';
                         } else if (value >= 1000) {
                           int milhares = (value / 1000).round();
-                          texto = '${milhares}k';
+                          texto = '${milhares} mil';
                         } else if (value > 0) {
                           texto = value.toInt().toString();
                         } else {
@@ -275,11 +218,11 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                   child: NotificationListener<ScrollNotification>(
                     onNotification: (notification) {
                       if (notification is ScrollUpdateNotification) {
-                        double position = _scrollController.position.pixels;
-                        double maxScroll = _scrollController.position.maxScrollExtent;
-                        setState(() {
-                          _currentVisibleMonth = ((position / maxScroll) * 8 + 4).clamp(4, 12).toInt();
-                        });
+                        // double position = _scrollController.position.pixels;
+                        // double maxScroll = _scrollController.position.maxScrollExtent;
+                        // setState(() {
+                        //   _currentVisibleMonth = ((position / maxScroll) * 8 + 4).clamp(4, 12).toInt();
+                        // });
                       }
                       return true;
                     },
@@ -349,7 +292,7 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
                                     final idx = value.toInt();
-                                    if (idx >= 0 && idx < mesesDoGrafico.length) {
+                                    if (idx >= 0 && idx < minLength && idx < mesesDoGrafico.length) {
                                       final label = mesesDoGrafico[idx];
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 8),
@@ -384,10 +327,10 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                               ),
                             ),
                             borderData: FlBorderData(show: false),
-                            barGroups: List.generate(12, (i) {
-                              double receitaValue = receitasDoGrafico[i].abs();
-                              double despesaValue = despesasDoGrafico[i].abs();
-                              double investimentoValue = investimentosDoGrafico[i].abs();
+                            barGroups: List.generate(minLength, (i) {
+                              double receitaValue = (i < receitasDoGrafico.length) ? receitasDoGrafico[i].abs() : 0.0;
+                              double despesaValue = (i < despesasDoGrafico.length) ? despesasDoGrafico[i].abs() : 0.0;
+                              double investimentoValue = (i < investimentosDoGrafico.length) ? investimentosDoGrafico[i].abs() : 0.0;
                               
                               double barWidth = (itemWidth * 0.6) / 3; // Ajustado para melhor proporção
                               if (barWidth > 18) barWidth = 18; // Limite máximo ajustado
