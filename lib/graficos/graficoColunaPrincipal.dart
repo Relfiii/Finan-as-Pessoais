@@ -1,24 +1,18 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-
-enum PeriodoFiltro { mes, ano, dia }
 
 class GraficoColunaPrincipal extends StatefulWidget {
   final double saldoAtual;
   final double totalGastoMes;
   final double investimento;
-  final PeriodoFiltro periodo;
-  final List<DateTime>? meses;
-  final List<String>? labels;
 
   const GraficoColunaPrincipal({
     Key? key,
     required this.saldoAtual,
     required this.totalGastoMes,
     required this.investimento,
-    required this.periodo,
-    this.meses,
-    this.labels,
   }) : super(key: key);
 
   @override
@@ -26,193 +20,197 @@ class GraficoColunaPrincipal extends StatefulWidget {
 }
 
 class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal> {
-  // Use widget.periodo para montar os dados
-  List<Map<String, dynamic>> get _dados {
-    if (widget.periodo == PeriodoFiltro.mes && widget.meses != null) {
-      return List.generate(widget.meses!.length, (i) {
-        final mes = widget.meses![i];
-        final label = widget.labels != null && widget.labels!.length > i
-            ? widget.labels![i]
-            : DateFormat("MMM. yyyy", "pt_BR").format(mes);
-        return {
-          'label': label,
-          'receita': widget.saldoAtual,        // Troque aqui para buscar o valor real do mês
-          'despesa': widget.totalGastoMes,     // Troque aqui para buscar o valor real do mês
-          'investimento': widget.investimento, // Troque aqui para buscar o valor real do mês
-        };
-      });
-    } else {
-      // Filtro por ano ou dia (mantém como estava)
-      return [
-        {
-          'label': widget.periodo == PeriodoFiltro.ano
-              ? DateFormat("yyyy").format(DateTime.now())
-              : DateFormat("dd/MM").format(DateTime.now()),
-          'receita': widget.saldoAtual,
-          'despesa': widget.totalGastoMes,
-          'investimento': widget.investimento,
-        }
-      ];
+  String normalizarLabel(String label) {
+    // Converte '2025-07' ou '07/2025' para '2025/07'
+    if (RegExp(r'^\d{4}-\d{2}$').hasMatch(label)) {
+      // '2025-07' => '2025/07'
+      return label.replaceAll('-', '/');
     }
+    if (RegExp(r'^\d{2}/\d{4}$').hasMatch(label)) {
+      // '07/2025' => '2025/07'
+      var partes = label.split('/');
+      return '${partes[1]}/${partes[0]}';
+    }
+    return label;
+  }
+  List<String> meses = [];
+  List<double?> receitas = [];
+  List<double?> despesas = [];
+  List<double?> investimentos = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarDados();
+  }
+
+  Future<void> _carregarDados() async {
+    final client = Supabase.instance.client;
+    final now = DateTime.now();
+
+    // Gera os labels dos últimos 6 meses (ex: ['2025/07', '2025/06', ...])
+    List<DateTime> ultimosMeses = List.generate(6, (i) => DateTime(now.year, now.month - (5 - i), 1));
+    List<String> mesesLabels = ultimosMeses
+        .map((dt) => DateFormat('yyyy/MM').format(dt))
+        .toList();
+
+    // Busca receitas
+    final entradasResp = await client.rpc('entradas_por_periodo', params: {'periodo': 'Mês'});
+    // Busca despesas
+    final gastosResp = await client.rpc('total_gastos_por_periodo', params: {'periodo': 'Mês'});
+    // Busca investimentos
+    final investimentosRes = await client
+        .from('investimentos')
+        .select('valor, data')
+        .eq('user_id', client.auth.currentUser!.id);
+
+    // Mapear receitas e despesas por label
+    Map<String, double> receitasMap = {};
+    for (var item in (entradasResp ?? [])) {
+      final label = normalizarLabel(item['label']);
+      receitasMap[label] = (item['total'] as num?)?.toDouble() ?? 0.0;
+    }
+    Map<String, double> despesasMap = {};
+    for (var item in (gastosResp ?? [])) {
+      final label = normalizarLabel(item['label']);
+      despesasMap[label] = (item['total'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    // Mapear investimentos por mês
+    Map<String, double> investimentosMap = {};
+    for (var item in (investimentosRes as List? ?? [])) {
+      final data = DateTime.parse(item['data']);
+      final label = DateFormat('yyyy/MM').format(DateTime(data.year, data.month));
+      investimentosMap[label] = (investimentosMap[label] ?? 0.0) + ((item['valor'] as num?)?.toDouble() ?? 0.0);
+    }
+
+    // Preencher arrays alinhados aos meses
+    List<double?> receitas = [];
+    List<double?> despesas = [];
+    List<double?> investimentos = [];
+    for (var label in mesesLabels) {
+      receitas.add(receitasMap[label] ?? 0.0);
+      despesas.add(despesasMap[label] ?? 0.0);
+      investimentos.add(investimentosMap[label] ?? 0.0);
+    }
+    // Debug: mostrar mapas e arrays
+    print('receitasMap: ' + receitasMap.toString());
+    print('despesasMap: ' + despesasMap.toString());
+    print('investimentosMap: ' + investimentosMap.toString());
+    print('mesesLabels: ' + mesesLabels.toString());
+    print('receitas: ' + receitas.toString());
+    print('despesas: ' + despesas.toString());
+    print('investimentos: ' + investimentos.toString());
+
+    setState(() {
+      meses = mesesLabels;
+      this.receitas = receitas;
+      this.despesas = despesas;
+      this.investimentos = investimentos;
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final maxValor = _dados.fold<double>(
-      0,
-      (max, e) => [
-        max,
-        (e['receita'] is int ? (e['receita'] as int).toDouble() : e['receita'] as double),
-        (e['despesa'] is int ? (e['despesa'] as int).toDouble() : e['despesa'] as double),
-        (e['investimento'] is int ? (e['investimento'] as int).toDouble() : e['investimento'] as double),
-      ].reduce((a, b) => a > b ? a : b),
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 12),
-        // Gráfico de barras
-        SizedBox(
-          height: 200, // Defina uma altura fixa aqui
-          child: Container(
-            decoration: BoxDecoration(
-              color: Color(0xFF181828),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 8,
-                  offset: Offset(0, 4),
+    if (loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    double maxY = [
+      ...receitas,
+      ...despesas,
+      ...investimentos,
+    ].map((e) => e ?? 0.0).fold<double>(0, (max, v) => v > max ? v : max);
+    if (maxY == 0) maxY = 1000; // valor mínimo para evitar gráfico vazio
+    maxY *= 1.1; // margem superior
+
+    return SizedBox(
+      height: 280,
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxY,
+          minY: 0,
+          groupsSpace: 18,
+          barTouchData: BarTouchData(enabled: false),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 40,
+                interval: 5500,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    NumberFormat.compact(locale: 'pt_BR').format(value),
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  );
+                },
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final idx = value.toInt();
+                  if (idx >= 0 && idx < meses.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        meses[idx],
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                reservedSize: 38,
+                interval: 1,
+              ),
+            ),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            horizontalInterval: 5500,
+            getDrawingHorizontalLine: (value) => FlLine(
+              color: Colors.white24,
+              strokeWidth: 1,
+              dashArray: [6, 6],
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          barGroups: List.generate(meses.length, (i) {
+            return BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: receitas[i] ?? 0.0,
+                  width: 8,
+                  color: const Color(0xFF1DE9B6), // Verde claro
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                BarChartRodData(
+                  toY: despesas[i] ?? 0.0,
+                  width: 8,
+                  color: const Color(0xFFB71C1C), // Vermelho escuro
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                BarChartRodData(
+                  toY: investimentos[i] ?? 0.0,
+                  width: 8,
+                  color: const Color(0xFF00B0FF), // Azul claro
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ],
-            ),
-            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            child: _dados.isEmpty
-                ? Center(
-                    child: Text(
-                      'Sem dados para o período',
-                      style: TextStyle(color: Colors.white54),
-                    ),
-                  )
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      final barGroupWidth = 32.0; // largura fixa para cada grupo de barras
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            for (final d in _dados)
-                              SizedBox(
-                                width: barGroupWidth,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    // Barras
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      children: [
-                                        // Receita
-                                        Container(
-                                          width: 6,
-                                          height: maxValor > 0 ? ((d['receita'] as double) / maxValor) * 120 : 0,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(3),
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Color(0xFF4EF37B),
-                                                Color(0xFF1EAA6F),
-                                              ],
-                                              begin: Alignment.bottomCenter,
-                                              end: Alignment.topCenter,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 2),
-                                        // Despesa
-                                        Container(
-                                          width: 6,
-                                          height: maxValor > 0 ? ((d['despesa'] as double) / maxValor) * 120 : 0,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(3),
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Color(0xFFB983FF),
-                                                Color(0xFF7B1FA2),
-                                              ],
-                                              begin: Alignment.bottomCenter,
-                                              end: Alignment.topCenter,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 2),
-                                        // Investimento
-                                        Container(
-                                          width: 6,
-                                          height: maxValor > 0 ? ((d['investimento'] as double) / maxValor) * 120 : 0,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(3),
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                Color(0xFF0FD0FF),
-                                                Color(0xFF0F6FFF),
-                                              ],
-                                              begin: Alignment.bottomCenter,
-                                              end: Alignment.topCenter,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 8),
-                                    // Labels
-                                    Text(
-                                      d['label'],
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 10,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
+              barsSpace: 2,
+            );
+          }),
         ),
-        SizedBox(height: 8),
-        // Legenda
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _LegendaCor(cor: Color(0xFF4EF37B), texto: 'Receita'),
-            SizedBox(width: 16),
-            _LegendaCor(cor: Color(0xFFB983FF), texto: 'Despesa'),
-            SizedBox(width: 16),
-            _LegendaCor(cor: Color(0xFF0FD0FF), texto: 'Investimento'),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _LegendaCor extends StatelessWidget {
-  final Color cor;
-  final String texto;
-  const _LegendaCor({required this.cor, required this.texto});
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(width: 16, height: 8, decoration: BoxDecoration(color: cor, borderRadius: BorderRadius.circular(4))),
-        SizedBox(width: 4),
-        Text(texto, style: TextStyle(color: Colors.white70, fontSize: 12)),
-      ],
+      ),
     );
   }
 }
