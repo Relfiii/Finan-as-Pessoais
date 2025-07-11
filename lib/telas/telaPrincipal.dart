@@ -636,6 +636,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Container(
                                   height: 300,
                                   child: GraficoColunaPrincipal(
+                                    enableAutoScroll: true, // Ativar apenas aqui
                                     labels: meses.map((dt) {
                                       if (_periodoSelecionado == PeriodoFiltro.ano) {
                                         return dt.year.toString();
