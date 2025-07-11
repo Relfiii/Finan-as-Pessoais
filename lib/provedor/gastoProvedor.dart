@@ -3,6 +3,21 @@ import '../modelos/gasto.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GastoProvider with ChangeNotifier {
+  /// Soma todos os gastos do ano informado
+  Future<double> totalGastoAno({required int ano}) async {
+    if (_gastos.isEmpty) await loadGastos();
+    return _gastos.where((g) => g.data.year == ano).fold<double>(0.0, (sum, g) => sum + g.valor);
+  }
+  /// Retorna o total de gastos para um dia específico
+  double totalGastoDia({DateTime? referencia}) {
+    final now = referencia ?? DateTime.now();
+    return _gastos
+        .where((g) =>
+            g.data.year == now.year &&
+            g.data.month == now.month &&
+            g.data.day == now.day)
+        .fold(0.0, (soma, g) => soma + g.valor);
+  }
   final List<Gasto> _gastos = [];
   final Map<String, List<Gasto>> _gastosPorCategoria = {};
   bool _isLoading = false;

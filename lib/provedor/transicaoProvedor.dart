@@ -5,6 +5,73 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Provider para gerenciar o estado das transações
 class TransactionProvider with ChangeNotifier {
+  /// Retorna o ano mais antigo das transações do usuário
+  Future<int?> getAnoMaisAntigo() async {
+    if (_transactions.isEmpty) await loadTransactions();
+    if (_transactions.isEmpty) return null;
+    return _transactions.map((t) => t.date.year).reduce((a, b) => a < b ? a : b);
+  }
+
+  /// Retorna o ano mais recente das transações do usuário
+  Future<int?> getAnoMaisRecente() async {
+    if (_transactions.isEmpty) await loadTransactions();
+    if (_transactions.isEmpty) return null;
+    return _transactions.map((t) => t.date.year).reduce((a, b) => a > b ? a : b);
+  }
+
+  /// Soma todas as receitas do ano informado
+  Future<double> getReceitaPorAno(int ano) async {
+    if (_transactions.isEmpty) await loadTransactions();
+    return _transactions
+        .where((t) => t.date.year == ano && t.type == TransactionType.income)
+        .fold<double>(0.0, (sum, t) => sum + t.amount.toDouble());
+  }
+
+  /// Soma todos os investimentos do ano informado
+  Future<double> getInvestimentoPorAno(int ano) async {
+    if (_transactions.isEmpty) await loadTransactions();
+    // Supondo que investimento seja uma categoria especial, ajuste conforme seu modelo
+    return _transactions
+        .where((t) => t.date.year == ano && t.categoryId.toLowerCase().contains('invest'))
+        .fold<double>(0.0, (sum, t) => sum + t.amount.toDouble());
+  }
+  /// Retorna o total de receitas para um dia específico
+  Future<double> getReceitaPorDia(DateTime dia) async {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+    final inicio = DateTime(dia.year, dia.month, dia.day, 0, 0, 0);
+    final fim = DateTime(dia.year, dia.month, dia.day, 23, 59, 59);
+    final data = await Supabase.instance.client
+        .from('transacoes')
+        .select('valor')
+        .gte('data', inicio.toIso8601String())
+        .lte('data', fim.toIso8601String())
+        .eq('tipo', 'receita')
+        .eq('user_id', userId);
+    final list = data as List<dynamic>;
+    return list.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item['valor'] ?? 0) as num).toDouble(),
+    );
+  }
+
+  /// Retorna o total de investimentos para um dia específico
+  Future<double> getInvestimentoPorDia(DateTime dia) async {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+    final inicio = DateTime(dia.year, dia.month, dia.day, 0, 0, 0);
+    final fim = DateTime(dia.year, dia.month, dia.day, 23, 59, 59);
+    final data = await Supabase.instance.client
+        .from('transacoes')
+        .select('valor')
+        .gte('data', inicio.toIso8601String())
+        .lte('data', fim.toIso8601String())
+        .eq('tipo', 'investimento')
+        .eq('user_id', userId);
+    final list = data as List<dynamic>;
+    return list.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item['valor'] ?? 0) as num).toDouble(),
+    );
+  }
   List<Transaction> _transactions = [];
   bool _isLoading = false;
   String? _error;
