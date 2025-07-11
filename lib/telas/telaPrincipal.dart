@@ -13,7 +13,7 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../cardsPrincipais/cardInvestimento.dart';
 import '../graficos/graficoColunaPrincipal.dart';
-import '../graficos/graficoRoscaPrincipal.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -60,10 +60,45 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadResumo();
   }
 
+  // Método para calcular o saldo atual (receitas do mês atual)
+  Future<double> _calcularSaldoAtual() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return 0.0;
+      
+      final agora = DateTime.now();
+      final inicioMes = DateTime(agora.year, agora.month, 1);
+      final fimMes = DateTime(agora.year, agora.month + 1, 1).subtract(const Duration(days: 1));
+      
+      final response = await Supabase.instance.client
+          .from('entradas')
+          .select('valor')
+          .eq('user_id', userId)
+          .gte('data', inicioMes.toIso8601String())
+          .lte('data', fimMes.toIso8601String());
+      
+      double total = 0.0;
+      for (final item in response) {
+        total += double.tryParse(item['valor'].toString()) ?? 0.0;
+      }
+      return total;
+    } catch (e) {
+      print('Erro ao calcular saldo atual: $e');
+      return 0.0;
+    }
+  }
+
   // Atualize para buscar dados conforme o filtro selecionado
   Future<void> _loadResumo() async {
     final gastoProvider = context.read<GastoProvider>();
     final transactionProvider = context.read<TransactionProvider>();
+
+    // Calcula o saldo do mês atual, gasto do mês e investimento
+    saldoAtual = await _calcularSaldoAtual(); // Receitas do mês atual
+    
+    gastoMes = gastoProvider.totalGastoMes();
+    
+    investimento = await transactionProvider.getInvestimentoPorMes(DateTime.now());
 
     receitasPorMes.clear();
     gastosPorMes.clear();
@@ -402,19 +437,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Row(
                                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                       children: [
-                                                        Text(
-                                                          toCurrencyString(
-                                                            saldoAtual.toString(),
-                                                            leadingSymbol: 'R\$',
-                                                            useSymbolPadding: true,
-                                                            thousandSeparator: ThousandSeparator.Period,
-                                                          ),
-                                                          style: TextStyle(
-                                                            color: const Color.fromARGB(
-                                                                255, 24, 119, 5),
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 16,
-                                                          ),
+                                                        Consumer<TransactionProvider>(
+                                                          builder: (context, transactionProvider, _) {
+                                                            final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+                                                            return Text(
+                                                              formatter.format(saldoAtual),
+                                                              style: TextStyle(
+                                                                color: const Color.fromARGB(255, 24, 119, 5),
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 16,
+                                                              ),
+                                                            );
+                                                          },
                                                         ),
                                                         Icon(
                                                           Icons.account_balance_wallet,
