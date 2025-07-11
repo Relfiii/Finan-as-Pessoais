@@ -14,13 +14,18 @@ class ControleInvestimentosPage extends StatefulWidget {
 class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
   final List<Map<String, dynamic>> investimentos = [];
   double _totalInvestimentos = 0.0;
+  DateTime _currentDate = DateTime.now();
 
   Future<void> _carregarInvestimentos() async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
+    final inicioMes = DateTime(_currentDate.year, _currentDate.month, 1);
+    final fimMes = DateTime(_currentDate.year, _currentDate.month + 1, 1).subtract(const Duration(days: 1));
     final response = await Supabase.instance.client
         .from('investimentos')
         .select()
         .eq('user_id', userId)
+        .gte('data', inicioMes.toIso8601String())
+        .lte('data', fimMes.toIso8601String())
         .order('data', ascending: false);
 
     setState(() {
@@ -35,12 +40,40 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
           'user_id': Supabase.instance.client.auth.currentUser!.id,
         });
       }
+      _totalInvestimentos = investimentos.fold(0.0, (soma, r) => soma + (r['valor'] ?? 0.0));
     });
+  }
 
-    final total = await InvestimentoUtils.buscarTotalInvestimentos();
+  void _nextMonth() async {
     setState(() {
-      _totalInvestimentos = total;
+      _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
     });
+    await _carregarInvestimentos();
+  }
+
+  void _previousMonth() async {
+    setState(() {
+      _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+    });
+    await _carregarInvestimentos();
+  }
+
+  String _formatMonthYear(DateTime date) {
+    // Exibe mês por extenso e ano, exemplo: "Abril 2024"
+    return '${_capitalizeMonth(_mesExtenso(date.month))} ${date.year}';
+  }
+
+  String _mesExtenso(int mes) {
+    const meses = [
+      '', 'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+      'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+    ];
+    return meses[mes];
+  }
+
+  String _capitalizeMonth(String month) {
+    if (month.isEmpty) return month;
+    return month[0].toUpperCase() + month.substring(1);
   }
 
   Future<void> _editarInvestimento(int index) async {
@@ -343,6 +376,31 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                     ),
                   ),
                   const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                  // Navegação de mês/ano
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                          onPressed: _previousMonth,
+                        ),
+                        Text(
+                          _formatMonthYear(_currentDate),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                          onPressed: _nextMonth,
+                        ),
+                      ],
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 0),
                     child: Row(
