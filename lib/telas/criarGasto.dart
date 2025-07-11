@@ -406,37 +406,166 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         .eq('id', _selectedCategoria!.id)
                         .single();
 
-                    // Salva no Supabase
-                    final result = await Supabase.instance.client
-                        .from('gastos')
-                        .insert({
+                    final gastoProvider = context.read<GastoProvider>();
+                    
+                    if (_tipoGasto == 'Recorrente' && _intervaloSelecionado != null) {
+                      // Para despesas recorrentes, criar múltiplos gastos E replicar categorias
+                      final List<Map<String, dynamic>> gastosParaInserir = [];
+                      final userId = Supabase.instance.client.auth.currentUser?.id;
+                      
+                      print('Iniciando criação de despesa recorrente para ${_intervaloSelecionado} meses');
+                      print('Categoria selecionada: ${_selectedCategoria!.name} (ID: ${_selectedCategoria!.id})');
+                      
+                      // Lista para rastrear as novas categorias criadas
+                      final List<String> categoriasCriadas = [];
+                      
+                      for (int i = 0; i < _intervaloSelecionado!; i++) {
+                        final dataGasto = DateTime(
+                          _selectedDate.year,
+                          _selectedDate.month + i,
+                          _selectedDate.day,
+                        );
+                        
+                        // Define o primeiro dia do mês do gasto (sempre às 00:00:00)
+                        final primeiroDiaDoMes = DateTime(dataGasto.year, dataGasto.month, 1);
+                        final ultimoDiaDoMes = DateTime(dataGasto.year, dataGasto.month + 1, 0, 23, 59, 59, 999);
+                        
+                        print('Processando mês ${dataGasto.month}/${dataGasto.year}');
+                        print('Primeiro dia: ${primeiroDiaDoMes.toIso8601String()}');
+                        print('Último dia: ${ultimoDiaDoMes.toIso8601String()}');
+                        
+                        // Verifica se já existe uma categoria com esse nome neste mês
+                        final categoriaExistente = await Supabase.instance.client
+                            .from('categorias')
+                            .select()
+                            .eq('user_id', userId!)
+                            .eq('nome', _selectedCategoria!.name)
+                            .gte('data', primeiroDiaDoMes.toIso8601String())
+                            .lte('data', ultimoDiaDoMes.toIso8601String());
+                        
+                        print('Categorias existentes encontradas: ${categoriaExistente.length}');
+                        
+                        String categoriaId;
+                        
+                        if (categoriaExistente.isEmpty) {
+                          // Se não existe, cria uma nova categoria para este mês
+                          print('Criando nova categoria "${_selectedCategoria!.name}" para ${dataGasto.month}/${dataGasto.year}');
+                          final novaCategoria = await Supabase.instance.client
+                              .from('categorias')
+                              .insert({
+                                'nome': _selectedCategoria!.name,
+                                'user_id': userId,
+                                'data': primeiroDiaDoMes.toIso8601String(),
+                              })
+                              .select()
+                              .single();
+                          
+                          categoriaId = novaCategoria['id'];
+                          categoriasCriadas.add(categoriaId);
+                          print('Nova categoria criada com ID: $categoriaId');
+                        } else {
+                          // Se já existe, usa a categoria existente
+                          categoriaId = categoriaExistente.first['id'];
+                          print('Usando categoria existente com ID: $categoriaId');
+                        }
+                        
+                        // Adiciona o gasto à lista para inserção
+                        gastosParaInserir.add({
                           'descricao': _descController.text,
                           'valor': valor,
-                          'data': _selectedDate.toIso8601String(),
-                          'categoria_id': _selectedCategoria!.id,
-                          'user_id': Supabase.instance.client.auth.currentUser?.id,
-                          'recorrente': _tipoGasto == 'Recorrente',
-                          'intervalo_meses': _tipoGasto == 'Recorrente' ? _intervaloSelecionado : null,
-                        })
-                        .select()
-                        .single();
+                          'data': dataGasto.toIso8601String(),
+                          'categoria_id': categoriaId,
+                          'user_id': userId,
+                          'recorrente': true,
+                          'intervalo_meses': _intervaloSelecionado,
+                        });
+                        
+                        print('Gasto adicionado para categoria ID: $categoriaId');
+                      }
+                      
+                      print('Categorias criadas: ${categoriasCriadas.length}');
+                      print('Total de gastos para inserir: ${gastosParaInserir.length}');
+                      
+                      // Insere todos os gastos de uma vez
+                      final gastoResults = await Supabase.instance.client
+                          .from('gastos')
+                          .insert(gastosParaInserir)
+                          .select();
+                      
+                      print('${gastoResults.length} gastos inseridos com sucesso');
+                      
+                      // Adiciona todos os gastos no provedor
+                      for (int i = 0; i < gastoResults.length; i++) {
+                        final result = gastoResults[i];
+                        gastoProvider.addGasto(
+                          Gasto(
+                            id: result['id'],
+                            descricao: _descController.text,
+                            valor: valor,
+                            data: DateTime.parse(result['data']),
+                            categoriaId: result['categoria_id'],
+                          ),
+                        );
+                      }
+                      
+                      // Recarrega as categorias para atualizar a UI
+                      await context.read<CategoryProvider>().loadCategories();
+                      
+                      print('Categorias recarregadas no provider');
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Despesa recorrente criada para ${_intervaloSelecionado} meses!\n${categoriasCriadas.length} novas categorias criadas.'),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                      
+                      Navigator.of(context).pop();
+                    } else {
+                      // Para despesas únicas, criar apenas um gasto
+                      final result = await Supabase.instance.client
+                          .from('gastos')
+                          .insert({
+                            'descricao': _descController.text,
+                            'valor': valor,
+                            'data': _selectedDate.toIso8601String(),
+                            'categoria_id': _selectedCategoria!.id,
+                            'user_id': Supabase.instance.client.auth.currentUser?.id,
+                            'recorrente': false,
+                            'intervalo_meses': null,
+                          })
+                          .select()
+                          .single();
 
-                    // Adiciona no provedor local (ajuste conforme seu modelo Gasto)
-                    final gastoProvider = context.read<GastoProvider>();
-                    gastoProvider.addGasto(
-                      Gasto(
-                        id: result['id'],
-                        descricao: _descController.text,
-                        valor: valor,
-                        data: _selectedDate,
-                        categoriaId: _selectedCategoria!.id,
-                      ),
-                    );
+                      // Adiciona no provedor local
+                      gastoProvider.addGasto(
+                        Gasto(
+                          id: result['id'],
+                          descricao: _descController.text,
+                          valor: valor,
+                          data: _selectedDate,
+                          categoriaId: _selectedCategoria!.id,
+                        ),
+                      );
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Despesa criada com sucesso!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
 
                     Navigator.of(context).pop();
                   } catch (e) {
+                    print('Erro detalhado ao salvar gasto: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erro ao salvar gasto: $e')),
+                      SnackBar(
+                        content: Text('Erro ao salvar gasto: $e'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 4),
+                      ),
                     );
                   }
                 },

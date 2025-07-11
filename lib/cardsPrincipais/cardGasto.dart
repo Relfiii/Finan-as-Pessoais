@@ -129,6 +129,141 @@ class CardGasto extends StatefulWidget {
 }
 
 class _CardGastoState extends State<CardGasto> {
+  // Popup de confirmação para deletar categoria
+  Future<void> _confirmarDeletarCategoria(BuildContext context, dynamic categoria, CategoryProvider categoryProvider) async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Center(
+            child: AlertDialog(
+              backgroundColor: const Color(0xFF181818),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Confirmar exclusão',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white54),
+                    onPressed: () => Navigator.of(context).pop(),
+                    splashRadius: 20,
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Tem certeza que deseja deletar esta categoria?',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF23272F),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          categoria.name.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.white54),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text(
+                          'Cancelar',
+                          style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: () async {
+                          final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
+                          final gastosDaCategoria = await gastoProvider.getGastosPorMes(categoria.id, _currentDate);
+                          if (gastosDaCategoria.isNotEmpty) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Não é possível deletar a categoria "${categoria.name}" pois ela possui gastos cadastrados.')),
+                            );
+                            return;
+                          }
+                          try {
+                            await categoryProvider.deleteCategory(categoria.id);
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Categoria "${categoria.name}" deletada!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            // Recarrega categorias e gastos após deletar
+                            await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
+                            await Provider.of<GastoProvider>(context, listen: false).loadGastos();
+                            await _carregarCategoriasDoMes();
+                          } catch (e) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Erro ao deletar categoria: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          'Deletar',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  double _totalGastosMes = 0.0;
 
   Future<void> _editarCategoriaPopup(BuildContext context, CategoryProvider categoryProvider, dynamic categoria) async {
     final TextEditingController controller = TextEditingController(text: categoria.name);
@@ -156,19 +291,83 @@ class _CardGastoState extends State<CardGasto> {
   void initState() {
     super.initState();
     _carregarCategoriasDoMes();
+    _carregarTotalGastosMes();
   }
 
   Future<void> _carregarCategoriasDoMes() async {
-    final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
-    final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
-    // Carrega os gastos do mês selecionado
-    final gastosMes = await gastoProvider.getGastosPorMes(null, _currentDate);
+    final supabase = Supabase.instance.client;
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) {
+      setState(() {
+        _categoriasDoMes = [];
+      });
+      return;
+    }
+
+    // Define o primeiro e último dia do mês selecionado
+    final firstDay = DateTime(_currentDate.year, _currentDate.month, 1);
+    final lastDay = DateTime(_currentDate.year, _currentDate.month + 1, 0, 23, 59, 59, 999);
+
+    try {
+      print('Carregando categorias do mês ${_currentDate.month}/${_currentDate.year}');
+      print('Primeiro dia: ${firstDay.toIso8601String()}');
+      print('Último dia: ${lastDay.toIso8601String()}');
+      print('User ID: $userId');
+      
+      // Busca categorias criadas no mês selecionado para o usuário logado
+      final categoriasResponse = await supabase
+          .from('categorias')
+          .select()
+          .eq('user_id', userId)
+          .gte('data', firstDay.toIso8601String())
+          .lte('data', lastDay.toIso8601String())
+          .order('data', ascending: true);
+
+      print('Categorias encontradas: ${categoriasResponse.length}');
+      if (categoriasResponse.isNotEmpty) {
+        for (var cat in categoriasResponse) {
+          print('Categoria: ${cat['nome']} - Data: ${cat['data']} - ID: ${cat['id']}');
+        }
+      }
+
+      // Converte para objetos Category
+      final categorias = categoriasResponse.map<Category>((cat) => Category(
+        id: cat['id'],
+        name: cat['nome'],
+        description: '', // Campo description não existe na tabela, usar valor padrão
+        color: const Color(0xFFB983FF),
+        icon: Icons.category,
+        createdAt: DateTime.parse(cat['data']),
+        updatedAt: DateTime.now(),
+      )).toList();
+
+      setState(() {
+        _categoriasDoMes = categorias;
+      });
+      
+      print('Estado atualizado com ${_categoriasDoMes.length} categorias');
+    } catch (e) {
+      print('Erro ao carregar categorias do mês: $e');
+      setState(() {
+        _categoriasDoMes = [];
+      });
+    }
     
-    // Filtra as categorias que possuem gastos neste mês
-    final idsCategorias = gastosMes.map((g) => g.categoriaId).toSet();
-    final categorias = categoryProvider.categories.where((cat) => idsCategorias.contains(cat.id)).toList();
+    await _carregarTotalGastosMes();
+  }
+
+  Future<void> _carregarTotalGastosMes() async {
+    final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
+    final gastosMes = await gastoProvider.getGastosPorMes(null, _currentDate);
+    double total = 0.0;
+    for (final gasto in gastosMes) {
+      final data = gasto.data;
+      if (data.month == _currentDate.month && data.year == _currentDate.year) {
+        total += gasto.valor;
+      }
+    }
     setState(() {
-      _categoriasDoMes = categorias;
+      _totalGastosMes = total;
     });
   }
 
@@ -180,23 +379,34 @@ class _CardGastoState extends State<CardGasto> {
     setState(() {
       _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
     });
+    print('Navegando para próximo mês: ${_currentDate.month}/${_currentDate.year}');
     await _carregarCategoriasDoMes();
+    await _carregarTotalGastosMes();
+    // Força atualização da UI
+    setState(() {});
   }
 
   void _previousMonth() async {
     setState(() {
       _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
     });
+    print('Navegando para mês anterior: ${_currentDate.month}/${_currentDate.year}');
     await _carregarCategoriasDoMes();
+    await _carregarTotalGastosMes();
+    // Força atualização da UI
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
+        print('Executando refresh da tela...');
         await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
         await Provider.of<GastoProvider>(context, listen: false).loadGastos();
         await _carregarCategoriasDoMes();
+        await _carregarTotalGastosMes();
+        print('Refresh concluído');
       },
       child: Scaffold(
         body: Stack(
@@ -220,6 +430,7 @@ class _CardGastoState extends State<CardGasto> {
                   await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
                   await Provider.of<GastoProvider>(context, listen: false).loadGastos();
                   await _carregarCategoriasDoMes();
+                  await _carregarTotalGastosMes();
                 },
                 child: Column(
                   children: [
@@ -250,35 +461,29 @@ class _CardGastoState extends State<CardGasto> {
                       ),
                     ),
                     const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                    // Exibição do valor total de gastos
+                    // Exibição do valor total de gastos do mês selecionado
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Consumer<GastoProvider>(
-                        builder: (context, gastoProvider, child) {
-                          final totalGasto = gastoProvider.totalGastos;
-                          final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Total de Gastos:',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                formatter.format(totalGasto),
-                                style: TextStyle(
-                                  color: Colors.redAccent,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total de Gastos:',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(_totalGastosMes),
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     // Navegação de mês/ano
@@ -332,6 +537,9 @@ class _CardGastoState extends State<CardGasto> {
                                   context: context,
                                   builder: (context) => const AddCategoryDialog(),
                                 );
+                                // Recarrega categorias e cards após criar
+                                await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
+                                await _carregarCategoriasDoMes();
                               },
                             ),
                           ),
@@ -355,6 +563,14 @@ class _CardGastoState extends State<CardGasto> {
                                   context: context,
                                   builder: (context) => const AddExpenseDialog(),
                                 );
+                                // Recarrega categorias e gastos após criar despesa
+                                await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
+                                await Provider.of<GastoProvider>(context, listen: false).loadGastos();
+                                // Força o recarregamento das categorias do mês para capturar categorias recorrentes
+                                await _carregarCategoriasDoMes();
+                                await _carregarTotalGastosMes();
+                                // Atualiza o estado para garantir que a UI seja reconstruída
+                                setState(() {});
                               },
                             ),
                           ),
@@ -377,7 +593,7 @@ class _CardGastoState extends State<CardGasto> {
                       child: _categoriasDoMes.isEmpty
                           ? Center(
                               child: Text(
-                                'Nenhuma categoria com gasto neste mês.',
+                                'Nenhuma categoria criada neste mês.',
                                 style: TextStyle(color: Colors.white54, fontSize: 16),
                               ),
                             )
@@ -416,11 +632,7 @@ class _CardGastoState extends State<CardGasto> {
                                   },
                                   onDelete: () async {
                                     final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
-                                    await categoryProvider.deleteCategory(cat.id);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Categoria "${cat.name}" deletada!')),
-                                    );
-                                    await _carregarCategoriasDoMes();
+                                    await _confirmarDeletarCategoria(context, cat, categoryProvider);
                                   },
                                 );
                               },

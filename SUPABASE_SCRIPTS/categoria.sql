@@ -1,4 +1,5 @@
 ALTER TABLE public.categorias
+ADD COLUMN IF NOT EXISTS data timestamp with time zone DEFAULT now();
 ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES auth.users(id);
 
 CREATE INDEX IF NOT EXISTS idx_categorias_user_id ON public.categorias(user_id);

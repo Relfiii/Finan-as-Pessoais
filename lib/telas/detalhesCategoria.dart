@@ -50,8 +50,15 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   @override
   void initState() {
     super.initState();
+    _carregarGastosDoMes();
+  }
+
+  Future<void> _carregarGastosDoMes() async {
     final gastoProvider = context.read<GastoProvider>();
-    gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+    final gastos = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+    setState(() {
+      _gastosDoMes = gastos;
+    });
   }
 
   String _formatMonthYear(DateTime date) {
@@ -62,30 +69,14 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     setState(() {
       _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
     });
-  
-    // Consulta os valores da base para o próximo mês
-    final gastoProvider = context.read<GastoProvider>();
-    final gastos = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
-  
-    // Atualiza o estado com os valores retornados
-    setState(() {
-      _gastosDoMes = gastos;
-    });
+    await _carregarGastosDoMes();
   }
-  
+
   void _previousMonth() async {
     setState(() {
       _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
     });
-  
-    // Consulta os valores da base para o mês anterior
-    final gastoProvider = context.read<GastoProvider>();
-    final gastos = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
-  
-    // Atualiza o estado com os valores retornados
-    setState(() {
-      _gastosDoMes = gastos;
-    });
+    await _carregarGastosDoMes();
   }
 
   // Método para confirmar deleção do gasto
@@ -383,8 +374,8 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     );
   }
 
-  double _calcularTotal(List<dynamic> gastos) {
-    return gastos.fold(0.0, (sum, gasto) => sum + gasto.valor);
+  double _calcularTotalMesAtual() {
+    return _gastosDoMes.fold(0.0, (sum, gasto) => sum + gasto.valor);
   }
 
     @override
@@ -429,27 +420,19 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                           ),
                         ),
                       ),
-                      Consumer<GastoProvider>(
-                        builder: (context, gastoProvider, child) {
-                          final gastos = gastoProvider.gastosPorCategoria(widget.categoryId);
-                          final totalGastos = _calcularTotal(gastos);
-                          final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-  
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF232323),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              formatter.format(totalGastos),
-                              style: const TextStyle(
-                                color: Color.fromARGB(255, 214, 158, 158),
-                                fontSize: 16,
-                              ),
-                            ),
-                          );
-                        },
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF232323),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(_calcularTotalMesAtual()),
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 214, 158, 158),
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -682,13 +665,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                 // Lista de gastos com RefreshIndicator
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () async {
-                      final gastoProvider = context.read<GastoProvider>();
-                      final gastosAtualizados = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
-                      setState(() {
-                        _gastosDoMes = gastosAtualizados;
-                      });
-                    },
+                    onRefresh: _carregarGastosDoMes,
                     child: _gastosDoMes.isEmpty
                         ? const Center(
                             child: Text(

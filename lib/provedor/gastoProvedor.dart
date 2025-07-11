@@ -156,17 +156,21 @@ class GastoProvider with ChangeNotifier {
 
   Future<List<Gasto>> getGastosPorMes(String? categoryId, DateTime mes) async {
     try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) throw Exception('Usuário não autenticado.');
+
       final inicioMes = DateTime(mes.year, mes.month, 1);
       final fimMes = DateTime(mes.year, mes.month + 1, 1).subtract(const Duration(days: 1));
 
-      final query = Supabase.instance.client
+      var query = Supabase.instance.client
           .from('gastos')
           .select()
+          .eq('user_id', user.id)
           .gte('data', inicioMes.toIso8601String())
           .lte('data', fimMes.toIso8601String());
 
       if (categoryId != null && categoryId.isNotEmpty) {
-        query.eq('categoria_id', categoryId);
+        query = query.eq('categoria_id', categoryId);
       }
 
       final response = await query;
