@@ -558,20 +558,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                     ),
-                                    // NOVO GRÁFICO DE BARRAS ABAIXO DO CARD DE INVESTIMENTO
-                                    SizedBox(height: 16),
-                                    Container(
-                                      height: 320,
-                                      child: GraficoColunaPrincipal(
-                                        saldoAtual: saldoAtual,
-                                        totalGastoMes: gastoMes,
-                                        investimento: investimento,
-                                        periodo: _periodoSelecionado,
-                                        meses: _periodoSelecionado == PeriodoFiltro.mes ? getUltimos6Meses() : null,
-                                        labels: meses.map((m) => DateFormat("MMM. yyyy", "pt_BR").format(m)).toList(),
-                                      ),
-                                    ),
                                   ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              // Gráfico de visão geral financeira (colunas)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                child: Container(
+                                  height: 300,
+                                  child: GraficoColunaPrincipal(
+                                    saldoAtual: saldoAtual,
+                                    totalGastoMes: gastoMes,
+                                    investimento: investimento,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -780,4 +780,6 @@ List<DateTime> getUltimos6Meses() {
     return DateTime(agora.year, agora.month - (5 - i), 1);
   });
 }
+
+enum PeriodoFiltro { mes, ano, dia }
 
