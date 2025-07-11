@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:ui';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
@@ -15,6 +16,9 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
   final List<Map<String, dynamic>> investimentos = [];
   double _totalInvestimentos = 0.0;
   DateTime _currentDate = DateTime.now();
+  PageController _pageController = PageController(initialPage: 1000, viewportFraction: 0.95);
+  int _currentPageIndex = 1000;
+  double _currentPageValue = 1000.0;
 
   Future<void> _carregarInvestimentos() async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
@@ -45,17 +49,68 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
   }
 
   void _nextMonth() async {
-    setState(() {
-      _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
-    });
-    await _carregarInvestimentos();
+    // Feedback tátil
+    if (Theme.of(context).platform == TargetPlatform.android || 
+        Theme.of(context).platform == TargetPlatform.iOS) {
+      HapticFeedback.lightImpact();
+    }
+    
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   void _previousMonth() async {
+    // Feedback tátil
+    if (Theme.of(context).platform == TargetPlatform.android || 
+        Theme.of(context).platform == TargetPlatform.iOS) {
+      HapticFeedback.lightImpact();
+    }
+    
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  void _onPageChanged(int page) async {
+    int difference = page - _currentPageIndex;
+    _currentPageIndex = page;
+    
     setState(() {
-      _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+      _currentDate = DateTime(_currentDate.year, _currentDate.month + difference);
     });
+    
+    print('Navegando via swipe para: ${_currentDate.month}/${_currentDate.year}');
     await _carregarInvestimentos();
+    setState(() {});
+  }
+
+  Future<List<Map<String, dynamic>>> _carregarInvestimentosDoMesEspecifico(DateTime data) async {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+    final inicioMes = DateTime(data.year, data.month, 1);
+    final fimMes = DateTime(data.year, data.month + 1, 1).subtract(const Duration(days: 1));
+    final response = await Supabase.instance.client
+        .from('investimentos')
+        .select()
+        .eq('user_id', userId)
+        .gte('data', inicioMes.toIso8601String())
+        .lte('data', fimMes.toIso8601String())
+        .order('data', ascending: false);
+
+    List<Map<String, dynamic>> investimentosDoMes = [];
+    for (final item in response) {
+      investimentosDoMes.add({
+        'id': item['id'],
+        'descricao': item['descricao'],
+        'valor': double.tryParse(item['valor'].toString()) ?? 0.0,
+        'data': DateTime.parse(item['data']),
+        'tipo': item['tipo'] ?? 'Outro',
+        'user_id': Supabase.instance.client.auth.currentUser!.id,
+      });
+    }
+    return investimentosDoMes;
   }
 
   String _formatMonthYear(DateTime date) {
@@ -76,8 +131,10 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
     return month[0].toUpperCase() + month.substring(1);
   }
 
-  Future<void> _editarInvestimento(int index) async {
-    final investimento = investimentos[index];
+  Future<void> _editarInvestimento(String investimentoId) async {
+    // Encontra o investimento pelo ID
+    final investimento = investimentos.firstWhere((i) => i['id'] == investimentoId);
+    
     final descricaoController = TextEditingController(text: investimento['descricao']);
     final valorController = TextEditingController(
       text: toCurrencyString(
@@ -270,8 +327,10 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
     );
   }
 
-  Future<void> _deletarInvestimento(int index) async {
-    final investimento = investimentos[index];
+  Future<void> _deletarInvestimento(String investimentoId) async {
+    // Encontra o investimento pelo ID
+    final investimento = investimentos.firstWhere((i) => i['id'] == investimentoId);
+    
     final confirm = await showDialog<bool>(
       context: context,
       barrierColor: Colors.black.withOpacity(0.4),
@@ -316,6 +375,21 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
   void initState() {
     super.initState();
     _carregarInvestimentos();
+    
+    // Listener para animações suaves do PageController
+    _pageController.addListener(() {
+      if (mounted && _pageController.hasClients) {
+        setState(() {
+          _currentPageValue = _pageController.page ?? 1000.0;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -376,29 +450,95 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                     ),
                   ),
                   const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                  // Navegação de mês/ano
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.chevron_left, color: Colors.white70),
-                          onPressed: _previousMonth,
-                        ),
-                        Text(
-                          _formatMonthYear(_currentDate),
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                  // Navegação de mês/ano com efeito parallax
+                  AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      // Efeito de parallax no header - verificação de segurança
+                      double parallaxOffset = 0.0;
+                      if (_pageController.hasClients && _pageController.position.haveDimensions) {
+                        parallaxOffset = (_currentPageValue - 1000) * 2;
+                      }
+                      
+                      return Transform.translate(
+                        offset: Offset(parallaxOffset, 0),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                  onPressed: _previousMonth,
+                                ),
+                              ),
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                transitionBuilder: (child, animation) {
+                                  return SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.3),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: FadeTransition(
+                                      opacity: animation,
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  _formatMonthYear(_currentDate),
+                                  key: ValueKey(_currentDate.toString()),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                  onPressed: _nextMonth,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.chevron_right, color: Colors.white70),
-                          onPressed: _nextMonth,
-                        ),
-                      ],
+                      );
+                    },
+                  ),
+                  // Indicador visual da navegação
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        // Mostra 5 pontos, com o do meio sendo o atual
+                        double opacity = index == 2 ? 1.0 : 0.3;
+                        double size = index == 2 ? 8.0 : 6.0;
+                        
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: size,
+                          height: size,
+                          decoration: BoxDecoration(
+                            color: Color(0xFF7DE2FC).withOpacity(opacity),
+                            borderRadius: BorderRadius.circular(size / 2),
+                          ),
+                        );
+                      }),
                     ),
                   ),
                   Padding(
@@ -459,37 +599,111 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Cards de investimentos do mês selecionado com PageView
                   Expanded(
-                    child: investimentos.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.trending_down, color: Colors.white24, size: 54),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Nenhum investimento cadastrado.',
-                                  style: TextStyle(color: Colors.white54, fontSize: 16),
+                    child: PageView.builder(
+                      controller: _pageController,
+                      onPageChanged: _onPageChanged,
+                      itemBuilder: (context, index) {
+                        // Calcula o mês baseado no índice da página
+                        int monthOffset = index - 1000;
+                        DateTime pageDate = DateTime(DateTime.now().year, DateTime.now().month + monthOffset);
+                        
+                        // Calcula o fator de escala e opacidade baseado na posição da página
+                        double value = 1.0;
+                        if (_pageController.hasClients && _pageController.position.haveDimensions) {
+                          value = _pageController.page ?? 1000.0;
+                          value = (1 - (index - value).abs()).clamp(0.0, 1.0);
+                        }
+                        
+                        return AnimatedBuilder(
+                          animation: _pageController,
+                          builder: (context, child) {
+                            // Efeito de parallax e escala - garantindo valores válidos
+                            double scale = (0.8 + (value * 0.2)).clamp(0.5, 1.0);
+                            double opacity = (0.5 + (value * 0.5)).clamp(0.0, 1.0);
+                            
+                            return Transform.scale(
+                              scale: scale,
+                              child: Opacity(
+                                opacity: opacity,
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                                    future: _carregarInvestimentosDoMesEspecifico(pageDate),
+                                    builder: (context, snapshot) {
+                                      List<Map<String, dynamic>> investimentosDoMes = snapshot.data ?? [];
+                                      
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: investimentosDoMes.isEmpty
+                                            ? Center(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.trending_up_outlined,
+                                                      size: 64,
+                                                      color: Colors.white.withOpacity(0.3),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    Text(
+                                                      'Nenhum investimento cadastrado neste mês.',
+                                                      style: TextStyle(
+                                                        color: Colors.white54, 
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            : ListView.separated(
+                                                padding: EdgeInsets.zero,
+                                                itemCount: investimentosDoMes.length,
+                                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                                itemBuilder: (context, investimentoIndex) {
+                                                  final investimento = investimentosDoMes[investimentoIndex];
+                                                  
+                                                  // Animação staggered para os cards
+                                                  return TweenAnimationBuilder<double>(
+                                                    duration: Duration(milliseconds: 200 + (investimentoIndex * 50)),
+                                                    tween: Tween(begin: 0.0, end: 1.0),
+                                                    curve: Curves.easeOutBack,
+                                                    builder: (context, animationValue, child) {
+                                                      // Garante que os valores estejam dentro do range válido
+                                                      final clampedAnimation = animationValue.clamp(0.0, 1.0);
+                                                      final translateY = 20 * (1 - clampedAnimation);
+                                                      
+                                                      return Transform.translate(
+                                                        offset: Offset(0, translateY),
+                                                        child: Opacity(
+                                                          opacity: clampedAnimation,
+                                                          child: InvestimentoCard(
+                                                            descricao: investimento['descricao'],
+                                                            valor: investimento['valor'],
+                                                            data: investimento['data'],
+                                                            tipo: investimento['tipo'],
+                                                            onEdit: () => _editarInvestimento(investimento['id']),
+                                                            onDelete: () => _deletarInvestimento(investimento['id']),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              ),
+                                      );
+                                    },
+                                  ),
                                 ),
-                              ],
-                            ),
-                          )
-                        : ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: investimentos.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final investimento = investimentos[index];
-                              return InvestimentoCard(
-                                descricao: investimento['descricao'],
-                                valor: investimento['valor'],
-                                data: investimento['data'],
-                                tipo: investimento['tipo'],
-                                onEdit: () => _editarInvestimento(index),
-                                onDelete: () => _deletarInvestimento(index),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                   Center(
                     child: Text(
