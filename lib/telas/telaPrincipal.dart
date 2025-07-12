@@ -14,6 +14,7 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../graficos/graficoColunaPrincipal.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -503,24 +504,36 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         }
 
-                        return SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(), // Permite o pull-to-refresh mesmo sem scroll
-                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Cards de resumo
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                                child: Column(
-                                  children: [
-                                    IntrinsicHeight(
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                                        children: [
-                                          // Saldo atual
-                                          Expanded(
-                                            child: GestureDetector(
+                        return Center(
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: kIsWeb ? 1200 : double.infinity,
+                            ),
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(), // Permite o pull-to-refresh mesmo sem scroll
+                              padding: EdgeInsets.symmetric(
+                                horizontal: kIsWeb ? 24 : 0, 
+                                vertical: 0
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Cards de resumo
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: kIsWeb ? 0 : 8, 
+                                      vertical: 0
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        IntrinsicHeight(
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
+                                              // Saldo atual
+                                              Expanded(
+                                                flex: kIsWeb ? 1 : 1,
+                                                child: GestureDetector(
                                               onTap: () async {
                                                   await Navigator.push(
                                                     context,
@@ -529,8 +542,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   await _loadResumo(); // Atualiza o saldo ao voltar
                                                 },
                                               child: Container(
-                                                margin: const EdgeInsets.all(3),
-                                                padding: const EdgeInsets.all(16),
+                                                margin: EdgeInsets.all(kIsWeb ? 8 : 3),
+                                                padding: EdgeInsets.all(kIsWeb ? 24 : 16),
                                                 decoration: BoxDecoration(
                                                   gradient: LinearGradient(
                                                     colors: [Color(0xFF2A2D3E), Color(0xFF1C1F2A)],
@@ -601,8 +614,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                             ),
                                           ),
+                                          // Espaçamento entre cards na web
+                                          if (kIsWeb) SizedBox(width: 16),
                                           // Gasto total no mês
                                           Expanded(
+                                            flex: kIsWeb ? 1 : 1,
                                             child: GestureDetector(
                                               onTap: () async {
                                                 await Navigator.push(
@@ -612,8 +628,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 await _loadResumo();
                                               },
                                               child: Container(
-                                                margin: const EdgeInsets.all(3),
-                                                padding: const EdgeInsets.all(16),
+                                                margin: EdgeInsets.all(kIsWeb ? 8 : 3),
+                                                padding: EdgeInsets.all(kIsWeb ? 24 : 16),
                                                 decoration: BoxDecoration(
                                                   gradient: LinearGradient(
                                                     colors: [Color(0xFF3A1C1C), Color(0xFF2A1A1A)],
@@ -689,7 +705,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                     // Card de Investimentos abaixo
-                                    GestureDetector(
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: kIsWeb ? 2 : 1,
+                                          child: GestureDetector(
                                       onTap: () async {
                                                 await Navigator.push(
                                                   context,
@@ -698,8 +718,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 await _loadResumo(); // Atualiza o valor ao voltar
                                               },
                                       child: Container(
-                                        margin: const EdgeInsets.all(3),
-                                        padding: const EdgeInsets.all(16),
+                                        margin: EdgeInsets.all(kIsWeb ? 8 : 3),
+                                        padding: EdgeInsets.all(kIsWeb ? 24 : 16),
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             colors: [Color(0xFF1C2A3A), Color(0xFF1A2A2F)],
@@ -767,6 +787,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                     ),
+                                        ),
+                                        // Espaço vazio na web para melhor proporção
+                                        if (kIsWeb) Expanded(flex: 1, child: SizedBox()),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
@@ -809,7 +834,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               //   ),
                               // ),
                               // const SizedBox(height: 24),
-                            ],
+                                ],
+                              ),
+                            ),
                           ),
                         );
                       },
