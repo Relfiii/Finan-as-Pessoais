@@ -98,13 +98,23 @@ class GastoProvider with ChangeNotifier {
 
   Future<void> updateGasto(String id, String novaDescricao, double novoValor) async {
     try {
+      // Atualiza na base de dados primeiro
+      await Supabase.instance.client
+          .from('gastos')
+          .update({
+            'descricao': novaDescricao,
+            'valor': novoValor,
+          })
+          .eq('id', id);
+
+      // Atualiza no cache local
       final index = _gastos.indexWhere((gasto) => gasto.id == id);
       if (index != -1) {
         final categoriaId = _gastos[index].categoriaId;
         _gastos[index].descricao = novaDescricao;
         _gastos[index].valor = novoValor;
 
-        // Atualiza no cache
+        // Atualiza no cache da categoria
         final cache = _gastosPorCategoria[categoriaId];
         if (cache != null) {
           final i = cache.indexWhere((g) => g.id == id);

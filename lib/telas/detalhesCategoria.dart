@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provedor/gastoProvedor.dart';
 import '../provedor/categoriaProvedor.dart';
-import '../telas/criarCategoria.dart';
 import '../telas/criarGasto.dart';
 import 'dart:ui';
 import '../caixaTexto/caixaTexto.dart';
@@ -187,20 +186,28 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                             // Deleta o gasto da base de dados e da lista
                             await gastoProvider.deleteGasto(gasto.id);
                             Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Despesa deletada com sucesso!'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
+                            
+                            // Recarrega os dados da base para atualizar a lista de gastos
+                            await _carregarGastosDoMes();
+                            
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Despesa deletada com sucesso!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
                           } catch (e) {
                             Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Erro ao deletar despesa: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erro ao deletar despesa: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           }
                         },
                         child: const Text(
@@ -221,7 +228,6 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
 
   // Método para editar gasto
     Future<void> _editarGasto(BuildContext context, dynamic gasto, GastoProvider gastoProvider) async {
-    // Preenche os controladores com os dados do gasto atual
     descricaoController.text = gasto.descricao;
     valorController.updateValue(gasto.valor);
   
@@ -299,8 +305,6 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   ),
                   onPressed: () async {
                     final novaDescricao = descricaoController.text.trim();
-                    final categoryProvider = context.read<CategoryProvider>();
-                    _editarCategoriaPopup(context, categoryProvider);
                     final novoValor = double.tryParse(
                       valorController.text.replaceAll('.', '').replaceAll(',', '.'),
                     );
@@ -314,19 +318,21 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                           novoValor,
                         );
   
-                        // Recarrega os dados da base para atualizar a lista de gastos
-                        final gastosAtualizados = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
-                        setState(() {
-                          _gastosDoMes = gastosAtualizados;
-                        });
-  
+                        // Fecha o dialog
                         Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Despesa atualizada com sucesso!'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                        
+                        // Recarrega os dados da base para atualizar a lista de gastos
+                        await _carregarGastosDoMes();
+                        
+                        // Mostra mensagem de sucesso
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Despesa atualizada com sucesso!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
                       } catch (e) {
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -350,25 +356,6 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-
-  // Método para editar categoria
-  Future<void> _editarCategoriaPopup(BuildContext context, CategoryProvider categoryProvider) async {
-    await showDialog<String>(
-      context: context,
-      builder: (context) {
-        return EditCategoryDialog(
-          initialName: widget.categoryName,
-          onConfirm: (novoNome) async {
-            if (novoNome.trim().isNotEmpty && novoNome != widget.categoryName) {
-              await categoryProvider.updateCategoryName(widget.categoryId, novoNome.trim());
-              setState(() {}); // Atualiza a tela
-            }
-            Navigator.of(context).pop();
-          },
         );
       },
     );
@@ -462,12 +449,17 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                             final categoryProvider = context.read<CategoryProvider>();
                             final selectedCategory = categoryProvider.getCategoryById(widget.categoryId);
   
-                            await showDialog(
+                            final result = await showDialog(
                               context: context,
                               builder: (context) => AddExpenseDialog(
                                 categoriaSelecionada: selectedCategory,
                               ),
                             );
+                            
+                            // Se uma despesa foi adicionada, recarrega a lista
+                            if (result == true) {
+                              await _carregarGastosDoMes();
+                            }
                           },
                         ),
                       ),

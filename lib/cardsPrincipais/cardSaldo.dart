@@ -51,55 +51,57 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                   'Editar Receita',
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Edite os dados da receita selecionada.',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descricaoController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Descrição',
-                        hintStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: const Color(0xFF23272F),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Edite os dados da receita selecionada.',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: valorController,
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(color: Colors.white),
-                      inputFormatters: [
-                        MoneyInputFormatter(
-                          leadingSymbol: 'R\$',
-                          useSymbolPadding: true,
-                          thousandSeparator: ThousandSeparator.Period,
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descricaoController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Descrição',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: const Color(0xFF23272F),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
-                      ],
-                      decoration: InputDecoration(
-                        hintText: 'Valor',
-                        hintStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: const Color(0xFF23272F),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: valorController,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        style: const TextStyle(color: Colors.white),
+                        inputFormatters: [
+                          MoneyInputFormatter(
+                            leadingSymbol: 'R\$',
+                            useSymbolPadding: true,
+                            thousandSeparator: ThousandSeparator.Period,
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          hintText: 'Valor',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: const Color(0xFF23272F),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                     // Botão de data do investimento (igual aos outros modais)
                     GestureDetector(
                       onTap: () async {
@@ -290,6 +292,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                       ),
                     ),
                   ],
+                ),
                 ),
                 actions: [
                   TextButton(

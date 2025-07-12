@@ -11,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../modelos/categoria.dart';
 import 'dart:ui';
 import 'package:intl/intl.dart';
+import 'cardCategoGasto.dart';
 
 class CaixaTextoOverlay extends StatefulWidget {
   final GlobalKey<_CaixaTextoOverlayState> _key = GlobalKey();
@@ -427,52 +428,57 @@ class _CardGastoState extends State<CardGasto> {
             backgroundColor: const Color(0xFF181818),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             title: const Text('Editar Categoria', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: controller,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Nome da categoria',
-                    hintStyle: const TextStyle(color: Colors.white54),
-                    filled: true,
-                    fillColor: const Color(0xFF23273A),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () => _pickEditDate(setState),
-                  child: AbsorbPointer(
-                    child: TextField(
-                      controller: TextEditingController(text: _formatDate(selectedDate)),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Calendário',
-                        hintStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: const Color(0xFF23273A),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        suffixIcon: const Icon(Icons.calendar_today, color: Colors.white54),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Nome da categoria',
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xFF23273A),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
                       ),
-                      readOnly: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () => _pickEditDate(setState),
+                    child: AbsorbPointer(
+                      child: TextField(
+                        controller: TextEditingController(text: _formatDate(selectedDate)),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Calendário',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: const Color(0xFF23273A),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          suffixIcon: const Icon(Icons.calendar_today, color: Colors.white54),
+                        ),
+                        readOnly: true,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
                 child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
               ),
               ElevatedButton(
@@ -526,7 +532,6 @@ class _CardGastoState extends State<CardGasto> {
         );
       },
     );
-    controller.dispose();
   }
 
   double _totalGastosMes = 0.0;
@@ -699,517 +704,384 @@ class _CardGastoState extends State<CardGasto> {
               ),
             ),
             SafeArea(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
-                  await Provider.of<GastoProvider>(context, listen: false).loadGastos();
-                  await _carregarTodasCategorias();
-                  await _carregarTotalGastosMes();
-                },
-                child: Column(
-                  children: [
-                    // AppBar customizada
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      child: Row(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Column(
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          const SizedBox(width: 8),
-                          const Expanded(
-                            child: Center(
-                              child: Text(
-                                'Gastos',
-                                style: TextStyle(
-                                  color: Color(0xFFB983FF),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22,
+                          // AppBar customizada
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
+                                  onPressed: () => Navigator.of(context).pop(),
                                 ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 40),
-                        ],
-                      ),
-                    ),
-                    const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                    // Exibição do valor total de gastos do mês selecionado
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total de Gastos:',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(_totalGastosMes),
-                            style: TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                      // Navegação de mês/ano com efeito parallax
-                      AnimatedBuilder(
-                        animation: _pageController,
-                        builder: (context, child) {
-                          // Efeito de parallax no header - verificação de segurança
-                          double parallaxOffset = 0.0;
-                          if (_pageController.hasClients && _pageController.position.haveDimensions) {
-                            parallaxOffset = (_currentPageValue - 1000) * 2;
-                          }
-                          
-                          return Transform.translate(
-                            offset: Offset(parallaxOffset, 0),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: IconButton(
-                                      icon: const Icon(Icons.chevron_left, color: Colors.white70),
-                                      onPressed: _previousMonth,
-                                    ),
-                                  ),
-                                  AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 300),
-                                    transitionBuilder: (child, animation) {
-                                      return SlideTransition(
-                                        position: Tween<Offset>(
-                                          begin: const Offset(0, 0.3),
-                                          end: Offset.zero,
-                                        ).animate(animation),
-                                        child: FadeTransition(
-                                          opacity: animation,
-                                          child: child,
-                                        ),
-                                      );
-                                    },
+                                const SizedBox(width: 8),
+                                const Expanded(
+                                  child: Center(
                                     child: Text(
-                                      _formatMonthYear(_currentDate),
-                                      key: ValueKey(_currentDate.toString()),
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 18,
+                                      'Gastos',
+                                      style: TextStyle(
+                                        color: Color(0xFFB983FF),
                                         fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
+                                        fontSize: 22,
                                       ),
                                     ),
                                   ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: IconButton(
-                                      icon: const Icon(Icons.chevron_right, color: Colors.white70),
-                                      onPressed: _nextMonth,
-                                    ),
+                                ),
+                                const SizedBox(width: 40),
+                              ],
+                            ),
+                          ),
+                          const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                          // Exibição do valor total de gastos do mês selecionado
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total de Gastos:',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      // Indicador visual da navegação
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(5, (index) {
-                            // Mostra 5 pontos, com o do meio sendo o atual
-                            double opacity = index == 2 ? 1.0 : 0.3;
-                            double size = index == 2 ? 8.0 : 6.0;
-                            
-                            return AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: const EdgeInsets.symmetric(horizontal: 3),
-                              width: size,
-                              height: size,
-                              decoration: BoxDecoration(
-                                color: Color(0xFFB983FF).withOpacity(opacity),
-                                borderRadius: BorderRadius.circular(size / 2),
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                      // TopBar com botões de categoria, gasto e caixa de texto
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(width: 10),
-                            // Botão de categoria
-                            SizedBox(
-                              height: 44,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF23272F),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                  minimumSize: const Size(0, 44),
                                 ),
-                                icon: const Icon(Icons.category, color: Color(0xFFB983FF)),
-                                label: const Text('Categoria'),
-                                onPressed: () async {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (context) => const AddCategoryDialog(),
-                                  );
-                                  // Recarrega categorias e cards após criar
-                                  await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
-                                  await _carregarTodasCategorias();
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            // Botão de gasto
-                            SizedBox(
-                              height: 44,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF23272F),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                  minimumSize: const Size(0, 44),
+                                Text(
+                                  NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(_totalGastosMes),
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
-                                label: const Text('Despesa'),
-                                onPressed: () async {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (context) => const AddExpenseDialog(),
-                                  );
-                                  // Recarrega categorias e gastos após criar despesa
-                                  await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
-                                  await Provider.of<GastoProvider>(context, listen: false).loadGastos();
-                                  // Força o recarregamento das categorias para capturar categorias recorrentes
-                                  await _carregarTodasCategorias();
-                                  await _carregarTotalGastosMes();
-                                  // Atualiza o estado para garantir que a UI seja reconstruída
-                                  setState(() {});
-                                },
-                              ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            // CaixaTextoWidget como botão
-                            Expanded(
-                              child: CaixaTextoWidget(
-                                asButton: true,
-                                onExpand: () {
-                                  caixaTextoOverlay.show(context);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Cards de categorias do mês selecionado com PageView
-                      Expanded(
-                        child: PageView.builder(
-                          controller: _pageController,
-                          onPageChanged: _onPageChanged,
-                          itemBuilder: (context, index) {
-                            // Calcula o mês baseado no índice da página
-                            int monthOffset = index - 1000;
-                            DateTime pageDate = DateTime(DateTime.now().year, DateTime.now().month + monthOffset);
-                            
-                            // Calcula o fator de escala e opacidade baseado na posição da página
-                            double value = 1.0;
-                            if (_pageController.hasClients && _pageController.position.haveDimensions) {
-                              value = _pageController.page ?? 1000.0;
-                              value = (1 - (index - value).abs()).clamp(0.0, 1.0);
-                            }
-                            
-                            return AnimatedBuilder(
-                              animation: _pageController,
-                              builder: (context, child) {
-                                // Efeito de parallax e escala - garantindo valores válidos
-                                double scale = (0.8 + (value * 0.2)).clamp(0.5, 1.0);
-                                double opacity = (0.5 + (value * 0.5)).clamp(0.0, 1.0);
+                          ),
+                          // Navegação de mês/ano com efeito parallax
+                          AnimatedBuilder(
+                            animation: _pageController,
+                            builder: (context, child) {
+                              // Efeito de parallax no header - verificação de segurança
+                              double parallaxOffset = 0.0;
+                              if (_pageController.hasClients && _pageController.position.haveDimensions) {
+                                parallaxOffset = (_currentPageValue - 1000) * 2;
+                              }
+                              
+                              return Transform.translate(
+                                offset: Offset(parallaxOffset, 0),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: IconButton(
+                                          icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                          onPressed: _previousMonth,
+                                        ),
+                                      ),
+                                      AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 300),
+                                        transitionBuilder: (child, animation) {
+                                          return SlideTransition(
+                                            position: Tween<Offset>(
+                                              begin: const Offset(0, 0.3),
+                                              end: Offset.zero,
+                                            ).animate(animation),
+                                            child: FadeTransition(
+                                              opacity: animation,
+                                              child: child,
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          _formatMonthYear(_currentDate),
+                                          key: ValueKey(_currentDate.toString()),
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: IconButton(
+                                          icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                          onPressed: _nextMonth,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          // Indicador visual da navegação
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(5, (index) {
+                                // Mostra 5 pontos, com o do meio sendo o atual
+                                double opacity = index == 2 ? 1.0 : 0.3;
+                                double size = index == 2 ? 8.0 : 6.0;
                                 
-                                return Transform.scale(
-                                  scale: scale,
-                                  child: Opacity(
-                                    opacity: opacity,
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-                                        child: _todasCategorias.isEmpty
-                                            ? Center(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.category_outlined,
-                                                      size: 64,
-                                                      color: Colors.white.withOpacity(0.3),
-                                                    ),
-                                                    const SizedBox(height: 16),
-                                                    Text(
-                                                      'Nenhuma categoria criada.',
-                                                      style: TextStyle(
-                                                        color: Colors.white54, 
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                      textAlign: TextAlign.center,
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                            : GridView.builder(
-                                                shrinkWrap: true,
-                                                physics: const NeverScrollableScrollPhysics(),
-                                                padding: EdgeInsets.zero,
-                                                itemCount: _todasCategorias.length,
-                                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                  crossAxisCount: 2,
-                                                  crossAxisSpacing: 12,
-                                                  mainAxisSpacing: 12,
-                                                  childAspectRatio: 1.6,
-                                                ),
-                                                itemBuilder: (context, categoryIndex) {
-                                                  final cat = _todasCategorias[categoryIndex];
-                                                  final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
-                                                  final valor = gastoProvider.totalPorCategoriaMes(cat.id, pageDate);
-                                                  
-                                                  // Animação staggered para os cards
-                                                  return TweenAnimationBuilder<double>(
-                                                    duration: Duration(milliseconds: 200 + (categoryIndex * 50)),
-                                                    tween: Tween(begin: 0.0, end: 1.0),
-                                                    curve: Curves.easeOutBack,
-                                                    builder: (context, animationValue, child) {
-                                                      // Garante que os valores estejam dentro do range válido
-                                                      final clampedAnimation = animationValue.clamp(0.0, 1.0);
-                                                      final translateY = 20 * (1 - clampedAnimation);
-                                                      
-                                                      return Transform.translate(
-                                                        offset: Offset(0, translateY),
-                                                        child: Opacity(
-                                                          opacity: clampedAnimation,
-                                                          child: _CategoryCard(
-                                                            categoryName: cat.name,
-                                                            valor: valor,
-                                                            onTap: () async {
-                                                              Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                  builder: (context) => DetalhesCategoriaScreen(
-                                                                    categoryId: cat.id,
-                                                                    categoryName: cat.name,
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            },
-                                                            onEdit: () async {
-                                                              final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
-                                                              await _editarCategoriaPopup(context, categoryProvider, cat);
-                                                            },
-                                                            onDelete: () async {
-                                                              final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
-                                                              await _confirmarDeletarCategoria(context, cat, categoryProvider);
-                                                            },
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                              ),
-                                      ),
-                                    ),
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                                  width: size,
+                                  height: size,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFB983FF).withOpacity(opacity),
+                                    borderRadius: BorderRadius.circular(size / 2),
                                   ),
                                 );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      // Spacer para empurrar o rodapé para baixo
-                      Center(
-                        child: Text(
-                          'NossoDinDin v1.0',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.18),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 1.1,
+                              }),
+                            ),
                           ),
-                        ),
+                          // TopBar com botões de categoria, gasto e caixa de texto
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(width: 10),
+                                // Botão de categoria
+                                SizedBox(
+                                  height: 44,
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF23272F),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                      minimumSize: const Size(0, 44),
+                                    ),
+                                    icon: const Icon(Icons.category, color: Color(0xFFB983FF)),
+                                    label: const Text('Categoria'),
+                                    onPressed: () async {
+                                      await showDialog(
+                                        context: context,
+                                        builder: (context) => const AddCategoryDialog(),
+                                      );
+                                      // Recarrega categorias e cards após criar
+                                      await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
+                                      await _carregarTodasCategorias();
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Botão de gasto
+                                SizedBox(
+                                  height: 44,
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF23272F),
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                                      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                      minimumSize: const Size(0, 44),
+                                    ),
+                                    icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                                    label: const Text('Despesa'),
+                                    onPressed: () async {
+                                      await showDialog(
+                                        context: context,
+                                        builder: (context) => const AddExpenseDialog(),
+                                      );
+                                      // Recarrega categorias e gastos após criar despesa
+                                      await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
+                                      await Provider.of<GastoProvider>(context, listen: false).loadGastos();
+                                      // Força o recarregamento das categorias para capturar categorias recorrentes
+                                      await _carregarTodasCategorias();
+                                      await _carregarTotalGastosMes();
+                                      // Atualiza o estado para garantir que a UI seja reconstruída
+                                      setState(() {});
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // CaixaTextoWidget como botão
+                                Expanded(
+                                  child: CaixaTextoWidget(
+                                    asButton: true,
+                                    onExpand: () {
+                                      caixaTextoOverlay.show(context);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Cards de categorias do mês selecionado com PageView
+                          SizedBox(
+                            height: constraints.maxHeight * 0.6, // Define altura específica para o PageView
+                            child: PageView.builder(
+                              controller: _pageController,
+                              onPageChanged: _onPageChanged,
+                              itemBuilder: (context, index) {
+                                // Calcula o mês baseado no índice da página
+                                int monthOffset = index - 1000;
+                                DateTime pageDate = DateTime(DateTime.now().year, DateTime.now().month + monthOffset);
+                                
+                                // Calcula o fator de escala e opacidade baseado na posição da página
+                                double value = 1.0;
+                                if (_pageController.hasClients && _pageController.position.haveDimensions) {
+                                  value = _pageController.page ?? 1000.0;
+                                  value = (1 - (index - value).abs()).clamp(0.0, 1.0);
+                                }
+                                
+                                return AnimatedBuilder(
+                                  animation: _pageController,
+                                  builder: (context, child) {
+                                    // Efeito de parallax e escala - garantindo valores válidos
+                                    double scale = (0.8 + (value * 0.2)).clamp(0.5, 1.0);
+                                    double opacity = (0.5 + (value * 0.5)).clamp(0.0, 1.0);
+                                    
+                                    return Transform.scale(
+                                      scale: scale,
+                                      child: Opacity(
+                                        opacity: opacity,
+                                        child: Container(
+                                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                                            child: _todasCategorias.isEmpty
+                                                ? Center(
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.category_outlined,
+                                                          size: 64,
+                                                          color: Colors.white.withOpacity(0.3),
+                                                        ),
+                                                        const SizedBox(height: 16),
+                                                        Text(
+                                                          'Nenhuma categoria criada.',
+                                                          style: TextStyle(
+                                                            color: Colors.white54, 
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.w500,
+                                                          ),
+                                                          textAlign: TextAlign.center,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : GridView.builder(
+                                                    shrinkWrap: true,
+                                                    physics: const NeverScrollableScrollPhysics(),
+                                                    padding: EdgeInsets.zero,
+                                                    itemCount: _todasCategorias.length,
+                                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount: 2,
+                                                      crossAxisSpacing: 12,
+                                                      mainAxisSpacing: 12,
+                                                      childAspectRatio: 1.6,
+                                                    ),
+                                                    itemBuilder: (context, categoryIndex) {
+                                                      final cat = _todasCategorias[categoryIndex];
+                                                      final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
+                                                      final valor = gastoProvider.totalPorCategoriaMes(cat.id, pageDate);
+                                                      
+                                                      // Animação staggered para os cards
+                                                      return TweenAnimationBuilder<double>(
+                                                        duration: Duration(milliseconds: 200 + (categoryIndex * 50)),
+                                                        tween: Tween(begin: 0.0, end: 1.0),
+                                                        curve: Curves.easeOutBack,
+                                                        builder: (context, animationValue, child) {
+                                                          // Garante que os valores estejam dentro do range válido
+                                                          final clampedAnimation = animationValue.clamp(0.0, 1.0);
+                                                          final translateY = 20 * (1 - clampedAnimation);
+                                                          
+                                                          return Transform.translate(
+                                                            offset: Offset(0, translateY),
+                                                            child: Opacity(
+                                                              opacity: clampedAnimation,
+                                                              child: CategoryCard(
+                                                                categoryName: cat.name,
+                                                                valor: valor,
+                                                                onTap: () async {
+                                                                  Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                      builder: (context) => DetalhesCategoriaScreen(
+                                                                        categoryId: cat.id,
+                                                                        categoryName: cat.name,
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                },
+                                                                onEdit: () async {
+                                                                  final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+                                                                  await _editarCategoriaPopup(context, categoryProvider, cat);
+                                                                },
+                                                                onDelete: () async {
+                                                                  final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+                                                                  await _confirmarDeletarCategoria(context, cat, categoryProvider);
+                                                                },
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      );
+                                                    },
+                                                  ),
+                                          ),
+                                      ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                          // Spacer para empurrar o rodapé para baixo
+                          const SizedBox(height: 16),
+                          Center(
+                            child: Text(
+                              'NossoDinDin v1.0',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.18),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
+            ),
             // Overlay da caixa de texto expandida
             CaixaTextoOverlay(),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _CategoryCard extends StatelessWidget {
-  final String categoryName;
-  final double valor;
-  final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _CategoryCard({
-    required this.categoryName,
-    required this.valor,
-    required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final ValueNotifier<bool> isPressed = ValueNotifier(false);
-    final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-
-    return GestureDetector(
-      onTap: onTap,
-      onTapDown: (_) => isPressed.value = true,
-      onTapUp: (_) => isPressed.value = false,
-      onTapCancel: () => isPressed.value = false,
-      child: ValueListenableBuilder<bool>(
-        valueListenable: isPressed,
-        builder: (context, pressed, child) {
-          return AnimatedScale(
-            scale: pressed ? 0.98 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: pressed 
-                    ? [Color(0xFF3A3A3A), Color(0xFF2E2E2E)]
-                    : [Color(0xFF2A2A2A), Color(0xFF1E1E1E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(pressed ? 0.3 : 0.1),
-                    blurRadius: pressed ? 12 : 8,
-                    offset: Offset(0, pressed ? 2 : 4),
-                  ),
-                  BoxShadow(
-                    color: Color(0xFFB983FF).withOpacity(pressed ? 0.15 : 0.05),
-                    blurRadius: pressed ? 24 : 20,
-                    spreadRadius: pressed ? -2 : -4,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    splashColor: Color(0xFFB983FF).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: onTap,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  categoryName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
-                                color: const Color(0xFF2A2A2A),
-                                padding: EdgeInsets.zero,
-                                onSelected: (value) {
-                                  if (value == 'editar') {
-                                    onEdit();
-                                  } else if (value == 'deletar') {
-                                    onDelete();
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'editar',
-                                    child: Text('Editar', style: TextStyle(color: Colors.white)),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'deletar',
-                                    child: Text('Deletar', style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              const Icon(Icons.attach_money, color: Color(0xFFB983FF), size: 20),
-                              const SizedBox(width: 6),
-                              Text(
-                                formatter.format(valor),
-                                style: const TextStyle(
-                                  color: Color.fromARGB(255, 214, 158, 158),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
       ),
     );
   }

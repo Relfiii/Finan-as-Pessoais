@@ -450,10 +450,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   minHeight: 100,
                                                 ),
                                                 child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
                                                   children: [
-                                                    const SizedBox(height: 0),
                                                     Text(
                                                       localizations.saldoAtual,
                                                       style: const TextStyle(
@@ -462,25 +461,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         fontWeight: FontWeight.w600,
                                                       ),
                                                       softWrap: true,
-                                                      overflow: TextOverflow.visible,
+                                                      overflow: TextOverflow.ellipsis,
                                                     ),
-                                                    const SizedBox(height: 12),
+                                                    const SizedBox(height: 8),
                                                     Row(
                                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                       children: [
-                                                        Consumer<TransactionProvider>(
-                                                          builder: (context, transactionProvider, _) {
-                                                            final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-                                                            return Text(
-                                                              formatter.format(saldoAtual),
-                                                              style: TextStyle(
-                                                                color: const Color.fromARGB(255, 24, 119, 5),
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 16,
-                                                              ),
-                                                            );
-                                                          },
+                                                        Expanded(
+                                                          child: Consumer<TransactionProvider>(
+                                                            builder: (context, transactionProvider, _) {
+                                                              final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+                                                              return Text(
+                                                                formatter.format(saldoAtual),
+                                                                style: const TextStyle(
+                                                                  color: Color.fromARGB(255, 24, 119, 5),
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 16,
+                                                                ),
+                                                                overflow: TextOverflow.ellipsis,
+                                                              );
+                                                            },
+                                                          ),
                                                         ),
+                                                        const SizedBox(width: 8),
                                                         Icon(
                                                           Icons.account_balance_wallet,
                                                           color: const Color.fromARGB(255, 24, 119, 5),
@@ -531,8 +534,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                                 child: Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
                                                   children: [
-                                                    const SizedBox(height: 0),
                                                     Text(
                                                       localizations.gastoNoMes,
                                                       style: const TextStyle(
@@ -541,26 +544,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         fontWeight: FontWeight.w600,
                                                       ),
                                                       softWrap: true,
-                                                      overflow: TextOverflow.visible,
+                                                      overflow: TextOverflow.ellipsis,
                                                     ),
-                                                    const SizedBox(height: 12),
+                                                    const SizedBox(height: 8),
                                                     Row(
                                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                       children: [
-                                                        Consumer<GastoProvider>(
-                                                          builder: (context, gastoProvider, _) {
-                                                            final totalGasto = gastoProvider.totalGastoMes();
-                                                            final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-                                                            return Text(
-                                                              formatter.format(totalGasto),
-                                                              style: TextStyle(
-                                                                color: const Color.fromARGB(255, 151, 53, 53),
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 16,
-                                                              ),
-                                                            );
-                                                          },
+                                                        Expanded(
+                                                          child: Consumer<GastoProvider>(
+                                                            builder: (context, gastoProvider, _) {
+                                                              final totalGasto = gastoProvider.totalGastoMes();
+                                                              final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+                                                              return Text(
+                                                                formatter.format(totalGasto),
+                                                                style: const TextStyle(
+                                                                  color: Color.fromARGB(255, 151, 53, 53),
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 16,
+                                                                ),
+                                                                overflow: TextOverflow.ellipsis,
+                                                              );
+                                                            },
+                                                          ),
                                                         ),
+                                                        const SizedBox(width: 8),
                                                         Icon(
                                                           Icons.trending_down,
                                                           color: const Color.fromARGB(255, 151, 53, 53),
@@ -614,38 +621,42 @@ class _HomeScreenState extends State<HomeScreen> {
                                         width: double.infinity,
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const SizedBox(height: 0),
                                             Text(
                                               localizations.investimentos,
                                               style: const TextStyle(
                                                   color: Colors.white70, fontSize: 16),
                                               softWrap: true,
-                                              overflow: TextOverflow.visible,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            const SizedBox(height: 12),
+                                            const SizedBox(height: 8),
                                             Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                FutureBuilder<double>(
-                                                  future: InvestimentoUtils.buscarTotalInvestimentos(),
-                                                  builder: (context, snapshot) {
-                                                    final valor = snapshot.data ?? 0.0;
-                                                    return Text(
-                                                      toCurrencyString(
-                                                        valor.toString(),
-                                                        leadingSymbol: 'R\$',
-                                                        useSymbolPadding: true,
-                                                        thousandSeparator: ThousandSeparator.Period,
-                                                      ),
-                                                      style: TextStyle(
-                                                        color: const Color.fromARGB(255, 15, 157, 240),
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 20,
-                                                      ),
-                                                    );
-                                                  },
+                                                Expanded(
+                                                  child: FutureBuilder<double>(
+                                                    future: InvestimentoUtils.buscarTotalInvestimentos(),
+                                                    builder: (context, snapshot) {
+                                                      final valor = snapshot.data ?? 0.0;
+                                                      return Text(
+                                                        toCurrencyString(
+                                                          valor.toString(),
+                                                          leadingSymbol: 'R\$',
+                                                          useSymbolPadding: true,
+                                                          thousandSeparator: ThousandSeparator.Period,
+                                                        ),
+                                                        style: const TextStyle(
+                                                          color: Color.fromARGB(255, 15, 157, 240),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      );
+                                                    },
+                                                  ),
                                                 ),
+                                                const SizedBox(width: 8),
                                                 Icon(
                                                   Icons.trending_up,
                                                   color: const Color.fromARGB(255, 15, 157, 240),
