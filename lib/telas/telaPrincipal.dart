@@ -114,66 +114,65 @@ class _HomeScreenState extends State<HomeScreen> {
         investimentosPorMes.add(await transactionProvider.getInvestimentoPorMes(mes));
       }
     } else if (_periodoSelecionado == PeriodoFiltro.ano) {
-      // Agrupar por ano: buscar todos os anos em que o usuário tem dados
+      // Buscar todos os anos distintos que possuem valores em receitas, gastos ou investimentos
       try {
-        print('🔍 Iniciando busca de anos com dados...');
-        
-        int anoMaisAntigo = await transactionProvider.getAnoMaisAntigo() ?? DateTime.now().year;
-        int anoMaisRecente = await transactionProvider.getAnoMaisRecente() ?? DateTime.now().year;
-        
-        print('📅 Ano mais antigo encontrado: $anoMaisAntigo');
-        print('📅 Ano mais recente encontrado: $anoMaisRecente');
-        
-        // Garantir que o range está correto
-        if (anoMaisAntigo > anoMaisRecente) {
-          anoMaisAntigo = anoMaisRecente;
-        }
-        
-        print('✅ Carregando dados de anos de $anoMaisAntigo até $anoMaisRecente');
-        
-        for (int ano = anoMaisAntigo; ano <= anoMaisRecente; ano++) {
+        // Buscar anos distintos em cada tabela
+        final anosReceitas = await transactionProvider.getAnosComReceita();
+        final anosGastos = await gastoProvider.getAnosComGasto();
+        final anosInvestimentos = await transactionProvider.getAnosComInvestimento();
+
+        // Unificar e ordenar os anos
+        final Set<int> anos = {...anosReceitas, ...anosGastos, ...anosInvestimentos};
+        final List<int> anosOrdenados = anos.toList()..sort();
+
+        for (final ano in anosOrdenados) {
           final referenciaAno = DateTime(ano, 1, 1);
-          meses.add(referenciaAno); // Aqui, cada item representa um ano
-          
-          print('📊 Processando ano $ano...');
-          
-          // Buscar totais do ano inteiro
+          meses.add(referenciaAno);
+
           double totalReceitaAno = await transactionProvider.getReceitaPorAno(ano);
           double totalGastoAno = await gastoProvider.totalGastoAno(ano: ano);
           double totalInvestimentoAno = await transactionProvider.getInvestimentoPorAno(ano);
-          
+
           receitasPorMes.add(totalReceitaAno);
           gastosPorMes.add(totalGastoAno);
           investimentosPorMes.add(totalInvestimentoAno);
-          
-          print('💰 Ano $ano: Receitas=R\$${totalReceitaAno.toStringAsFixed(2)}, Gastos=R\$${totalGastoAno.toStringAsFixed(2)}, Investimentos=R\$${totalInvestimentoAno.toStringAsFixed(2)}');
         }
-        
-        print('🎯 Total de anos carregados: ${meses.length}');
+
+        // Se não houver nenhum ano, mostrar pelo menos o ano atual
+        if (anosOrdenados.isEmpty) {
+          final anoAtual = DateTime.now().year;
+          final referenciaAno = DateTime(anoAtual, 1, 1);
+          meses.add(referenciaAno);
+          receitasPorMes.add(await transactionProvider.getReceitaPorAno(anoAtual));
+          gastosPorMes.add(await gastoProvider.totalGastoAno(ano: anoAtual));
+          investimentosPorMes.add(await transactionProvider.getInvestimentoPorAno(anoAtual));
+        }
       } catch (e) {
-        print('❌ Erro ao carregar dados por ano: $e');
         // Em caso de erro, mostrar pelo menos o ano atual
         final anoAtual = DateTime.now().year;
         final referenciaAno = DateTime(anoAtual, 1, 1);
         meses.add(referenciaAno);
-        
-        double totalReceitaAno = await transactionProvider.getReceitaPorAno(anoAtual);
-        double totalGastoAno = await gastoProvider.totalGastoAno(ano: anoAtual);
-        double totalInvestimentoAno = await transactionProvider.getInvestimentoPorAno(anoAtual);
-        
-        receitasPorMes.add(totalReceitaAno);
-        gastosPorMes.add(totalGastoAno);
-        investimentosPorMes.add(totalInvestimentoAno);
+        receitasPorMes.add(await transactionProvider.getReceitaPorAno(anoAtual));
+        gastosPorMes.add(await gastoProvider.totalGastoAno(ano: anoAtual));
+        investimentosPorMes.add(await transactionProvider.getInvestimentoPorAno(anoAtual));
       }
     } else if (_periodoSelecionado == PeriodoFiltro.dia) {
-      // Últimos 7 dias
+      // 30 dias anteriores + dia atual + 5 dias posteriores = 36 dias
       final agora = DateTime.now();
-      for (int i = 6; i >= 0; i--) {
-        final dia = DateTime(agora.year, agora.month, agora.day - i);
-        meses.add(dia);
-        receitasPorMes.add(await transactionProvider.getReceitaPorDia(dia));
-        gastosPorMes.add(gastoProvider.totalGastoDia(referencia: dia));
-        investimentosPorMes.add(await transactionProvider.getInvestimentoPorDia(dia));
+      
+      // Gerar sequência de 31 dias (25 anteriores + atual + 5 posteriores)
+      for (int i = -30; i <= 1; i++) {
+        final dataAtual = DateTime(agora.year, agora.month, agora.day + i);
+        meses.add(dataAtual);
+        
+        // Buscar dados para cada dia
+        double receitaDia = await transactionProvider.getReceitaPorDia(dataAtual);
+        double gastoDia = gastoProvider.totalGastoDia(referencia: dataAtual);
+        double investimentoDia = await transactionProvider.getInvestimentoPorDia(dataAtual);
+        
+        receitasPorMes.add(receitaDia);
+        gastosPorMes.add(gastoDia);
+        investimentosPorMes.add(investimentoDia);
       }
     }
 
@@ -669,6 +668,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   height: 300,
                                   child: GraficoColunaPrincipal(
                                     enableAutoScroll: true, // Ativar apenas aqui
+                                    isDailyView: _periodoSelecionado == PeriodoFiltro.dia, // Novo parâmetro
                                     labels: meses.map((dt) {
                                       if (_periodoSelecionado == PeriodoFiltro.ano) {
                                         return dt.year.toString();

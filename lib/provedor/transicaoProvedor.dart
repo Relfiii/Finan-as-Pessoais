@@ -525,4 +525,56 @@ class TransactionProvider with ChangeNotifier {
     
     return totalInvestimentos + totalTransacoes;
   }
+
+  /// Retorna lista de anos que possuem receitas
+  Future<List<int>> getAnosComReceita() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return [];
+
+      final response = await Supabase.instance.client
+          .from('entradas')
+          .select('data')
+          .eq('user_id', userId);
+
+      final Set<int> anos = {};
+      for (final item in response) {
+        final data = DateTime.parse(item['data']);
+        anos.add(data.year);
+      }
+
+      final List<int> anosOrdenados = anos.toList()..sort();
+      print('📅 Anos com receitas: $anosOrdenados');
+      return anosOrdenados;
+    } catch (e) {
+      print('❌ Erro ao buscar anos com receitas: $e');
+      return [];
+    }
+  }
+
+  /// Retorna lista de anos que possuem investimentos
+  Future<List<int>> getAnosComInvestimento() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return [];
+
+      final response = await Supabase.instance.client
+          .from('investimentos')
+          .select('data')
+          .eq('user_id', userId);
+
+      final Set<int> anos = {};
+      for (final item in response) {
+        final data = DateTime.parse(item['data']);
+        anos.add(data.year);
+      }
+
+      final List<int> anosOrdenados = anos.toList()..sort();
+      print('📅 Anos com investimentos: $anosOrdenados');
+      return anosOrdenados;
+    } catch (e) {
+      print('❌ Erro ao buscar anos com investimentos: $e');
+      return [];
+    }
+  }
 }

@@ -227,6 +227,32 @@ class GastoProvider with ChangeNotifier {
     }
   }
 
+  /// Retorna lista de anos que possuem gastos
+  Future<List<int>> getAnosComGasto() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return [];
+
+      final response = await Supabase.instance.client
+          .from('gastos')
+          .select('data')
+          .eq('user_id', userId);
+
+      final Set<int> anos = {};
+      for (final item in response) {
+        final data = DateTime.parse(item['data']);
+        anos.add(data.year);
+      }
+
+      final List<int> anosOrdenados = anos.toList()..sort();
+      print('📅 Anos com gastos: $anosOrdenados');
+      return anosOrdenados;
+    } catch (e) {
+      print('❌ Erro ao buscar anos com gastos: $e');
+      return [];
+    }
+  }
+
   // Função genérica para buscar por tipo (ex: receita, investimento)
   static Future<List<Gasto>> _buscarPorTipoEMes(String tipo, DateTime mes) async {
     final user = Supabase.instance.client.auth.currentUser;

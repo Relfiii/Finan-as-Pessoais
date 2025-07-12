@@ -8,6 +8,7 @@ class GraficoColunaPrincipal extends StatefulWidget {
   final List<double> despesas;
   final List<double> investimentos;
   final bool enableAutoScroll; // Novo parâmetro
+  final bool isDailyView; // Novo parâmetro para indicar se é visualização diária
 
   const GraficoColunaPrincipal({
     Key? key,
@@ -16,6 +17,7 @@ class GraficoColunaPrincipal extends StatefulWidget {
     required this.despesas,
     required this.investimentos,
     this.enableAutoScroll = false, // Padrão false
+    this.isDailyView = false, // Padrão false
   }) : super(key: key);
 
   @override
@@ -130,12 +132,25 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
 
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
-    // Ajuste: itemWidth maior e totalWidth mais generosa para garantir scroll
-    final double itemWidth = 65; // Aumentado para dar mais espaço
-    final double totalWidth = minLength * itemWidth + 60; // Margem extra para scroll baseada no número real de elementos
-    final double availableWidth = screenWidth - 80; // Mais margem
+    
+    // Configuração específica para visualização diária
+    late double itemWidth;
+    late double totalWidth;
+    late double availableWidth;
+    
+    if (widget.isDailyView) {
+      // Para visualização diária: 31 dias (25 anteriores + hoje + 5 posteriores)
+      itemWidth = 70; // Largura adequada para 31 dias
+      totalWidth = minLength * itemWidth + 120; // Total com margem extra
+      availableWidth = screenWidth - 60; // Largura disponível
+    } else {
+      // Para visualização mensal/anual: comportamento original
+      itemWidth = 65;
+      totalWidth = minLength * itemWidth + 60;
+      availableWidth = screenWidth - 80;
+    }
 
-    // Scroll automático único para iniciar no mês atual (apenas se habilitado)
+    // Scroll automático
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && 
           _scrollController.hasClients && 
@@ -151,8 +166,27 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
             if (mounted && _scrollController.hasClients) {
               final maxScroll = _scrollController.position.maxScrollExtent;
               if (maxScroll > 0) {
+                double targetScroll;
+                
+                if (widget.isDailyView) {
+                  // Para visualização diária: posicionar no dia atual (índice 25 na sequência de 31 dias)
+                  // A sequência é: [-25, -24, ..., -1, 0(hoje), +1, ..., +5]
+                  // O dia atual está sempre no índice 25 (começando de 0)
+                  final indiceHoje = 25; // Posição fixa do dia atual na sequência
+                  final percentualPosicao = indiceHoje / (minLength - 1);
+                  targetScroll = maxScroll * percentualPosicao;
+                  
+                  // Ajustar para centralizar o dia atual na tela (mostrar alguns dias antes e depois)
+                  final ajusteCentralizacao = maxScroll * 0.15; // 15% de ajuste para centralizar
+                  targetScroll = (targetScroll - ajusteCentralizacao).clamp(0.0, maxScroll);
+                  
+                 } else {
+                  // Para visualização mensal/anual: ir para o final
+                  targetScroll = maxScroll;
+                }
+                
                 _scrollController.animateTo(
-                  maxScroll, // Vai para o final (mês atual)
+                  targetScroll,
                   duration: const Duration(milliseconds: 1200),
                   curve: Curves.easeOutCubic,
                 );
@@ -216,16 +250,6 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                 // Área do gráfico maximizada
                 Expanded(
                   child: NotificationListener<ScrollNotification>(
-                    onNotification: (notification) {
-                      if (notification is ScrollUpdateNotification) {
-                        // double position = _scrollController.position.pixels;
-                        // double maxScroll = _scrollController.position.maxScrollExtent;
-                        // setState(() {
-                        //   _currentVisibleMonth = ((position / maxScroll) * 8 + 4).clamp(4, 12).toInt();
-                        // });
-                      }
-                      return true;
-                    },
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       controller: _scrollController,
@@ -238,7 +262,7 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                             alignment: BarChartAlignment.spaceEvenly,
                             maxY: maxY,
                             minY: 0,
-                            groupsSpace: itemWidth * 0.2, // Ajustado espaçamento
+                            groupsSpace: widget.isDailyView ? itemWidth * 0.25 : itemWidth * 0.2, // Espaçamento otimizado para 31 dias
                             barTouchData: BarTouchData(
                               enabled: true,
                               touchTooltipData: BarTouchTooltipData(
@@ -332,9 +356,17 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                               double despesaValue = (i < despesasDoGrafico.length) ? despesasDoGrafico[i].abs() : 0.0;
                               double investimentoValue = (i < investimentosDoGrafico.length) ? investimentosDoGrafico[i].abs() : 0.0;
                               
-                              double barWidth = (itemWidth * 0.6) / 3; // Ajustado para melhor proporção
-                              if (barWidth > 18) barWidth = 18; // Limite máximo ajustado
-                              if (barWidth < 8) barWidth = 8; // Limite mínimo ajustado
+                              // Ajustar largura das barras baseado no tipo de visualização
+                              double barWidth;
+                              if (widget.isDailyView) {
+                                barWidth = (itemWidth * 0.45) / 3; // Barras ajustadas para 31 dias
+                                if (barWidth > 18) barWidth = 18;
+                                if (barWidth < 8) barWidth = 8;
+                              } else {
+                                barWidth = (itemWidth * 0.6) / 3; // Configuração original
+                                if (barWidth > 18) barWidth = 18;
+                                if (barWidth < 8) barWidth = 8;
+                              }
                               
                               return BarChartGroupData(
                                 x: i,
@@ -382,7 +414,7 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                                     ),
                                   ),
                                 ],
-                                barsSpace: barWidth * 0.2, // Reduzido espaçamento entre barras
+                                barsSpace: barWidth * 0.2, // Espaçamento entre barras
                               );
                             }),
                           ),
