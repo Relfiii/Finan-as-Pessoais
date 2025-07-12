@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double gastoMes = 0.0;
   double investimento = 0.0;
   PeriodoFiltro _periodoSelecionado = PeriodoFiltro.mes;
+  DateTime _currentDate = DateTime.now();
 
   // Adicione estas linhas:
   List<double> receitasPorMes = [];
@@ -66,9 +67,8 @@ class _HomeScreenState extends State<HomeScreen> {
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) return 0.0;
       
-      final agora = DateTime.now();
-      final inicioMes = DateTime(agora.year, agora.month, 1);
-      final fimMes = DateTime(agora.year, agora.month + 1, 1).subtract(const Duration(days: 1));
+      final inicioMes = DateTime(_currentDate.year, _currentDate.month, 1);
+      final fimMes = DateTime(_currentDate.year, _currentDate.month + 1, 1).subtract(const Duration(days: 1));
       
       final response = await Supabase.instance.client
           .from('entradas')
@@ -94,11 +94,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final transactionProvider = context.read<TransactionProvider>();
 
     // Calcula o saldo do mês atual, gasto do mês e investimento
-    saldoAtual = await _calcularSaldoAtual(); // Receitas do mês atual
+    saldoAtual = await _calcularSaldoAtual(); // Receitas do mês selecionado
     
-    gastoMes = gastoProvider.totalGastoMes();
+    gastoMes = gastoProvider.totalGastoMes(referencia: _currentDate);
     
-    investimento = await transactionProvider.getInvestimentoPorMes(DateTime.now());
+    investimento = await transactionProvider.getInvestimentoPorMes(_currentDate);
 
     receitasPorMes.clear();
     gastosPorMes.clear();
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (_periodoSelecionado == PeriodoFiltro.mes) {
       // Últimos 12 meses
-      meses.addAll(getUltimos12Meses());
+      meses.addAll(getUltimos12Meses(_currentDate));
       for (final mes in meses) {
         receitasPorMes.add(await transactionProvider.getReceitaPorMes(mes));
         gastosPorMes.add(gastoProvider.totalGastoMes(referencia: mes));
@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       } catch (e) {
         // Em caso de erro, mostrar pelo menos o ano atual
-        final anoAtual = DateTime.now().year;
+        final anoAtual = _currentDate.year;
         final referenciaAno = DateTime(anoAtual, 1, 1);
         meses.add(referenciaAno);
         receitasPorMes.add(await transactionProvider.getReceitaPorAno(anoAtual));
@@ -157,12 +157,11 @@ class _HomeScreenState extends State<HomeScreen> {
         investimentosPorMes.add(await transactionProvider.getInvestimentoPorAno(anoAtual));
       }
     } else if (_periodoSelecionado == PeriodoFiltro.dia) {
-      // 30 dias anteriores + dia atual + 5 dias posteriores = 36 dias
-      final agora = DateTime.now();
+      // 30 dias anteriores + dia atual + 1 dia posterior baseado na data selecionada
       
-      // Gerar sequência de 31 dias (25 anteriores + atual + 5 posteriores)
+      // Gerar sequência de 32 dias baseado na data selecionada
       for (int i = -30; i <= 1; i++) {
-        final dataAtual = DateTime(agora.year, agora.month, agora.day + i);
+        final dataAtual = DateTime(_currentDate.year, _currentDate.month, _currentDate.day + i);
         meses.add(dataAtual);
         
         // Buscar dados para cada dia
@@ -177,6 +176,55 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     setState(() {});
+  }
+
+  // Método para navegar para o próximo período
+  void _nextPeriod() {
+    setState(() {
+      if (_periodoSelecionado == PeriodoFiltro.mes) {
+        _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+      } else if (_periodoSelecionado == PeriodoFiltro.ano) {
+        _currentDate = DateTime(_currentDate.year + 1, _currentDate.month);
+      } else if (_periodoSelecionado == PeriodoFiltro.dia) {
+        _currentDate = _currentDate.add(const Duration(days: 1));
+      }
+    });
+    _loadResumo();
+  }
+
+  // Método para navegar para o período anterior
+  void _previousPeriod() {
+    setState(() {
+      if (_periodoSelecionado == PeriodoFiltro.mes) {
+        _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+      } else if (_periodoSelecionado == PeriodoFiltro.ano) {
+        _currentDate = DateTime(_currentDate.year - 1, _currentDate.month);
+      } else if (_periodoSelecionado == PeriodoFiltro.dia) {
+        _currentDate = _currentDate.subtract(const Duration(days: 1));
+      }
+    });
+    _loadResumo();
+  }
+
+  // Método para formatar a data conforme o filtro selecionado
+    String _formatCurrentDate() {
+      if (_periodoSelecionado == PeriodoFiltro.mes) {
+        // Mostra o mês por extenso e os dois últimos dígitos do ano
+        final ano2d = _currentDate.year.toString().substring(2);
+        return '${_capitalizeMonth(DateFormat('MMMM', 'pt_BR').format(_currentDate))} $ano2d';
+      } else if (_periodoSelecionado == PeriodoFiltro.ano) {
+        // Mostra só os dois últimos dígitos do ano
+        return _currentDate.year.toString();
+      } else if (_periodoSelecionado == PeriodoFiltro.dia) {
+        return DateFormat('dd/MM/yyyy').format(_currentDate);
+      }
+      return '';
+    }
+
+  // Método para capitalizar o mês
+  String _capitalizeMonth(String month) {
+    if (month.isEmpty) return month;
+    return month[0].toUpperCase() + month.substring(1);
   }
 
   @override
@@ -310,55 +358,112 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                // Botões de filtro de período
+                // Botões de filtro de período com navegação
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ChoiceChip(
-                        label: Text('Mês', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.mes ? Colors.white : Colors.white70)),
-                        selected: _periodoSelecionado == PeriodoFiltro.mes,
-                        selectedColor: Color(0xFFB983FF),
-                        backgroundColor: Colors.transparent,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _periodoSelecionado = PeriodoFiltro.mes;
-                            });
-                            _loadResumo();
-                          }
-                        },
+                      // Botões de filtro do lado esquerdo
+                      Row(
+                        children: [
+                          ChoiceChip(
+                            label: Text('Mês', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.mes ? Colors.white : Colors.white70)),
+                            selected: _periodoSelecionado == PeriodoFiltro.mes,
+                            selectedColor: Color(0xFFB983FF),
+                            backgroundColor: Colors.transparent,
+                            showCheckmark: false,
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _periodoSelecionado = PeriodoFiltro.mes;
+                                });
+                                _loadResumo();
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          ChoiceChip(
+                            label: Text('Ano', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.ano ? Colors.white : Colors.white70)),
+                            selected: _periodoSelecionado == PeriodoFiltro.ano,
+                            selectedColor: Color(0xFFB983FF),
+                            backgroundColor: Colors.transparent,
+                            showCheckmark: false,
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _periodoSelecionado = PeriodoFiltro.ano;
+                                });
+                                _loadResumo();
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          ChoiceChip(
+                            label: Text('Dia', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.dia ? Colors.white : Colors.white70)),
+                            selected: _periodoSelecionado == PeriodoFiltro.dia,
+                            selectedColor: Color(0xFFB983FF),
+                            backgroundColor: Colors.transparent,
+                            showCheckmark: false,
+                            onSelected: (selected) {
+                              if (selected) {
+                                setState(() {
+                                  _periodoSelecionado = PeriodoFiltro.dia;
+                                });
+                                _loadResumo();
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: Text('Ano', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.ano ? Colors.white : Colors.white70)),
-                        selected: _periodoSelecionado == PeriodoFiltro.ano,
-                        selectedColor: Color(0xFFB983FF),
-                        backgroundColor: Colors.transparent,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _periodoSelecionado = PeriodoFiltro.ano;
-                            });
-                            _loadResumo();
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      ChoiceChip(
-                        label: Text('Dia', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.dia ? Colors.white : Colors.white70)),
-                        selected: _periodoSelecionado == PeriodoFiltro.dia,
-                        selectedColor: Color(0xFFB983FF),
-                        backgroundColor: Colors.transparent,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _periodoSelecionado = PeriodoFiltro.dia;
-                            });
-                            _loadResumo();
-                          }
-                        },
+                      // Navegação de período do lado direito
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.white70, size: 18),
+                            onPressed: _previousPeriod,
+                            tooltip: 'Período anterior',
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) {
+                              return SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0.3, 0),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              );
+                            },
+                            child: Text(
+                              _formatCurrentDate(),
+                              key: ValueKey(_currentDate.toString()),
+                              style: const TextStyle(
+                                color: Color(0xFFB983FF),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right, color: Colors.white70, size: 18),
+                            onPressed: _nextPeriod,
+                            tooltip: 'Próximo período',
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -553,7 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         Expanded(
                                                           child: Consumer<GastoProvider>(
                                                             builder: (context, gastoProvider, _) {
-                                                              final totalGasto = gastoProvider.totalGastoMes();
+                                                              final totalGasto = gastoProvider.totalGastoMes(referencia: _currentDate);
                                                               final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
                                                               return Text(
                                                                 formatter.format(totalGasto),
@@ -890,10 +995,9 @@ extension StringCasingExtension on String {
   }
 }
 
-List<DateTime> getUltimos12Meses() {
-  final agora = DateTime.now();
-  return List.generate(12, (i) { // Aumentei para 12 meses para ter mais contexto histórico
-    return DateTime(agora.year, agora.month - (11 - i), 1);
+List<DateTime> getUltimos12Meses(DateTime referencia) {
+  return List.generate(12, (i) { // Últimos 12 meses baseado na data de referência
+    return DateTime(referencia.year, referencia.month - (11 - i), 1);
   });
 }
 
