@@ -11,6 +11,7 @@ import 'provedor/gastoProvedor.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'provedor/usuarioProvedor.dart';
+import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,11 @@ void main() async {
     url: 'https://bfcuvqovxsnjbcpsnjwj.supabase.co',
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmY3V2cW92eHNuamJjcHNuandqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzODMzNTcsImV4cCI6MjA2Njk1OTM1N30.3GON-bbY4N11n9PJgMSl28HgiyqpPupYwv-E3Kse2co',
   );
-  await DatabaseService.database;
+  
+  // SQLite só funciona em platforms nativas (não web)
+  if (!kIsWeb) {
+    await DatabaseService.database;
+  }
   runApp(
     MultiProvider(
       providers: [

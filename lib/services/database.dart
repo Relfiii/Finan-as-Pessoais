@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
 
 /// Serviço responsável por gerenciar o banco de dados SQLite
 class DatabaseService {
@@ -9,7 +10,11 @@ class DatabaseService {
   static const int _databaseVersion = 1;
 
   /// Singleton para obter a instância do banco
-  static Future<Database> get database async {
+  static Future<Database?> get database async {
+    // SQLite não funciona na web, usar apenas Supabase
+    if (kIsWeb) {
+      return null;
+    }
     _database ??= await _initDatabase();
     return _database!;
   }
@@ -157,9 +162,11 @@ class DatabaseService {
   /// Limpa todas as tabelas (usado para testes)
   static Future<void> clearAll() async {
     final db = await database;
-    await db.delete('transactions');
-    await db.delete('budgets');
-    await db.delete('categories');
-    await _insertDefaultCategories(db);
+    if (db != null) {
+      await db.delete('transactions');
+      await db.delete('budgets');
+      await db.delete('categories');
+      await _insertDefaultCategories(db);
+    }
   }
 }

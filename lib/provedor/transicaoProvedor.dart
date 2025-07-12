@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../modelos/transicao.dart';
-import '../services/transicao.dart';
+import '../services/transicao.dart' show TransactionService;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Provider para gerenciar o estado das transações

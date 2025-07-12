@@ -1,12 +1,20 @@
 import 'package:sqflite/sqflite.dart';
 import '../modelos/orcamento.dart';
 import 'database.dart';
+import 'package:flutter/foundation.dart';
 
 /// Serviço para operações CRUD com orçamentos
 class BudgetService {
   /// Busca todos os orçamentos
   static Future<List<Budget>> getAll() async {
+    if (kIsWeb) {
+      // Na web, retorna lista vazia ou usa Supabase
+      return [];
+    }
+    
     final db = await DatabaseService.database;
+    if (db == null) return [];
+    
     final List<Map<String, dynamic>> maps = await db.query(
       'budgets',
       orderBy: 'startDate DESC',
@@ -19,8 +27,15 @@ class BudgetService {
 
   /// Busca orçamentos ativos (que incluem a data atual)
   static Future<List<Budget>> getActive() async {
+    if (kIsWeb) {
+      // Na web, retorna lista vazia ou usa Supabase
+      return [];
+    }
+    
     final now = DateTime.now();
     final db = await DatabaseService.database;
+    if (db == null) return [];
+    
     final List<Map<String, dynamic>> maps = await db.query(
       'budgets',
       where: 'startDate <= ? AND endDate >= ?',
@@ -35,7 +50,14 @@ class BudgetService {
 
   /// Busca orçamentos por categoria
   static Future<List<Budget>> getByCategory(String categoryId) async {
+    if (kIsWeb) {
+      // Na web, retorna lista vazia ou usa Supabase
+      return [];
+    }
+    
     final db = await DatabaseService.database;
+    if (db == null) return [];
+    
     final List<Map<String, dynamic>> maps = await db.query(
       'budgets',
       where: 'categoryId = ?',
@@ -50,7 +72,14 @@ class BudgetService {
 
   /// Busca um orçamento por ID
   static Future<Budget?> getById(String id) async {
+    if (kIsWeb) {
+      // Na web, retorna null ou usa Supabase
+      return null;
+    }
+    
     final db = await DatabaseService.database;
+    if (db == null) return null;
+    
     final List<Map<String, dynamic>> maps = await db.query(
       'budgets',
       where: 'id = ?',
@@ -65,7 +94,14 @@ class BudgetService {
 
   /// Insere um novo orçamento
   static Future<void> insert(Budget budget) async {
+    if (kIsWeb) {
+      // Na web, não faz nada ou usa Supabase
+      return;
+    }
+    
     final db = await DatabaseService.database;
+    if (db == null) return;
+    
     await db.insert(
       'budgets',
       budget.toMap(),
@@ -75,7 +111,14 @@ class BudgetService {
 
   /// Atualiza um orçamento existente
   static Future<void> update(Budget budget) async {
+    if (kIsWeb) {
+      // Na web, não faz nada ou usa Supabase
+      return;
+    }
+    
     final db = await DatabaseService.database;
+    if (db == null) return;
+    
     await db.update(
       'budgets',
       budget.toMap(),
@@ -86,7 +129,14 @@ class BudgetService {
 
   /// Remove um orçamento
   static Future<void> delete(String id) async {
+    if (kIsWeb) {
+      // Na web, não faz nada ou usa Supabase
+      return;
+    }
+    
     final db = await DatabaseService.database;
+    if (db == null) return;
+    
     await db.delete(
       'budgets',
       where: 'id = ?',
@@ -96,7 +146,14 @@ class BudgetService {
 
   /// Busca orçamentos com dados da categoria
   static Future<List<Map<String, dynamic>>> getBudgetsWithCategory() async {
+    if (kIsWeb) {
+      // Na web, retorna lista vazia ou usa Supabase
+      return [];
+    }
+    
     final db = await DatabaseService.database;
+    if (db == null) return [];
+    
     return await db.rawQuery('''
       SELECT 
         b.*,
