@@ -609,67 +609,93 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                     future: _carregarInvestimentosDoMesEspecifico(pageDate),
                                     builder: (context, snapshot) {
                                       List<Map<String, dynamic>> investimentosDoMes = snapshot.data ?? [];
-                                      
+                                      // Calcule o total do mês
+                                      double totalMes = investimentosDoMes.fold(0.0, (soma, r) => soma + (r['valor'] ?? 0.0));
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: investimentosDoMes.isEmpty
-                                            ? Center(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.trending_up_outlined,
-                                                      size: 64,
-                                                      color: Colors.white.withOpacity(0.3),
-                                                    ),
-                                                    const SizedBox(height: 16),
-                                                    Text(
-                                                      'Nenhum investimento cadastrado neste mês.',
-                                                      style: TextStyle(
-                                                        color: Colors.white54, 
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w500,
+                                        child: Column(
+                                          children: [
+                                            // Total do mês
+                                            Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(bottom: 8.0, top: 4),
+                                                child: Text(
+                                                  'Total do mês: ' +
+                                                      toCurrencyString(
+                                                        totalMes.toString(),
+                                                        leadingSymbol: 'R\$',
+                                                        useSymbolPadding: true,
+                                                        thousandSeparator: ThousandSeparator.Period,
                                                       ),
-                                                      textAlign: TextAlign.center,
-                                                    ),
-                                                  ],
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF7DE2FC),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
                                                 ),
-                                              )
-                                            : ListView.separated(
-                                                padding: EdgeInsets.zero,
-                                                itemCount: investimentosDoMes.length,
-                                                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                                itemBuilder: (context, investimentoIndex) {
-                                                  final investimento = investimentosDoMes[investimentoIndex];
-                                                  
-                                                  // Animação staggered para os cards
-                                                  return TweenAnimationBuilder<double>(
-                                                    duration: Duration(milliseconds: 200 + (investimentoIndex * 50)),
-                                                    tween: Tween(begin: 0.0, end: 1.0),
-                                                    curve: Curves.easeOutBack,
-                                                    builder: (context, animationValue, child) {
-                                                      // Garante que os valores estejam dentro do range válido
-                                                      final clampedAnimation = animationValue.clamp(0.0, 1.0);
-                                                      final translateY = 20 * (1 - clampedAnimation);
-                                                      
-                                                      return Transform.translate(
-                                                        offset: Offset(0, translateY),
-                                                        child: Opacity(
-                                                          opacity: clampedAnimation,
-                                                          child: InvestimentoCard(
-                                                            descricao: investimento['descricao'],
-                                                            valor: investimento['valor'],
-                                                            data: investimento['data'],
-                                                            tipo: investimento['tipo'],
-                                                            onEdit: () => _editarInvestimento(investimento['id']),
-                                                            onDelete: () => _deletarInvestimento(investimento['id']),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
                                               ),
+                                            ),
+                                            Expanded(
+                                              child: investimentosDoMes.isEmpty
+                                                  ? Center(
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.trending_up_outlined,
+                                                            size: 64,
+                                                            color: Colors.white.withOpacity(0.3),
+                                                          ),
+                                                          const SizedBox(height: 16),
+                                                          Text(
+                                                            'Nenhum investimento cadastrado neste mês.',
+                                                            style: TextStyle(
+                                                              color: Colors.white54, 
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                            textAlign: TextAlign.center,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    )
+                                                  : ListView.separated(
+                                                      padding: EdgeInsets.zero,
+                                                      itemCount: investimentosDoMes.length,
+                                                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                                      itemBuilder: (context, investimentoIndex) {
+                                                        final investimento = investimentosDoMes[investimentoIndex];
+                                                        
+                                                        // Animação staggered para os cards
+                                                        return TweenAnimationBuilder<double>(
+                                                          duration: Duration(milliseconds: 200 + (investimentoIndex * 50)),
+                                                          tween: Tween(begin: 0.0, end: 1.0),
+                                                          curve: Curves.easeOutBack,
+                                                          builder: (context, animationValue, child) {
+                                                            final clampedAnimation = animationValue.clamp(0.0, 1.0);
+                                                            final translateY = 20 * (1 - clampedAnimation);
+                                                            return Transform.translate(
+                                                              offset: Offset(0, translateY),
+                                                              child: Opacity(
+                                                                opacity: clampedAnimation,
+                                                                child: InvestimentoCard(
+                                                                  descricao: investimento['descricao'],
+                                                                  valor: investimento['valor'],
+                                                                  data: investimento['data'],
+                                                                  tipo: investimento['tipo'],
+                                                                  onEdit: () => _editarInvestimento(investimento['id']),
+                                                                  onDelete: () => _deletarInvestimento(investimento['id']),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      },
+                                                    ),
+                                            ),
+                                          ],
+                                        ),
                                       );
                                     },
                                   ),

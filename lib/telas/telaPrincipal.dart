@@ -635,25 +635,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
                                                 Expanded(
-                                                  child: FutureBuilder<double>(
-                                                    future: InvestimentoUtils.buscarTotalInvestimentos(),
-                                                    builder: (context, snapshot) {
-                                                      final valor = snapshot.data ?? 0.0;
-                                                      return Text(
-                                                        toCurrencyString(
-                                                          valor.toString(),
-                                                          leadingSymbol: 'R\$',
-                                                          useSymbolPadding: true,
-                                                          thousandSeparator: ThousandSeparator.Period,
-                                                        ),
-                                                        style: const TextStyle(
-                                                          color: Color.fromARGB(255, 15, 157, 240),
-                                                          fontWeight: FontWeight.bold,
-                                                          fontSize: 16,
-                                                        ),
-                                                        overflow: TextOverflow.ellipsis,
-                                                      );
-                                                    },
+                                                  child: Text(
+                                                    toCurrencyString(
+                                                      investimento.toString(),
+                                                      leadingSymbol: 'R\$',
+                                                      useSymbolPadding: true,
+                                                      thousandSeparator: ThousandSeparator.Period,
+                                                    ),
+                                                    style: const TextStyle(
+                                                      color: Color.fromARGB(255, 15, 157, 240),
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                                 const SizedBox(width: 8),
