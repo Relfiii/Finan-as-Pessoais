@@ -18,7 +18,6 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
   DateTime _currentDate = DateTime.now();
   PageController _pageController = PageController(initialPage: 1000, viewportFraction: 0.95);
   int _currentPageIndex = 1000;
-  double _currentPageValue = 1000.0;
 
   Future<void> _carregarInvestimentos() async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
@@ -375,15 +374,6 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
   void initState() {
     super.initState();
     _carregarInvestimentos();
-    
-    // Listener para animações suaves do PageController
-    _pageController.addListener(() {
-      if (mounted && _pageController.hasClients) {
-        setState(() {
-          _currentPageValue = _pageController.page ?? 1000.0;
-        });
-      }
-    });
   }
 
   @override
@@ -451,72 +441,58 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                   ),
                   const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
                   // Navegação de mês/ano com efeito parallax
-                  AnimatedBuilder(
-                    animation: _pageController,
-                    builder: (context, child) {
-                      // Efeito de parallax no header - verificação de segurança
-                      double parallaxOffset = 0.0;
-                      if (_pageController.hasClients && _pageController.position.haveDimensions) {
-                        parallaxOffset = (_currentPageValue - 1000) * 2;
-                      }
-                      
-                      return Transform.translate(
-                        offset: Offset(parallaxOffset, 0),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(Icons.chevron_left, color: Colors.white70),
-                                  onPressed: _previousMonth,
-                                ),
-                              ),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                transitionBuilder: (child, animation) {
-                                  return SlideTransition(
-                                    position: Tween<Offset>(
-                                      begin: const Offset(0, 0.3),
-                                      end: Offset.zero,
-                                    ).animate(animation),
-                                    child: FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  _formatMonthYear(_currentDate),
-                                  key: ValueKey(_currentDate.toString()),
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(Icons.chevron_right, color: Colors.white70),
-                                  onPressed: _nextMonth,
-                                ),
-                              ),
-                            ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                            onPressed: _previousMonth,
                           ),
                         ),
-                      );
-                    },
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) {
+                            return SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0, 0.3),
+                                end: Offset.zero,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Text(
+                            _formatMonthYear(_currentDate),
+                            key: ValueKey(_currentDate.toString()),
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                            onPressed: _nextMonth,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   // Indicador visual da navegação
                   Padding(
