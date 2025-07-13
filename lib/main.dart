@@ -12,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'provedor/usuarioProvedor.dart';
 import 'package:flutter/foundation.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,12 @@ void main() async {
   if (!kIsWeb) {
     await DatabaseService.database;
   }
+
+  // Remove o # das URLs na web
+  if (kIsWeb) {
+    setPathUrlStrategy();
+  }
+  
   runApp(
     MultiProvider(
       providers: [

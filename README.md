@@ -130,3 +130,81 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## Deployment na Web
+
+### Opção 1: GitHub Pages (Gratuito)
+
+1. **Habilite o GitHub Pages:**
+   - Vá para Settings > Pages no seu repositório
+   - Selecione "Deploy from a branch"
+   - Escolha "gh-pages" como branch
+
+2. **Configure o domínio (opcional):**
+   - Adicione um arquivo `CNAME` com seu domínio personalizado
+   - Configure o DNS para apontar para `seu-usuario.github.io`
+
+3. **Deploy automático:**
+   - O GitHub Actions fará o deploy automaticamente quando você fizer push para main
+
+### Opção 2: Vercel (Recomendado)
+
+1. **Instale o Vercel CLI:**
+   ```bash
+   npm i -g vercel
+   ```
+
+2. **Configure o projeto:**
+   ```bash
+   vercel --prod
+   ```
+
+3. **Build settings no Vercel:**
+   - Build Command: `flutter build web --release`
+   - Output Directory: `build/web`
+
+### Opção 3: Firebase Hosting
+
+1. **Instale o Firebase CLI:**
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Configure o projeto:**
+   ```bash
+   firebase init hosting
+   flutter build web --release
+   firebase deploy
+   ```
+
+### Comandos de Build Local
+
+```bash
+# Habilitar Flutter Web
+flutter config --enable-web
+
+# Instalar dependências
+flutter pub get
+
+# Build para produção
+flutter build web --release
+
+# Servir localmente para teste
+flutter build web --release
+cd build/web
+python -m http.server 8000
+```
+
+### Considerações Importantes
+
+- **Performance:** Use `--web-renderer canvaskit` para melhor performance
+- **SEO:** Implemente meta tags apropriadas para SEO
+- **PWA:** O app funciona como Progressive Web App
+- **Responsividade:** Teste em diferentes tamanhos de tela
+- **Segurança:** Use HTTPS em produção
+
+### URL do App
+
+- **Desenvolvimento:** `http://localhost:8000`
+- **GitHub Pages:** `https://seu-usuario.github.io/nome-repositorio`
+- **Domínio personalizado:** `https://seu-dominio.com`

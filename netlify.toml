@@ -1,0 +1,14 @@
+[build]
+  command = "flutter build web --release"
+  publish = "build/web"
+
+[build.environment]
+  FLUTTER_WEB = "true"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  FLUTTER_WEB = "true"

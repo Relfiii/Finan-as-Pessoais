@@ -4,7 +4,8 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: '>=3.0.0 <4.0.0'
+
 dependencies:
   flutter:
     sdk: flutter
@@ -31,6 +32,7 @@ dependencies:
   flutter_multi_formatter: ^2.13.7
   flutter_masked_text2: ^0.9.1
   mask_text_input_formatter: ^2.0.0
+  url_strategy: ^0.2.0 # Para URLs limpas na web
 
 dev_dependencies:
   flutter_test:
@@ -42,6 +44,9 @@ flutter:
   generate: true
   assets:
     - assets/logo-NossoDinDin.png
+    - assets/images/
+    - assets/icons/
+    - web/icons/
 
 flutter_icons:
   android: true
