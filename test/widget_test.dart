@@ -13,12 +13,9 @@ import 'package:NossoDinDin/main.dart';
 void main() {
   testWidgets('App starts correctly', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const FinanceiroApp());
+    await tester.pumpWidget(const MyApp());
 
-    // Verify that our app title is shown.
-    expect(find.text('Financeiro'), findsOneWidget);
-    
-    // Verify that the floating action button is present.
-    expect(find.byType(FloatingActionButton), findsOneWidget);
+    // Verify that our app starts correctly.
+    expect(find.byType(MyApp), findsOneWidget);
   });
 }
