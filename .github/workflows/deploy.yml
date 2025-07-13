@@ -27,21 +27,28 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.0'
+          flutter-version: '3.24.0'
           channel: 'stable'
           cache: true
           
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
         
       - name: Enable Flutter Web
         run: flutter config --enable-web
+        
+      - name: Clean project
+        run: flutter clean
         
       - name: Install dependencies
         run: flutter pub get
         
       - name: Build Flutter Web
-        run: flutter build web --release --web-renderer canvaskit --base-href "/Finan-as-Pessoais/"
+        run: flutter build web --release --web-renderer html --base-href "/Finan-as-Pessoais/"
+        
+      - name: Fix base href in index.html
+        run: |
+          sed -i 's|<base href="\$FLUTTER_BASE_HREF">|<base href="/Finan-as-Pessoais/">|g' build/web/index.html
         
       - name: Add .nojekyll file
         run: touch build/web/.nojekyll
