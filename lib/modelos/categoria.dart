@@ -40,7 +40,10 @@ class Category {
       name: map['name'],
       description: map['description'],
       color: Color(map['color']),
-      icon: IconData(map['icon'], fontFamily: 'MaterialIcons'),
+      icon: IconData(
+        map['icon'],
+        fontFamily: 'MaterialIcons',
+      ),
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt']),
     );
@@ -80,3 +83,5 @@ class Category {
     return 'Category{id: $id, name: $name, description: $description}';
   }
 }
+
+IconData minhaIcone = Icons.home; // Exemplo
