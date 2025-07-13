@@ -44,9 +44,6 @@ flutter:
   generate: true
   assets:
     - assets/logo-NossoDinDin.png
-    - assets/images/
-    - assets/icons/
-    - web/icons/
 
 flutter_icons:
   android: true
