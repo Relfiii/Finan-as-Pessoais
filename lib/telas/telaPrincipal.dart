@@ -14,7 +14,6 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../graficos/graficoColunaPrincipal.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -231,260 +230,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Widget _buildSaldoCard(bool isMobile) {
-    final localizations = AppLocalizations.of(context)!;
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ControleReceitasPage()),
-        );
-        await _loadResumo(); // Atualiza o saldo ao voltar
-      },
-      child: Container(
-        margin: EdgeInsets.all(isMobile ? 6 : 8),
-        padding: EdgeInsets.all(isMobile ? 20 : 24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF2A2D3E), Color(0xFF1C1F2A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              offset: Offset(4, 4),
-              blurRadius: 8,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              offset: Offset(-4, -4),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        constraints: BoxConstraints(
-          minHeight: isMobile ? 120 : 100,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              localizations.saldoAtual,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: isMobile ? 18 : 16,
-                fontWeight: FontWeight.w600,
-              ),
-              softWrap: true,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: isMobile ? 12 : 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Consumer<TransactionProvider>(
-                    builder: (context, transactionProvider, _) {
-                      final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-                      return Text(
-                        formatter.format(saldoAtual),
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 24, 119, 5),
-                          fontWeight: FontWeight.bold,
-                          fontSize: isMobile ? 18 : 16,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(width: 8),
-                Icon(
-                  Icons.account_balance_wallet,
-                  color: Color.fromARGB(255, 24, 119, 5),
-                  size: isMobile ? 32 : 28,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGastoCard(bool isMobile) {
-    final localizations = AppLocalizations.of(context)!;
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CardGasto()),
-        );
-        await _loadResumo();
-      },
-      child: Container(
-        margin: EdgeInsets.all(isMobile ? 6 : 8),
-        padding: EdgeInsets.all(isMobile ? 20 : 24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF3A1C1C), Color(0xFF2A1A1A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              offset: Offset(4, 4),
-              blurRadius: 8,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              offset: Offset(-4, -4),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        constraints: BoxConstraints(
-          minHeight: isMobile ? 120 : 100,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              localizations.gastoNoMes,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: isMobile ? 18 : 16,
-                fontWeight: FontWeight.w600,
-              ),
-              softWrap: true,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: isMobile ? 12 : 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Consumer<GastoProvider>(
-                    builder: (context, gastoProvider, _) {
-                      final totalGasto = gastoProvider.totalGastoMes(referencia: _currentDate);
-                      final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-                      return Text(
-                        formatter.format(totalGasto),
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 151, 53, 53),
-                          fontWeight: FontWeight.bold,
-                          fontSize: isMobile ? 18 : 16,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(width: 8),
-                Icon(
-                  Icons.trending_down,
-                  color: Color.fromARGB(255, 151, 53, 53),
-                  size: isMobile ? 32 : 28,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInvestimentoCard(bool isMobile) {
-    final localizations = AppLocalizations.of(context)!;
-    return GestureDetector(
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ControleInvestimentosPage()),
-        );
-        await _loadResumo(); // Atualiza o valor ao voltar
-      },
-      child: Container(
-        margin: EdgeInsets.all(isMobile ? 6 : 8),
-        padding: EdgeInsets.all(isMobile ? 20 : 24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1C2A3A), Color(0xFF1A2A2F)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              offset: Offset(4, 4),
-              blurRadius: 8,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              offset: Offset(-4, -4),
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        constraints: BoxConstraints(
-          minHeight: isMobile ? 120 : 100,
-        ),
-        width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              localizations.investimentos,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: isMobile ? 18 : 16,
-                fontWeight: FontWeight.w600,
-              ),
-              softWrap: true,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: isMobile ? 12 : 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    toCurrencyString(
-                      investimento.toString(),
-                      leadingSymbol: 'R\$',
-                      useSymbolPadding: true,
-                      thousandSeparator: ThousandSeparator.Period,
-                    ),
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 15, 157, 240),
-                      fontWeight: FontWeight.bold,
-                      fontSize: isMobile ? 18 : 16,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(width: 8),
-                Icon(
-                  Icons.trending_up,
-                  color: Color.fromARGB(255, 15, 157, 240),
-                  size: isMobile ? 32 : 28,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -758,73 +503,273 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         }
 
-                        return Center(
-                          child: Container(
-                            constraints: BoxConstraints(
-                              maxWidth: kIsWeb ? 1200 : double.infinity,
-                            ),
-                            child: SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(), // Permite o pull-to-refresh mesmo sem scroll
-                              padding: EdgeInsets.symmetric(
-                                horizontal: kIsWeb ? 24 : 0, 
-                                vertical: 0
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Cards de resumo - Layout responsivo
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: kIsWeb ? 0 : 8, 
-                                      vertical: 0
-                                    ),
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        final isMobile = constraints.maxWidth < 600;
-                                        
-                                        if (isMobile) {
-                                          // Layout mobile: cards em coluna
-                                          return Column(
-                                            children: [
-                                              // Saldo atual
-                                              _buildSaldoCard(isMobile),
-                                              SizedBox(height: 8),
-                                              // Gasto total
-                                              _buildGastoCard(isMobile),
-                                              SizedBox(height: 8),
-                                              // Investimentos
-                                              _buildInvestimentoCard(isMobile),
-                                            ],
-                                          );
-                                        } else {
-                                          // Layout desktop: cards lado a lado
-                                          return Column(
-                                            children: [
-                                              IntrinsicHeight(
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                        return SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(), // Permite o pull-to-refresh mesmo sem scroll
+                          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Cards de resumo
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                child: Column(
+                                  children: [
+                                    IntrinsicHeight(
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          // Saldo atual
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () async {
+                                                  await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => ControleReceitasPage()),
+                                                  );
+                                                  await _loadResumo(); // Atualiza o saldo ao voltar
+                                                },
+                                              child: Container(
+                                                margin: const EdgeInsets.all(3),
+                                                padding: const EdgeInsets.all(16),
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [Color(0xFF2A2D3E), Color(0xFF1C1F2A)],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.5),
+                                                      offset: Offset(4, 4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.2),
+                                                      offset: Offset(-4, -4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                  ],
+                                                ),
+                                                constraints: const BoxConstraints(
+                                                  minHeight: 100,
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
                                                   children: [
-                                                    // Saldo atual
-                                                    _buildSaldoCard(isMobile),
-                                                    SizedBox(width: 16),
-                                                    // Gasto total
-                                                    _buildGastoCard(isMobile),
+                                                    Text(
+                                                      localizations.saldoAtual,
+                                                      style: const TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                      softWrap: true,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Expanded(
+                                                          child: Consumer<TransactionProvider>(
+                                                            builder: (context, transactionProvider, _) {
+                                                              final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+                                                              return Text(
+                                                                formatter.format(saldoAtual),
+                                                                style: const TextStyle(
+                                                                  color: Color.fromARGB(255, 24, 119, 5),
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 16,
+                                                                ),
+                                                                overflow: TextOverflow.ellipsis,
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 8),
+                                                        Icon(
+                                                          Icons.account_balance_wallet,
+                                                          color: const Color.fromARGB(255, 24, 119, 5),
+                                                          size: 28,
+                                                        ),
+                                                      ],
+                                                    ),
                                                   ],
                                                 ),
                                               ),
-                                              // Card de Investimentos abaixo
-                                              Row(
-                                                children: [
-                                                  Expanded(flex: 2, child: _buildInvestimentoCard(isMobile)),
-                                                  Expanded(flex: 1, child: SizedBox()),
-                                                ],
+                                            ),
+                                          ),
+                                          // Gasto total no mês
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () async {
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => CardGasto()),
+                                                );
+                                                await _loadResumo();
+                                              },
+                                              child: Container(
+                                                margin: const EdgeInsets.all(3),
+                                                padding: const EdgeInsets.all(16),
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [Color(0xFF3A1C1C), Color(0xFF2A1A1A)],
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.5),
+                                                      offset: Offset(4, 4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.2),
+                                                      offset: Offset(-4, -4),
+                                                      blurRadius: 8,
+                                                    ),
+                                                  ],
+                                                ),
+                                                constraints: const BoxConstraints(
+                                                  minHeight: 100,
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      localizations.gastoNoMes,
+                                                      style: const TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                      softWrap: true,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Expanded(
+                                                          child: Consumer<GastoProvider>(
+                                                            builder: (context, gastoProvider, _) {
+                                                              final totalGasto = gastoProvider.totalGastoMes(referencia: _currentDate);
+                                                              final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+                                                              return Text(
+                                                                formatter.format(totalGasto),
+                                                                style: const TextStyle(
+                                                                  color: Color.fromARGB(255, 151, 53, 53),
+                                                                  fontWeight: FontWeight.bold,
+                                                                  fontSize: 16,
+                                                                ),
+                                                                overflow: TextOverflow.ellipsis,
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 8),
+                                                        Icon(
+                                                          Icons.trending_down,
+                                                          color: const Color.fromARGB(255, 151, 53, 53),
+                                                          size: 28,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                            ],
-                                          );
-                                        }
-                                      },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
+                                    // Card de Investimentos abaixo
+                                    GestureDetector(
+                                      onTap: () async {
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => ControleInvestimentosPage()),
+                                                );
+                                                await _loadResumo(); // Atualiza o valor ao voltar
+                                              },
+                                      child: Container(
+                                        margin: const EdgeInsets.all(3),
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [Color(0xFF1C2A3A), Color(0xFF1A2A2F)],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.5),
+                                              offset: Offset(4, 4),
+                                              blurRadius: 8,
+                                            ),
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.2),
+                                              offset: Offset(-4, -4),
+                                              blurRadius: 8,
+                                            ),
+                                          ],
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minHeight: 100,
+                                        ),
+                                        width: double.infinity,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              localizations.investimentos,
+                                              style: const TextStyle(
+                                                  color: Colors.white70, fontSize: 16),
+                                              softWrap: true,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    toCurrencyString(
+                                                      investimento.toString(),
+                                                      leadingSymbol: 'R\$',
+                                                      useSymbolPadding: true,
+                                                      thousandSeparator: ThousandSeparator.Period,
+                                                    ),
+                                                    style: const TextStyle(
+                                                      color: Color.fromARGB(255, 15, 157, 240),
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Icon(
+                                                  Icons.trending_up,
+                                                  color: const Color.fromARGB(255, 15, 157, 240),
+                                                  size: 28,
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               const SizedBox(height: 24),
                               // Gráfico de visão geral financeira (colunas)
                               Padding(
@@ -864,9 +809,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               //   ),
                               // ),
                               // const SizedBox(height: 24),
-                                ],
-                              ),
-                            ),
+                            ],
                           ),
                         );
                       },
