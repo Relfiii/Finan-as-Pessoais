@@ -68,7 +68,11 @@ class AlterarSenhaPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
                           Container(
-                            width: 320,
+                            constraints: BoxConstraints(
+                              maxWidth: 400,
+                              minWidth: 280,
+                            ),
+                            width: MediaQuery.of(context).size.width > 400 ? 400 : MediaQuery.of(context).size.width * 0.9,
                             padding: const EdgeInsets.all(32),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.10),

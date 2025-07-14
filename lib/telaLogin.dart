@@ -161,7 +161,11 @@ class _TelaLoginState extends State<TelaLogin> {
                               color: Colors.white.withOpacity(0.03),
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            width: 320,
+                            constraints: BoxConstraints(
+                              maxWidth: 400,
+                              minWidth: 280,
+                            ),
+                            width: MediaQuery.of(context).size.width > 400 ? 400 : MediaQuery.of(context).size.width * 0.9,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
