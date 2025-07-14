@@ -159,7 +159,7 @@ class TelaLateral extends StatelessWidget {
                             showGeneralDialog(
                               context: context,
                               barrierDismissible: true,
-                              barrierLabel: "Adicionar Categoria",
+                              barrierLabel: "Nova Categoria",
                               barrierColor: Colors.black.withOpacity(0.3),
                               transitionDuration: const Duration(milliseconds: 200),
                               pageBuilder: (context, anim1, anim2) {
