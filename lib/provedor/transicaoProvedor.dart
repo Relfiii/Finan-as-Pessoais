@@ -328,10 +328,25 @@ class TransactionProvider with ChangeNotifier {
     _setError(null);
 
     try {
-      _transactions = await TransactionService.getAll();
+      final supabase = Supabase.instance.client;
+      final user = supabase.auth.currentUser;
+      
+      if (user == null) {
+        print('⚠️ Usuário não logado, não carregando transações');
+        _setLoading(false);
+        return;
+      }
+      
+      print('📊 Carregando transações para usuário: ${user.id}');
+      _transactions = await TransactionService.getAll().timeout(Duration(seconds: 15));
+      print('✅ ${_transactions.length} transações carregadas');
       notifyListeners();
     } catch (e) {
+      print('❌ Erro ao carregar transações: $e');
       _setError('Erro ao carregar transações: $e');
+      // Não bloqueia o app, apenas define lista vazia
+      _transactions = [];
+      notifyListeners();
     } finally {
       _setLoading(false);
     }

@@ -60,16 +60,41 @@
   <script>
     var serviceWorkerVersion = "{{flutter_service_worker_version}}";
     var scriptLoaded = false;
+    var startTime = Date.now();
+    
     function loadMainDartJs() {
       if (scriptLoaded) {
         return;
       }
       scriptLoaded = true;
+      
       var scriptTag = document.createElement('script');
       scriptTag.src = 'main.dart.js';
       scriptTag.type = 'application/javascript';
+      
+      scriptTag.onload = function() {
+        console.log('✅ Main Dart script loaded successfully');
+        document.getElementById('loading-text').textContent = 'Iniciando aplicativo...';
+      };
+      
+      scriptTag.onerror = function() {
+        console.error('❌ Failed to load main.dart.js');
+        document.getElementById('loading-text').textContent = 'Erro ao carregar. Recarregue a página.';
+        document.getElementById('loading-text').style.color = '#ff6b6b';
+      };
+      
       document.body.append(scriptTag);
     }
+
+    // Timeout de segurança
+    setTimeout(function() {
+      var elapsed = (Date.now() - startTime) / 1000;
+      if (!scriptLoaded || document.getElementById('loading').style.opacity !== '0') {
+        console.warn('⚠️ App taking too long to load (' + elapsed + 's)');
+        document.getElementById('loading-text').textContent = 'Carregamento demorado. Verifique sua conexão.';
+        document.getElementById('loading-text').style.color = '#ffa726';
+      }
+    }, 15000); // 15 segundos
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
@@ -79,7 +104,7 @@
             function waitForActivation(serviceWorker) {
               serviceWorker.addEventListener('statechange', () => {
                 if (serviceWorker.state == 'activated') {
-                  console.log('Installed new service worker.');
+                  console.log('✅ Service worker activated');
                   loadMainDartJs();
                 }
               });
@@ -87,16 +112,21 @@
             if (!reg.active && (reg.installing || reg.waiting)) {
               waitForActivation(reg.installing || reg.waiting);
             } else if (!reg.active.scriptURL.endsWith(serviceWorkerVersion)) {
-              console.log('New service worker available.');
+              console.log('🔄 New service worker available');
               reg.update();
               waitForActivation(reg.installing);
             } else {
-              console.log('Loading app from service worker.');
+              console.log('✅ Loading app from service worker');
               loadMainDartJs();
             }
+          })
+          .catch((error) => {
+            console.error('❌ Service worker registration failed:', error);
+            loadMainDartJs(); // Tenta carregar mesmo sem service worker
           });
       });
     } else {
+      console.log('⚠️ Service workers not supported');
       loadMainDartJs();
     }
   </script>
@@ -205,6 +235,7 @@
   <script>
     // Melhorar a animação de carregamento
     window.addEventListener('flutter-first-frame', function () {
+      console.log('🎉 Flutter first frame rendered');
       const loadingElement = document.getElementById('loading');
       loadingElement.classList.add('hidden');
       
@@ -223,6 +254,11 @@
     if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
       document.body.classList.add('mobile-device');
     }
+    
+    // Log para debug
+    console.log('🌐 App rodando na web');
+    console.log('📱 User Agent:', navigator.userAgent);
+    console.log('🔗 URL:', window.location.href);
   </script>
 </body>
 </html>

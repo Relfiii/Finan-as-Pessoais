@@ -16,36 +16,55 @@ import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('pt_BR', null);
-  await Supabase.initialize(
-    url: 'https://bfcuvqovxsnjbcpsnjwj.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmY3V2cW92eHNuamJjcHNuandqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzODMzNTcsImV4cCI6MjA2Njk1OTM1N30.3GON-bbY4N11n9PJgMSl28HgiyqpPupYwv-E3Kse2co',
-  );
   
-  // SQLite só funciona em platforms nativas (não web)
-  if (!kIsWeb) {
-    await DatabaseService.database;
-  }
+  try {
+    await initializeDateFormatting('pt_BR', null);
+    
+    await Supabase.initialize(
+      url: 'https://bfcuvqovxsnjbcpsnjwj.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmY3V2cW92eHNuamJjcHNuandqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzODMzNTcsImV4cCI6MjA2Njk1OTM1N30.3GON-bbY4N11n9PJgMSl28HgiyqpPupYwv-E3Kse2co',
+    );
+    
+    // SQLite só funciona em platforms nativas (não web)
+    if (!kIsWeb) {
+      await DatabaseService.database;
+    }
 
-  // Remove o # das URLs na web
-  if (kIsWeb) {
-    setPathUrlStrategy();
+    // Remove o # das URLs na web
+    if (kIsWeb) {
+      setPathUrlStrategy();
+    }
+    
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => TransactionProvider()),
+          ChangeNotifierProvider(create: (_) => CategoryProvider()),
+          ChangeNotifierProvider(create: (_) => BudgetProvider()),
+          ChangeNotifierProvider(create: (_) => GastoProvider()),
+          ChangeNotifierProvider(create: (_) => UserProvider()),
+          ChangeNotifierProvider(create: (_) => IdiomaProvedor()),
+        ],
+        child: const MyApp(),
+      ),
+    );
+  } catch (e) {
+    print('Erro durante a inicialização: $e');
+    // Em caso de erro, ainda assim inicializa o app com configuração mínima
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => TransactionProvider()),
+          ChangeNotifierProvider(create: (_) => CategoryProvider()),
+          ChangeNotifierProvider(create: (_) => BudgetProvider()),
+          ChangeNotifierProvider(create: (_) => GastoProvider()),
+          ChangeNotifierProvider(create: (_) => UserProvider()),
+          ChangeNotifierProvider(create: (_) => IdiomaProvedor()),
+        ],
+        child: const MyApp(),
+      ),
+    );
   }
-  
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => TransactionProvider()),
-        ChangeNotifierProvider(create: (_) => CategoryProvider()),
-        ChangeNotifierProvider(create: (_) => BudgetProvider()),
-        ChangeNotifierProvider(create: (_) => CategoryProvider()),
-        ChangeNotifierProvider(create: (_) => GastoProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => IdiomaProvedor()),
-      ],
-      child: const MyApp(),
-    ),
-  );
 }
 
 class MyApp extends StatelessWidget {

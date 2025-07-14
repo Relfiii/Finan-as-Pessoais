@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base href="/Finan-as-Pessoais/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="NossoDinDin - Gerenciador completo de finanças pessoais. Controle suas despesas, receitas e organize seu orçamento de forma simples e eficiente.">
+  <meta name="keywords" content="finanças pessoais, controle financeiro, despesas, receitas, orçamento, planejamento financeiro">
+  <meta name="author" content="NossoDinDin">
+  <meta name="robots" content="index, follow">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NossoDinDin">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1976d2">
+  
+  <!-- Icons -->
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.png">
+  
+  <title>NossoDinDin - Finanças Pessoais</title>
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Preload importante para performance -->
+  <link rel="preload" href="main.dart.js" as="script">
+  
+  <script>
+    var serviceWorkerVersion = null;
+    var scriptLoaded = false;
+    function loadMainDartJs() {
+      if (scriptLoaded) {
+        return;
+      }
+      scriptLoaded = true;
+      var scriptTag = document.createElement('script');
+      scriptTag.src = 'main.dart.js';
+      scriptTag.type = 'application/javascript';
+      scriptTag.onload = function() {
+        console.log('Main Dart script loaded successfully');
+      };
+      scriptTag.onerror = function() {
+        console.error('Failed to load main.dart.js');
+        document.getElementById('loading-text').textContent = 'Erro ao carregar o aplicativo. Recarregue a página.';
+      };
+      document.body.append(scriptTag);
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('flutter_service_worker.js')
+          .then((reg) => {
+            console.log('Service worker registered');
+            loadMainDartJs();
+          })
+          .catch((error) => {
+            console.log('Service worker registration failed:', error);
+            loadMainDartJs();
+          });
+      });
+    } else {
+      console.log('Service workers not supported');
+      loadMainDartJs();
+    }
+  </script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.3s ease-out;
+    }
+    
+    .loading-container {
+      text-align: center;
+      color: white;
+      max-width: 300px;
+      padding: 20px;
+    }
+    
+    .loading-spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #ffffff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    .loading-container p {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    
+    .loading-container small {
+      font-size: 14px;
+      opacity: 0.8;
+      display: block;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    #loading.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p id="loading-text">Carregando NossoDinDin...</p>
+      <small>Preparando seu gerenciador financeiro</small>
+    </div>
+  </div>
+  
+  <noscript>
+    <div style="text-align: center; padding: 50px; font-family: sans-serif; color: white;">
+      <h1>JavaScript Necessário</h1>
+      <p>Este aplicativo requer JavaScript para funcionar corretamente.</p>
+      <p>Por favor, ative o JavaScript no seu navegador e recarregue a página.</p>
+    </div>
+  </noscript>
+  
+  <script>
+    // Esconder loading quando Flutter estiver pronto
+    window.addEventListener('flutter-first-frame', function () {
+      const loadingElement = document.getElementById('loading');
+      loadingElement.classList.add('hidden');
+      
+      setTimeout(() => {
+        loadingElement.style.display = 'none';
+      }, 300);
+    });
+    
+    // Timeout de segurança para casos onde o Flutter não carrega
+    setTimeout(function() {
+      if (document.getElementById('loading').style.opacity !== '0') {
+        document.getElementById('loading-text').textContent = 'Problemas de conectividade. Verifique sua internet e recarregue.';
+      }
+    }, 30000); // 30 segundos
+  </script>
+</body>
+</html>

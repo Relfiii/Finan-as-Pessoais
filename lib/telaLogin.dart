@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'provedor/transicaoProvedor.dart';
 import 'provedor/categoriaProvedor.dart';
 import 'provedor/gastoProvedor.dart';
+import 'utils/web_diagnostics.dart';
 
 class TelaLogin extends StatefulWidget {
   static const routeName = '/login';
@@ -22,9 +23,86 @@ class _TelaLoginState extends State<TelaLogin> {
   bool loginInvalido = false;
   bool _senhaVisivel = false;
   String? mensagemErro;
+  bool _isInitializing = true;
+  String _initializationStatus = 'Inicializando aplicativo...';
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+  Future<void> _initializeApp() async {
+    try {
+      setState(() {
+        _initializationStatus = 'Executando diagnósticos...';
+      });
+      
+      // Executa diagnósticos
+      final diagnostics = await WebDiagnostics.runDiagnostics();
+      WebDiagnostics.printDiagnostics(diagnostics);
+      
+      setState(() {
+        _initializationStatus = 'Verificando conectividade...';
+      });
+      
+      // Verifica se o Supabase está funcionando
+      final supabase = Supabase.instance.client;
+      await supabase.from('usuarios').select('id').limit(1);
+      
+      setState(() {
+        _initializationStatus = 'Conectado com sucesso!';
+      });
+      
+      // Aguarda um pouco para mostrar a mensagem
+      await Future.delayed(Duration(milliseconds: 500));
+      
+      setState(() {
+        _isInitializing = false;
+      });
+    } catch (e) {
+      print('Erro na inicialização: $e');
+      setState(() {
+        _initializationStatus = 'Erro de conectividade. Tentando novamente...';
+      });
+      
+      // Tenta novamente após 2 segundos
+      await Future.delayed(Duration(seconds: 2));
+      _initializeApp();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isInitializing) {
+      return Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  _initializationStatus,
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Stack(
         children: [
@@ -165,11 +243,20 @@ class _TelaLoginState extends State<TelaLogin> {
                                       }
 
                                       try {
+                                        setState(() {
+                                          mensagemErro = 'Fazendo login...';
+                                        });
+                                        
                                         final response = await supabase.auth.signInWithPassword(
                                           email: email,
                                           password: senhaController.text,
                                         );
+                                        
                                         if (response.user != null) {
+                                          setState(() {
+                                            mensagemErro = 'Login realizado! Carregando dados...';
+                                          });
+                                          
                                           // Adiciona ou atualiza o usuário na tabela 'usuarios'
                                           final user = response.user;
                                           if (user != null) {
@@ -186,14 +273,36 @@ class _TelaLoginState extends State<TelaLogin> {
                                               if (nome != null) 'nome': nome,
                                             });
                                           }
-                                          await context.read<TransactionProvider>().loadTransactions();
-                                          await context.read<CategoryProvider>().loadCategories();
-                                          await context.read<GastoProvider>().loadGastos();
+                                          
+                                          // Carrega dados com timeout
+                                          try {
+                                            setState(() {
+                                              mensagemErro = 'Carregando transações...';
+                                            });
+                                            await context.read<TransactionProvider>().loadTransactions().timeout(Duration(seconds: 10));
+                                            
+                                            setState(() {
+                                              mensagemErro = 'Carregando categorias...';
+                                            });
+                                            await context.read<CategoryProvider>().loadCategories().timeout(Duration(seconds: 10));
+                                            
+                                            setState(() {
+                                              mensagemErro = 'Carregando gastos...';
+                                            });
+                                            await context.read<GastoProvider>().loadGastos().timeout(Duration(seconds: 10));
 
-                                          Navigator.pushReplacement(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => HomeScreen()),
-                                          );
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => HomeScreen()),
+                                            );
+                                          } catch (timeoutError) {
+                                            print('Erro de timeout ao carregar dados: $timeoutError');
+                                            // Mesmo com erro no carregamento, permite entrar no app
+                                            Navigator.pushReplacement(
+                                              context,
+                                              MaterialPageRoute(builder: (context) => HomeScreen()),
+                                            );
+                                          }
                                         } else {
                                           setState(() {
                                             mensagemErro = 'E-mail ou senha inválidos.';

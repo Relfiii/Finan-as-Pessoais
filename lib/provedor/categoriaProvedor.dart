@@ -45,26 +45,42 @@ class CategoryProvider with ChangeNotifier {
       _setLoading(true);
       try {
         final supabase = Supabase.instance.client;
-        final userId = supabase.auth.currentUser!.id; // Obtém o ID do usuário logado
+        final user = supabase.auth.currentUser;
+        
+        if (user == null) {
+          print('⚠️ Usuário não logado, não carregando categorias');
+          _setLoading(false);
+          return;
+        }
+        
+        final userId = user.id;
+        print('📁 Carregando categorias para usuário: $userId');
+        
         final response = await supabase
             .from('categorias')
             .select()
-            .eq('user_id', userId); // Filtra as categorias pelo ID do usuário
+            .eq('user_id', userId)
+            .timeout(Duration(seconds: 10)); // Timeout de 10 segundos
+            
         _categories = (response as List)
             .map((data) => Category(
                   id: data['id'],
                   name: data['nome'],
-                  description: '', // ajuste se tiver descrição
-                  color: const Color(0xFFB983FF), // ajuste se tiver cor salva
-                  icon: Icons.category, // ajuste se tiver ícone salvo
-                  createdAt: DateTime.now(), // ajuste se tiver data salva
-                  updatedAt: DateTime.now(), // ajuste se tiver data salva
+                  description: data['descricao'] ?? '', 
+                  color: const Color(0xFFB983FF), 
+                  icon: Icons.category, 
+                  createdAt: DateTime.now(), 
+                  updatedAt: DateTime.now(), 
                 ))
             .toList();
+        print('✅ ${_categories.length} categorias carregadas');
         _setLoading(false);
       } catch (e) {
+        print('❌ Erro ao carregar categorias: $e');
         _setError('Erro ao carregar categorias: $e');
         _setLoading(false);
+        // Não bloqueia o app, apenas define lista vazia
+        _categories = [];
       }
     }
 

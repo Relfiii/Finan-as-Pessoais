@@ -34,16 +34,19 @@ class GastoProvider with ChangeNotifier {
 
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
+      print('⚠️ Usuário não logado, não carregando gastos');
       _setError('Usuário não autenticado.');
       _setLoading(false);
       return;
     }
 
     try {
+      print('💰 Carregando gastos para usuário: ${user.id}');
       final data = await Supabase.instance.client
           .from('gastos')
           .select('*')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .timeout(Duration(seconds: 10));
 
       _gastos.clear();
       _gastosPorCategoria.clear();
@@ -61,9 +64,15 @@ class GastoProvider with ChangeNotifier {
         _gastosPorCategoria[gasto.categoriaId] ??= [];
         _gastosPorCategoria[gasto.categoriaId]!.add(gasto);
       }
+      print('✅ ${_gastos.length} gastos carregados');
       notifyListeners();
     } catch (e) {
+      print('❌ Erro ao carregar gastos: $e');
       _setError('Erro ao carregar gastos: $e');
+      // Não bloqueia o app, apenas limpa as listas
+      _gastos.clear();
+      _gastosPorCategoria.clear();
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
