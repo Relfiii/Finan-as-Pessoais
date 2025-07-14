@@ -289,15 +289,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       // CaixaTextoWidget como botão
-                      Expanded(
-                        child: CaixaTextoWidget(
-                          asButton: true,
-                          onExpand: () {
-                            caixaTextoOverlay.show(context);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
+                      // Expanded(
+                      //   child: CaixaTextoWidget(
+                      //     asButton: true,
+                      //     onExpand: () {
+                      //       caixaTextoOverlay.show(context);
+                      //     },
+                      //   ),
+                      // ),
+                      const Spacer(),
                       AnimatedSwitcher(
                         duration: Duration(milliseconds: 250),
                         child: !caixaTextoOverlay.isExpanded(context)
@@ -320,8 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             backgroundColor: const Color(0xFF181818),
                                             shape: RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.circular(12)),
-                                            title: Row(
-                                              children: const [
+                                            title: const Row(
+                                              children: [
                                                 Icon(Icons.notifications, color: Color(0xFFB983FF)),
                                                 SizedBox(width: 8),
                                                 Text(
@@ -756,9 +756,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ),
                                                 const SizedBox(width: 8),
-                                                Icon(
+                                                const Icon(
                                                   Icons.trending_up,
-                                                  color: const Color.fromARGB(255, 15, 157, 240),
+                                                  color: Color.fromARGB(255, 15, 157, 240),
                                                   size: 28,
                                                 ),
                                               ],
@@ -820,7 +820,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // Overlay da caixa de texto expandida
-          CaixaTextoOverlay(),
+          // CaixaTextoOverlay(),
         ],
       ),
     );
@@ -846,7 +846,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
       children: [
         Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.menu, color: Color(0xFFB983FF)),
+            icon: const Icon(Icons.menu, color: Color(0xFFB983FF)),
             onPressed: () {
               abrirMenuLateral(context);
             },
@@ -856,9 +856,9 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
         const SizedBox(width: 8),
         // Título
         AnimatedSwitcher(
-          duration: Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 250),
           child: !caixaTextoOverlay.isExpanded(context)
-              ? Text(
+              ? const Text(
                   "NossoDinDin",
                   key: ValueKey('title'),
                   style: TextStyle(
@@ -867,7 +867,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
                     fontSize: 22,
                   ),
                 )
-              : SizedBox(width: 120),
+              : const SizedBox(width: 120),
         ),
         const SizedBox(width: 8),
         // CaixaTextoWidget como botão
@@ -879,14 +879,15 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
             },
           ),
         ),
-        const SizedBox(width: 8),
+        // const SizedBox(width: 8),
+        const Spacer(),
         // Botão de notificação
         AnimatedSwitcher(
-          duration: Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 250),
           child: !caixaTextoOverlay.isExpanded(context)
               ? IconButton(
-                  key: ValueKey('notif'),
-                  icon: Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
+                  key: const ValueKey('notif'),
+                  icon: const Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
                   tooltip: 'Notificações',
                   onPressed: () {
                     showGeneralDialog(
@@ -903,8 +904,8 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
                               backgroundColor: const Color(0xFF181818),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
-                              title: Row(
-                                children: const [
+                              title: const Row(
+                                children: [
                                   Icon(Icons.notifications, color: Color(0xFFB983FF)),
                                   SizedBox(width: 8),
                                   Text(
@@ -935,7 +936,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
                     );
                   },
                 )
-              : SizedBox(width: 48),
+              : const SizedBox(width: 48),
         ),
       ],
     );
@@ -967,7 +968,7 @@ class _CaixaTextoOverlayState extends State<CaixaTextoOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    if (!expanded) return SizedBox.shrink();
+    if (!expanded) return const SizedBox.shrink();
     return Positioned.fill(
       child: Container(
         color: Colors.black.withOpacity(0.45),

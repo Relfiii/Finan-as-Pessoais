@@ -6,6 +6,7 @@ import 'configuracoes/configuracao.dart';
 import '../telaLogin.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'controleFamiliar/controleFamiliar.dart';
+import 'configuracoes/orcamento.dart';
 
 class TelaLateral extends StatelessWidget {
   const TelaLateral({Key? key}) : super(key: key);
@@ -169,6 +170,23 @@ class TelaLateral extends StatelessWidget {
                         ),
                         _buildDrawerButton(
                           context,
+                          icon: Icons.pie_chart_outline,
+                          label: 'Orçamento',
+                          onTap: () {
+                            final navigator = Navigator.of(context);
+                            Navigator.pop(context);
+                            Future.delayed(const Duration(milliseconds: 220), () {
+                              navigator.push(
+                                MaterialPageRoute(
+                                  builder: (context) => const OrcamentoPage(),
+                                ),
+                              );
+                            });
+                          },
+                          disabled: true,
+                        ),
+                        _buildDrawerButton(
+                          context,
                           icon: Icons.family_restroom_outlined,
                           label: 'Controle Familiar',
                           onTap: () {
@@ -182,6 +200,7 @@ class TelaLateral extends StatelessWidget {
                               );
                             });
                           },
+                          disabled: true,
                         ),
                         _buildDrawerButton(
                           context,
@@ -284,18 +303,22 @@ class TelaLateral extends StatelessWidget {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    bool disabled = false, // Adicionado
   }) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFFB983FF)),
+      leading: Icon(
+        icon,
+        color: disabled ? Colors.grey : const Color(0xFFB983FF), // Cinza se desativado
+        ),
       title: Text(
         label,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: disabled ? Colors.grey : Colors.white, // Cinza se desativado
           fontSize: 16,
           fontWeight: FontWeight.w500,
         ),
       ),
-      onTap: onTap,
+      onTap: disabled ? null : onTap, // Desativa o clique
     );
   }
 

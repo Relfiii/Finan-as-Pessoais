@@ -4,7 +4,6 @@ import 'editarPerfil.dart';
 import 'alterarSenha.dart';
 import 'idioma.dart';
 import 'contasBancarias.dart';
-import 'orcamento.dart';
 import 'seguranca.dart';
 import 'excluirConta.dart';
 
@@ -96,6 +95,7 @@ class ConfiguracaoPage extends StatelessWidget {
                             MaterialPageRoute(builder: (context) => const IdiomaPage()),
                           );
                         },
+                        disabled: true,
                       ),
                       const SizedBox(height: 18),
                       _SectionTitle('Financeiro'),
@@ -109,17 +109,7 @@ class ConfiguracaoPage extends StatelessWidget {
                             MaterialPageRoute(builder: (context) => const ContasBancariasPage()),
                           );
                         },
-                      ),
-                      _SettingsTile(
-                        icon: Icons.pie_chart_outline,
-                        title: 'Orçamentos',
-                        subtitle: 'Defina limites de gastos',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const OrcamentoPage()),
-                          );
-                        },
+                        disabled: true,
                       ),
                       const SizedBox(height: 18),
                       _SectionTitle('Privacidade'),
@@ -133,6 +123,7 @@ class ConfiguracaoPage extends StatelessWidget {
                             MaterialPageRoute(builder: (context) => const SegurancaPage()),
                           );
                         },
+                        disabled: true,
                       ),
                       _SettingsTile(
                         icon: Icons.delete_outline,
@@ -144,18 +135,6 @@ class ConfiguracaoPage extends StatelessWidget {
                             MaterialPageRoute(builder: (context) => const ExcluirContaPage()),
                           );
                         },
-                      ),
-                      const SizedBox(height: 32),
-                      Center(
-                        child: Text(
-                          'NossoDinDin v1.0',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.18),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -194,41 +173,48 @@ class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool disabled;
+
   const _SettingsTile({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.onTap,
+    this.onTap,
+    this.disabled = false,
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final Color iconColor = disabled ? Colors.grey : const Color(0xFFB983FF);
+    final Color titleColor = disabled ? Colors.grey : Colors.white;
+    final Color subtitleColor = disabled ? Colors.grey : Colors.white70;
+
     return Card(
       color: Colors.white.withOpacity(0.03),
       elevation: 0,
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
       child: ListTile(
-        leading: Icon(icon, color: const Color(0xFFB983FF)),
+        leading: Icon(icon, color: iconColor),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: titleColor,
             fontWeight: FontWeight.w600,
             fontSize: 16,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
-            color: Colors.white70,
+          style: TextStyle(
+            color: subtitleColor,
             fontSize: 13,
           ),
         ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.white38),
-        onTap: onTap,
+        trailing: Icon(Icons.chevron_right, color: disabled ? Colors.grey : Colors.white38),
+        onTap: disabled ? null : onTap,
       ),
     );
   }
