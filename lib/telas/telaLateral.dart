@@ -225,13 +225,26 @@ class TelaLateral extends StatelessWidget {
                               },
                             );
                             if (shouldLogout == true) {
-                              Future.delayed(const Duration(milliseconds: 100), () {
+                              try {
+                                // Faz logout do Supabase
+                                final supabase = Supabase.instance.client;
+                                await supabase.auth.signOut();
+                                
+                                // Navega para a tela de login
                                 Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(builder: (context) => TelaLogin()),
                                   (route) => false,
                                 );
-                              });
+                              } catch (e) {
+                                print('Erro durante logout: $e');
+                                // Mesmo com erro, navega para login
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => TelaLogin()),
+                                  (route) => false,
+                                );
+                              }
                             }
                           },
                         ),

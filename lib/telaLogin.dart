@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'provedor/transicaoProvedor.dart';
 import 'provedor/categoriaProvedor.dart';
 import 'provedor/gastoProvedor.dart';
-import 'utils/web_diagnostics.dart';
 
 class InteractiveParticlesPainter extends CustomPainter {
   final List<InteractiveParticle> particles;
@@ -185,8 +184,6 @@ class _TelaLoginState extends State<TelaLogin> with TickerProviderStateMixin {
   bool loginInvalido = false;
   bool _senhaVisivel = false;
   String? mensagemErro;
-  bool _isInitializing = true;
-  String _initializationStatus = 'Inicializando aplicativo...';
   
   // Variáveis para animação interativa
   Offset _mousePosition = Offset.zero;
@@ -196,7 +193,6 @@ class _TelaLoginState extends State<TelaLogin> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
     _initializeAnimation();
   }
   
@@ -222,46 +218,6 @@ class _TelaLoginState extends State<TelaLogin> with TickerProviderStateMixin {
     _animationController.dispose();
     super.dispose();
   }
-  
-  Future<void> _initializeApp() async {
-    try {
-      setState(() {
-        _initializationStatus = 'Executando diagnósticos...';
-      });
-      
-      // Executa diagnósticos
-      final diagnostics = await WebDiagnostics.runDiagnostics();
-      WebDiagnostics.printDiagnostics(diagnostics);
-      
-      setState(() {
-        _initializationStatus = 'Verificando conectividade...';
-      });
-      
-      // Verifica se o Supabase está funcionando
-      final supabase = Supabase.instance.client;
-      await supabase.from('usuarios').select('id').limit(1);
-      
-      setState(() {
-        _initializationStatus = 'Conectado com sucesso!';
-      });
-      
-      // Aguarda um pouco para mostrar a mensagem
-      await Future.delayed(Duration(milliseconds: 500));
-      
-      setState(() {
-        _isInitializing = false;
-      });
-    } catch (e) {
-      print('Erro na inicialização: $e');
-      setState(() {
-        _initializationStatus = 'Erro de conectividade. Tentando novamente...';
-      });
-      
-      // Tenta novamente após 2 segundos
-      await Future.delayed(Duration(seconds: 2));
-      _initializeApp();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -282,81 +238,6 @@ class _TelaLoginState extends State<TelaLogin> with TickerProviderStateMixin {
       for (var particle in _particles) {
         particle.updateScreenSize(size.width, size.height);
       }
-    }
-    
-    if (_isInitializing) {
-      return Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF0D1B2A),
-                Color(0xFF1B263B), 
-                Color(0xFF2D3748),
-                Color(0xFF1A202C)
-              ],
-              stops: [0.0, 0.3, 0.7, 1.0],
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Efeito de partículas/estrelas
-              ...List.generate(50, (index) => Positioned(
-                left: (index * 37) % MediaQuery.of(context).size.width,
-                top: (index * 43) % MediaQuery.of(context).size.height,
-                child: Container(
-                  width: 2,
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              )),
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF00E6D8), Color(0xFF00B4D8)],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFF00E6D8).withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        strokeWidth: 3,
-                      ),
-                    ),
-                    SizedBox(height: 30),
-                    Text(
-                      _initializationStatus,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 0.5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
     }
 
     return Scaffold(

@@ -5,7 +5,7 @@ import 'provedor/idioma_provedor.dart';
 import 'provedor/transicaoProvedor.dart';
 import 'provedor/categoriaProvedor.dart';
 import 'provedor/orcamentoProvedor.dart';
-import 'telaLogin.dart';
+import 'widgets/auth_wrapper.dart';
 import 'services/database.dart';
 import 'provedor/gastoProvedor.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -24,6 +24,9 @@ void main() async {
     await Supabase.initialize(
       url: 'https://bfcuvqovxsnjbcpsnjwj.supabase.co',
       anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmY3V2cW92eHNuamJjcHNuandqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEzODMzNTcsImV4cCI6MjA2Njk1OTM1N30.3GON-bbY4N11n9PJgMSl28HgiyqpPupYwv-E3Kse2co',
+      authOptions: FlutterAuthClientOptions(
+        authFlowType: AuthFlowType.pkce,
+      ),
     );
     
     // SQLite só funciona em platforms nativas (não web)
@@ -90,7 +93,7 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: TelaLogin(), // Tela inicial do aplicativo
+      home: AuthWrapper(), // Wrapper de autenticação
     );
   }
 }
