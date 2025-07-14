@@ -29,8 +29,8 @@ jobs:
     - name: Build Flutter Web
       run: flutter build web --release --web-renderer html --base-href "/nossodindin_app/"
 
-    - name: Upload to Hostinger via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+    - name: Upload to Hostinger via SFTP
+      uses: SamKirkland/SFTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.FTP_HOST }}
         username: ${{ secrets.FTP_USER }}
