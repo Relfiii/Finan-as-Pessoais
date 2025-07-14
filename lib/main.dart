@@ -13,6 +13,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'provedor/usuarioProvedor.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_strategy/url_strategy.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,8 +79,17 @@ class MyApp extends StatelessWidget {
       title: 'NossoDinDin',
       theme: ThemeData.dark(),
       locale: idiomaProvedor.locale,
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const [
+        Locale('en', ''), // English
+        Locale('pt', ''), // Portuguese
+        Locale('es', ''), // Spanish
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       home: TelaLogin(), // Tela inicial do aplicativo
     );
   }
