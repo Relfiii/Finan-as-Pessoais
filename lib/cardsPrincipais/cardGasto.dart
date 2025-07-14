@@ -852,7 +852,7 @@ class _CardGastoState extends State<CardGasto> {
                                       textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                       minimumSize: const Size(0, 44),
                                     ),
-                                    icon: const Icon(Icons.category, color: Color(0xFFB983FF)),
+                                    icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
                                     label: const Text('Categoria'),
                                     onPressed: () async {
                                       await showDialog(

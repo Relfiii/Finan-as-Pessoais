@@ -135,13 +135,13 @@ class TelaLateral extends StatelessWidget {
                         _buildDrawerButton(
                           context,
                           icon: Icons.add_circle_outline,
-                          label: 'Novo Gasto',
+                          label: 'Nova Despesa',
                           onTap: () {
                             Navigator.pop(context);
                             showGeneralDialog(
                               context: context,
                               barrierDismissible: true,
-                              barrierLabel: "Adicionar Gasto",
+                              barrierLabel: "Adicionar Despesa",
                               barrierColor: Colors.black.withOpacity(0.3),
                               transitionDuration: const Duration(milliseconds: 200),
                               pageBuilder: (context, anim1, anim2) {
@@ -152,8 +152,8 @@ class TelaLateral extends StatelessWidget {
                         ),
                         _buildDrawerButton(
                           context,
-                          icon: Icons.category_outlined,
-                          label: 'Categorias',
+                          icon: Icons.add_circle_outline,
+                          label: 'Nova Categoria',
                           onTap: () {
                             Navigator.pop(context);
                             showGeneralDialog(
