@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:ui';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -215,13 +216,19 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
                   ),
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                // Formulário de edição
+                // Conteúdo centralizado para web
                 Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      children: [
+                  child: Center(
+                    child: Container(
+                      width: kIsWeb ? 1000 : double.infinity,
+                      constraints: kIsWeb 
+                        ? const BoxConstraints(maxWidth: 1000)
+                        : null,
+                      child: Form(
+                        key: _formKey,
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          children: [
                         const Text(
                           'Como quer ser chamado?',
                           style: TextStyle(color: Color(0xFFB983FF), fontWeight: FontWeight.bold, fontSize: 15),
@@ -330,6 +337,8 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
                           ),
                         ),
                       ],
+                        ),
+                      ),
                     ),
                   ),
                 ),

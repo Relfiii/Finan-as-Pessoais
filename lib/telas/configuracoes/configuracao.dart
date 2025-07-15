@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:ui';
 import 'editarPerfil.dart';
 import 'alterarSenha.dart';
@@ -32,7 +33,7 @@ class ConfiguracaoPage extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                // AppBar customizada
+                // AppBar customizada (toda a largura)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   child: Row(
@@ -55,11 +56,17 @@ class ConfiguracaoPage extends StatelessWidget {
                   ),
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                // Lista de configurações
+                // Conteúdo centralizado para web
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    children: [
+                  child: Center(
+                    child: Container(
+                      width: kIsWeb ? 1000 : double.infinity,
+                      constraints: kIsWeb 
+                        ? const BoxConstraints(maxWidth: 1000)
+                        : null,
+                      child: ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        children: [
                       _SectionTitle('Conta'),
                       _SettingsTile(
                         icon: Icons.person_outline,
@@ -137,6 +144,8 @@ class ConfiguracaoPage extends StatelessWidget {
                         },
                       ),
                     ],
+                      ),
+                    ),
                   ),
                 ),
               ],

@@ -363,9 +363,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Center(
                     child: Container(
-                      width: kIsWeb ? 1200 : double.infinity,
+                      width: kIsWeb ? 1000 : double.infinity,
                       constraints: kIsWeb 
-                        ? const BoxConstraints(maxWidth: 1200)
+                        ? const BoxConstraints(maxWidth: 1000)
                         : null,
                       child: Column(
                         children: [
