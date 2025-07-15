@@ -825,7 +825,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         ),
                       );
                       
-                      Navigator.of(context).pop();
+                      Navigator.of(context).pop(true);
                     } else {
                       // Para despesas únicas ou parceladas
                       final numeroParcelas = _getNumeroParcelasAtual();
@@ -927,7 +927,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       }
                     }
 
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(true);
                   } catch (e) {
                     print('Erro detalhado ao salvar gasto: $e');
                     ScaffoldMessenger.of(context).showSnackBar(
