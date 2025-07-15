@@ -54,6 +54,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final categoryProvider = context.read<CategoryProvider>();
     final gastoProvider = context.read<GastoProvider>();
     
+    // Limpar cache antes de recarregar dados (força atualização)
+    transactionProvider.clearCache();
+    gastoProvider.clearCache();
+    
     await Future.wait([
       transactionProvider.loadTransactions(),
       categoryProvider.loadCategories(),
