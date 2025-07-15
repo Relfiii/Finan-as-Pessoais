@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
 
 class GraficoColunaPrincipal extends StatefulWidget {
@@ -29,8 +30,6 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late ScrollController _scrollController;
-  // int _currentVisibleMonth = 6;
-  bool _hasAutoScrolled = false; // Controle do scroll único
 
   @override
   void initState() {
@@ -130,85 +129,40 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
     // Ajustar maxY para ser múltiplo do intervalo
     maxY = ((maxY / intervaloY).ceil() * intervaloY).toDouble();
 
-    final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = MediaQuery.of(context).size.height;
     
     // Configuração específica para visualização diária
     late double itemWidth;
     late double totalWidth;
-    late double availableWidth;
     
     if (widget.isDailyView) {
       // Para visualização diária: 31 dias (25 anteriores + hoje + 5 posteriores)
       itemWidth = 70; // Largura adequada para 31 dias
       totalWidth = minLength * itemWidth + 120; // Total com margem extra
-      availableWidth = screenWidth - 60; // Largura disponível
     } else {
       // Para visualização mensal/anual: comportamento original
       itemWidth = 65;
       totalWidth = minLength * itemWidth + 60;
-      availableWidth = screenWidth - 80;
     }
-
-    // Scroll automático
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && 
-          _scrollController.hasClients && 
-          widget.enableAutoScroll && 
-          !_hasAutoScrolled) {
-        // Verificar se realmente precisa de scroll
-        if (totalWidth > availableWidth) {
-          // Marcar como executado antes de fazer o scroll
-          _hasAutoScrolled = true;
-          
-          // Usar Timer para dar tempo do layout se estabilizar
-          Future.delayed(const Duration(milliseconds: 800), () {
-            if (mounted && _scrollController.hasClients) {
-              final maxScroll = _scrollController.position.maxScrollExtent;
-              if (maxScroll > 0) {
-                double targetScroll;
-                
-                if (widget.isDailyView) {
-                  // Para visualização diária: posicionar no dia atual (índice 25 na sequência de 31 dias)
-                  // A sequência é: [-25, -24, ..., -1, 0(hoje), +1, ..., +5]
-                  // O dia atual está sempre no índice 25 (começando de 0)
-                  final indiceHoje = 25; // Posição fixa do dia atual na sequência
-                  final percentualPosicao = indiceHoje / (minLength - 1);
-                  targetScroll = maxScroll * percentualPosicao;
-                  
-                  // Ajustar para centralizar o dia atual na tela (mostrar alguns dias antes e depois)
-                  final ajusteCentralizacao = maxScroll * 0.15; // 15% de ajuste para centralizar
-                  targetScroll = (targetScroll - ajusteCentralizacao).clamp(0.0, maxScroll);
-                  
-                 } else {
-                  // Para visualização mensal/anual: ir para o final
-                  targetScroll = maxScroll;
-                }
-                
-                _scrollController.animateTo(
-                  targetScroll,
-                  duration: const Duration(milliseconds: 1200),
-                  curve: Curves.easeOutCubic,
-                );
-              }
-            }
-          });
-        }
-      }
-    });
 
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
-          child: Container(
-            height: screenHeight * 0.6, // 60% da altura da tela
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+          child: Center(
+            child: Container(
+              width: kIsWeb ? 1000 : double.infinity,
+              constraints: kIsWeb 
+                ? const BoxConstraints(maxWidth: 1000)
+                : null,
+              child: Container(
+                height: kIsWeb ? screenHeight * 1.90 : screenHeight * 1.9, // Maior na web
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
                 // Eixo Y reduzido
                 Container(
                   width: 30,
@@ -424,6 +378,8 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                   ),
                 ),
               ],
+            ),
+              ),
             ),
           ),
         );

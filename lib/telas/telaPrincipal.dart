@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import '../provedor/transicaoProvedor.dart';
 import '../provedor/categoriaProvedor.dart';
@@ -358,16 +359,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                // Botões de filtro de período com navegação
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Botões de filtro do lado esquerdo
-                      Row(
+                // Conteúdo centralizado para web
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      width: kIsWeb ? 1200 : double.infinity,
+                      constraints: kIsWeb 
+                        ? const BoxConstraints(maxWidth: 1200)
+                        : null,
+                      child: Column(
                         children: [
-                          ChoiceChip(
+                          // Botões de filtro de período com navegação
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Botões de filtro do lado esquerdo
+                                Row(
+                                  children: [
+                                    ChoiceChip(
                             label: Text('Mês', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.mes ? Colors.white : Colors.white70)),
                             selected: _periodoSelecionado == PeriodoFiltro.mes,
                             selectedColor: Color(0xFFB983FF),
@@ -813,6 +824,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       },
+                    ),
+                  ),
+                ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
