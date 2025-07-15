@@ -854,14 +854,14 @@ class _CardGastoState extends State<CardGasto> {
                                           ),
                                           const SizedBox(width: 8),
                                           // CaixaTextoWidget como botão
-                                          Expanded(
-                                            child: CaixaTextoWidget(
-                                              asButton: true,
-                                              onExpand: () {
-                                                caixaTextoOverlay.show(context);
-                                              },
-                                            ),
-                                          ),
+                                          // Expanded(
+                                          //   child: CaixaTextoWidget(
+                                          //     asButton: true,
+                                          //     onExpand: () {
+                                          //       caixaTextoOverlay.show(context);
+                                          //     },
+                                          //   ),
+                                          // ),
                                         ],
                                       ),
                                     ),
@@ -927,10 +927,10 @@ class _CardGastoState extends State<CardGasto> {
                                                               padding: EdgeInsets.zero,
                                                               itemCount: _todasCategorias.length,
                                                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                                                crossAxisCount: 2,
+                                                                crossAxisCount: kIsWeb ? 2 : 1,
                                                                 crossAxisSpacing: 12,
                                                                 mainAxisSpacing: 12,
-                                                                childAspectRatio: 1.6,
+                                                                childAspectRatio: kIsWeb ? 1.6 : 3.5,
                                                               ),
                                                               itemBuilder: (context, categoryIndex) {
                                                                 final cat = _todasCategorias[categoryIndex];

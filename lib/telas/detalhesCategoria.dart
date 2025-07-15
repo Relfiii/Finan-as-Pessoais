@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import '../provedor/gastoProvedor.dart';
 import '../provedor/categoriaProvedor.dart';
@@ -40,7 +41,6 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
 
   @override
   void dispose() {
-    // Certifique-se de descartar os controladores ao descartar o estado
     descricaoController.dispose();
     valorController.dispose();
     super.dispose();
@@ -78,7 +78,6 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     await _carregarGastosDoMes();
   }
 
-  // Método para confirmar deleção do gasto
   Future<void> _confirmarDeletarGasto(BuildContext context, dynamic gasto, GastoProvider gastoProvider) async {
     return showDialog<void>(
       context: context,
@@ -89,30 +88,17 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
             child: AlertDialog(
               backgroundColor: const Color(0xFF181818),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-              actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Confirmar exclusão',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54),
-                    onPressed: () => Navigator.of(context).pop(),
-                    splashRadius: 20,
-                  ),
-                ],
+              title: const Text(
+                'Confirmar exclusão',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Tem certeza que deseja deletar este despesa?',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                    'Tem certeza que deseja deletar esta despesa?',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -156,67 +142,49 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                 ],
               ),
               actions: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.white54),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text(
-                          'Cancelar',
-                          style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        onPressed: () async {
-                          try {
-                            // Deleta o gasto da base de dados e da lista
-                            await gastoProvider.deleteGasto(gasto.id);
-                            Navigator.of(context).pop();
-                            
-                            // Recarrega os dados da base para atualizar a lista de gastos
-                            await _carregarGastosDoMes();
-                            
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Despesa deletada com sucesso!'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            Navigator.of(context).pop();
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Erro ao deletar despesa: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        child: const Text(
-                          'Deletar',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  onPressed: () async {
+                    try {
+                      await gastoProvider.deleteGasto(gasto.id);
+                      Navigator.of(context).pop();
+                      await _carregarGastosDoMes();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Despesa deletada com sucesso!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      Navigator.of(context).pop();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Erro ao deletar despesa: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text(
+                    'Deletar',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -226,11 +194,10 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     );
   }
 
-  // Método para editar gasto
-    Future<void> _editarGasto(BuildContext context, dynamic gasto, GastoProvider gastoProvider) async {
+  Future<void> _editarGasto(BuildContext context, dynamic gasto, GastoProvider gastoProvider) async {
     descricaoController.text = gasto.descricao;
     valorController.updateValue(gasto.valor);
-  
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -308,23 +275,18 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                     final novoValor = double.tryParse(
                       valorController.text.replaceAll('.', '').replaceAll(',', '.'),
                     );
-  
+
                     if (novaDescricao.isNotEmpty && novoValor != null) {
                       try {
-                        // Atualiza o gasto na base de dados
                         await gastoProvider.updateGasto(
                           gasto.id,
                           novaDescricao,
                           novoValor,
                         );
-  
-                        // Fecha o dialog
+
                         Navigator.of(context).pop();
-                        
-                        // Recarrega os dados da base para atualizar a lista de gastos
                         await _carregarGastosDoMes();
-                        
-                        // Mostra mensagem de sucesso
+
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -365,7 +327,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     return _gastosDoMes.fold(0.0, (sum, gasto) => sum + gasto.valor);
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -400,7 +362,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         child: Text(
                           widget.categoryName,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFFB983FF),
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
                             letterSpacing: 1.1,
@@ -425,340 +387,348 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                // Linha de botões: adicionar gasto e caixa de texto
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Botão de adicionar gasto
-                      SizedBox(
-                        height: 44,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF23272F),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                            minimumSize: const Size(0, 44),
-                          ),
-                          icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
-                          label: const Text('Despesa'),
-                          onPressed: () async {
-                            final categoryProvider = context.read<CategoryProvider>();
-                            final selectedCategory = categoryProvider.getCategoryById(widget.categoryId);
-  
-                            final result = await showDialog(
-                              context: context,
-                              builder: (context) => AddExpenseDialog(
-                                categoriaSelecionada: selectedCategory,
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      width: kIsWeb ? 1000 : double.infinity,
+                      constraints: kIsWeb ? const BoxConstraints(maxWidth: 1000) : null,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
                               ),
-                            );
-                            
-                            // Se uma despesa foi adicionada, recarrega a lista
-                            if (result == true) {
-                              await _carregarGastosDoMes();
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // CaixaTextoWidget como botão
-                      Expanded(
-                        child: CaixaTextoWidget(
-                          asButton: true,
-                          onExpand: () {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (context) {
-                                return BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                  child: Center(
-                                    child: FractionallySizedBox(
-                                      widthFactor: 0.95,
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: CaixaTextoWidget(
-                                          asButton: false,
-                                          autofocus: true,
-                                          onCollapse: () {
-                                            Navigator.of(context).pop();
-                                          },
+                              child: Column(
+                                children: [
+                                  // Linha de botões: adicionar gasto e caixa de texto
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 0),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          height: 44,
+                                          child: ElevatedButton.icon(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF23272F),
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                              minimumSize: const Size(0, 44),
+                                            ),
+                                            icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                                            label: const Text('Despesa'),
+                                            onPressed: () async {
+                                              final categoryProvider = context.read<CategoryProvider>();
+                                              final selectedCategory = categoryProvider.getCategoryById(widget.categoryId);
+
+                                              final result = await showDialog(
+                                                context: context,
+                                                builder: (context) => AddExpenseDialog(
+                                                  categoriaSelecionada: selectedCategory,
+                                                ),
+                                              );
+
+                                              if (result == true) {
+                                                await _carregarGastosDoMes();
+                                              }
+                                            },
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(width: 8),
+                                        // Expanded(
+                                        //   child: CaixaTextoWidget(
+                                        //     asButton: true,
+                                        //     onExpand: () {
+                                        //       showDialog(
+                                        //         context: context,
+                                        //         barrierDismissible: true,
+                                        //         builder: (context) {
+                                        //           return BackdropFilter(
+                                        //             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                        //             child: Center(
+                                        //               child: FractionallySizedBox(
+                                        //                 widthFactor: 0.95,
+                                        //                 child: Material(
+                                        //                   color: Colors.transparent,
+                                        //                   child: CaixaTextoWidget(
+                                        //                     asButton: false,
+                                        //                     autofocus: true,
+                                        //                     onCollapse: () {
+                                        //                       Navigator.of(context).pop();
+                                        //                     },
+                                        //                   ),
+                                        //                 ),
+                                        //               ),
+                                        //             ),
+                                        //           );
+                                        //         },
+                                        //       );
+                                        //     },
+                                        //   ),
+                                        // ),
+                                      ],
                                     ),
                                   ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Navegação de mês/ano
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left, color: Colors.white70),
-                        onPressed: _previousMonth,
-                      ),
-                      Text(
-                        _formatMonthYear(_currentDate),
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right, color: Colors.white70),
-                        onPressed: _nextMonth,
-                      ),
-                    ],
-                  ),
-                ),
-                // Cabeçalho da tabela
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF23272F),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (_sortBy == 'descricao') {
-                                _ascending = !_ascending;
-                              } else {
-                                _sortBy = 'descricao';
-                                _ascending = true;
-                              }
-                            });
-                          },
-                          child: Row(
-                            children: [
-                              const Text(
-                                'Descrição',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (_sortBy == 'descricao')
-                                Icon(
-                                  _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                  color: Colors.white70,
-                                  size: 18,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (_sortBy == 'data') {
-                                _ascending = !_ascending;
-                              } else {
-                                _sortBy = 'data';
-                                _ascending = false;
-                              }
-                            });
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Data',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (_sortBy == 'data')
-                                Icon(
-                                  _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                  color: Colors.white70,
-                                  size: 18,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (_sortBy == 'valor') {
-                                _ascending = !_ascending;
-                              } else {
-                                _sortBy = 'valor';
-                                _ascending = false;
-                              }
-                            });
-                          },
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              const Text(
-                                'Valor',
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              if (_sortBy == 'valor')
-                                Icon(
-                                  _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                  color: Colors.white70,
-                                  size: 18,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 40), // Espaço para coluna "Ações"
-                      const Text(
-                        'Ações',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Lista de gastos com RefreshIndicator
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _carregarGastosDoMes,
-                    child: _gastosDoMes.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'Nenhuma despesa encontrada.',
-                              style: TextStyle(color: Colors.white54, fontSize: 16),
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            itemCount: _gastosDoMes.length,
-                            itemBuilder: (context, index) {
-                              final gasto = _gastosDoMes[index];
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 4),
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF23272F),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                        gasto.descricao.toString(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
+                                  // Navegação de mês/ano
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                          onPressed: _previousMonth,
                                         ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
-                                        style: const TextStyle(
-                                          color: Colors.white70,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Align(
-                                        alignment: Alignment.topLeft,
-                                        child: Text(
-                                          NumberFormat.currency(
-                                            locale: 'pt_BR',
-                                            symbol: 'R\$',
-                                            decimalDigits: 2,
-                                          ).format(gasto.valor),
+                                        Text(
+                                          _formatMonthYear(_currentDate),
                                           style: const TextStyle(
-                                            color: Colors.greenAccent,
-                                            fontSize: 12,
+                                            color: Colors.white70,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                    PopupMenuButton<String>(
-                                      icon: const Icon(Icons.more_vert, color: Colors.white70),
-                                      onSelected: (value) async {
-                                        final gastoProvider = context.read<GastoProvider>();
-                                        if (value == 'editar') {
-                                          _editarGasto(context, gasto, gastoProvider);
-                                        } else if (value == 'deletar') {
-                                          _confirmarDeletarGasto(context, gasto, gastoProvider);
-                                        }
-                                      },
-                                      itemBuilder: (context) => [
-                                        const PopupMenuItem(
-                                          value: 'editar',
-                                          child: Text('Editar'),
-                                        ),
-                                        const PopupMenuItem(
-                                          value: 'deletar',
-                                          child: Text('Deletar'),
+                                        IconButton(
+                                          icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                          onPressed: _nextMonth,
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                  ),
-                ),
-                // Rodapé
-                Center(
-                  child: Text(
-                    'NossoDinDin v1.0',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.18),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 1.1,
+                                  ),
+                                  // Cabeçalho da tabela
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF23272F),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.2),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                if (_sortBy == 'descricao') {
+                                                  _ascending = !_ascending;
+                                                } else {
+                                                  _sortBy = 'descricao';
+                                                  _ascending = true;
+                                                }
+                                              });
+                                            },
+                                            child: Row(
+                                              children: [
+                                                const Text(
+                                                  'Descrição',
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                if (_sortBy == 'descricao')
+                                                  Icon(
+                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                                    color: Colors.white70,
+                                                    size: 18,
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                if (_sortBy == 'data') {
+                                                  _ascending = !_ascending;
+                                                } else {
+                                                  _sortBy = 'data';
+                                                  _ascending = false;
+                                                }
+                                              });
+                                            },
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                const Text(
+                                                  'Data',
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                if (_sortBy == 'data')
+                                                  Icon(
+                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                                    color: Colors.white70,
+                                                    size: 18,
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                if (_sortBy == 'valor') {
+                                                  _ascending = !_ascending;
+                                                } else {
+                                                  _sortBy = 'valor';
+                                                  _ascending = false;
+                                                }
+                                              });
+                                            },
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                const Text(
+                                                  'Valor',
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                if (_sortBy == 'valor')
+                                                  Icon(
+                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                                    color: Colors.white70,
+                                                    size: 18,
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 40),
+                                        const Text(
+                                          'Ações',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Lista de gastos
+                                  RefreshIndicator(
+                                    onRefresh: _carregarGastosDoMes,
+                                    child: _gastosDoMes.isEmpty
+                                        ? const Center(
+                                            child: Text(
+                                              'Nenhuma despesa encontrada.',
+                                              style: TextStyle(color: Colors.white54, fontSize: 16),
+                                            ),
+                                          )
+                                        : ListView.builder(
+                                            shrinkWrap: true,
+                                            physics: const NeverScrollableScrollPhysics(),
+                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                            itemCount: _gastosDoMes.length,
+                                            itemBuilder: (context, index) {
+                                              final gasto = _gastosDoMes[index];
+                                              return Container(
+                                                margin: const EdgeInsets.only(bottom: 4),
+                                                padding: const EdgeInsets.all(14),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF23272F),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: Text(
+                                                        gasto.descricao.toString(),
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 15,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Text(
+                                                        '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
+                                                        style: const TextStyle(
+                                                          color: Colors.white70,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      flex: 2,
+                                                      child: Align(
+                                                        alignment: Alignment.topLeft,
+                                                        child: Text(
+                                                          NumberFormat.currency(
+                                                            locale: 'pt_BR',
+                                                            symbol: 'R\$',
+                                                            decimalDigits: 2,
+                                                          ).format(gasto.valor),
+                                                          style: const TextStyle(
+                                                            color: Colors.greenAccent,
+                                                            fontSize: 12,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    PopupMenuButton<String>(
+                                                      icon: const Icon(Icons.more_vert, color: Colors.white70),
+                                                      onSelected: (value) async {
+                                                        final gastoProvider = context.read<GastoProvider>();
+                                                        if (value == 'editar') {
+                                                          _editarGasto(context, gasto, gastoProvider);
+                                                        } else if (value == 'deletar') {
+                                                          _confirmarDeletarGasto(context, gasto, gastoProvider);
+                                                        }
+                                                      },
+                                                      itemBuilder: (context) => [
+                                                        const PopupMenuItem(
+                                                          value: 'editar',
+                                                          child: Text('Editar'),
+                                                        ),
+                                                        const PopupMenuItem(
+                                                          value: 'deletar',
+                                                          child: Text('Deletar'),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
               ],
             ),
           ),

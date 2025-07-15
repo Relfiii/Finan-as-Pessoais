@@ -242,17 +242,10 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: TelaLateral(),
       body: Stack(
         children: [
-          // Fundo gradiente com desfoque (igual à tela de configurações)
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
-                ),
-              ),
+          // Fundo com cor sólida da paleta
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF121212), // Fundo da paleta
             ),
           ),
           SafeArea(
@@ -265,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Builder(
                         builder: (context) => IconButton(
-                          icon: const Icon(Icons.menu, color: Color(0xFFB983FF)),
+                          icon: const Icon(Icons.menu, color: Color(0xFFB388FF)), // Cor dos acentos
                           onPressed: () {
                             Scaffold.of(context).openDrawer();
                           },
@@ -280,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 "NossoDinDin",
                                 key: ValueKey('title'),
                                 style: TextStyle(
-                                  color: Color(0xFFB983FF),
+                                  color: Color(0xFFB388FF), // Cor dos acentos
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22,
                                   letterSpacing: 1.1,
@@ -304,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: !caixaTextoOverlay.isExpanded(context)
                             ? IconButton(
                                 key: ValueKey('notif'),
-                                icon: const Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
+                                icon: const Icon(Icons.notifications_none, color: Color(0xFFB388FF)), // Cor dos acentos
                                 tooltip: 'Notificações',
                                 onPressed: () {
                                   showGeneralDialog(
@@ -318,24 +311,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                                         child: Center(
                                           child: AlertDialog(
-                                            backgroundColor: const Color(0xFF181818),
+                                            backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                                             shape: RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.circular(12)),
                                             title: const Row(
                                               children: [
-                                                Icon(Icons.notifications, color: Color(0xFFB983FF)),
+                                                Icon(Icons.notifications, color: Color(0xFFB388FF)), // Cor dos acentos
                                                 SizedBox(width: 8),
                                                 Text(
                                                   'Notificações',
                                                   style: TextStyle(
-                                                      color: Colors.white,
+                                                      color: Color(0xFFE0E0E0), // Cor do texto
                                                       fontWeight: FontWeight.bold),
                                                 ),
                                               ],
                                             ),
                                             content: const Text(
                                               'Nenhuma notificação no momento.',
-                                              style: TextStyle(color: Colors.white70, fontSize: 14),
+                                              style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Cor do texto
                                             ),
                                             actions: [
                                               TextButton(
@@ -343,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   Navigator.of(context).pop();
                                                 },
                                                 child: const Text('Fechar',
-                                                    style: TextStyle(color: Colors.white70)),
+                                                    style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
                                               ),
                                             ],
                                           ),
@@ -358,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                const Divider(color: Color(0xFF303030), thickness: 1, indent: 24, endIndent: 24), // Cor mais clara para o divisor
                 // Conteúdo centralizado para web
                 Expanded(
                   child: Center(
@@ -379,9 +372,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Row(
                                   children: [
                                     ChoiceChip(
-                            label: Text('Mês', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.mes ? Colors.white : Colors.white70)),
+                            label: Text('Mês', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.mes ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
                             selected: _periodoSelecionado == PeriodoFiltro.mes,
-                            selectedColor: Color(0xFFB983FF),
+                            selectedColor: Color(0xFF448AFF), // Botão primário
                             backgroundColor: Colors.transparent,
                             showCheckmark: false,
                             onSelected: (selected) {
@@ -395,9 +388,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           ChoiceChip(
-                            label: Text('Ano', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.ano ? Colors.white : Colors.white70)),
+                            label: Text('Ano', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.ano ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
                             selected: _periodoSelecionado == PeriodoFiltro.ano,
-                            selectedColor: Color(0xFFB983FF),
+                            selectedColor: Color(0xFF448AFF), // Botão primário
                             backgroundColor: Colors.transparent,
                             showCheckmark: false,
                             onSelected: (selected) {
@@ -411,9 +404,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           ChoiceChip(
-                            label: Text('Dia', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.dia ? Colors.white : Colors.white70)),
+                            label: Text('Dia', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.dia ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
                             selected: _periodoSelecionado == PeriodoFiltro.dia,
-                            selectedColor: Color(0xFFB983FF),
+                            selectedColor: Color(0xFF448AFF), // Botão primário
                             backgroundColor: Colors.transparent,
                             showCheckmark: false,
                             onSelected: (selected) {
@@ -431,7 +424,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.chevron_left, color: Colors.white70, size: 18),
+                            icon: const Icon(Icons.chevron_left, color: Color(0xFFE0E0E0), size: 18), // Cor do texto
                             onPressed: _previousPeriod,
                             tooltip: 'Período anterior',
                             padding: const EdgeInsets.all(8),
@@ -456,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               _formatCurrentDate(),
                               key: ValueKey(_currentDate.toString()),
                               style: const TextStyle(
-                                color: Color(0xFFB983FF),
+                                color: Color(0xFFB388FF), // Cor dos acentos
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: 0.5,
@@ -465,7 +458,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: const Icon(Icons.chevron_right, color: Colors.white70, size: 18),
+                            icon: const Icon(Icons.chevron_right, color: Color(0xFFE0E0E0), size: 18), // Cor do texto
                             onPressed: _nextPeriod,
                             tooltip: 'Próximo período',
                             padding: const EdgeInsets.all(8),
@@ -543,22 +536,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 margin: const EdgeInsets.all(3),
                                                 padding: const EdgeInsets.all(16),
                                                 decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    colors: [Color(0xFF2A2D3E), Color(0xFF1C1F2A)],
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                  ),
+                                                  color: Color(0xFF1E1E1E), // Cor de fundo mais clara que o fundo principal
                                                   borderRadius: BorderRadius.circular(16),
+                                                  border: Border.all(color: Color(0xFF00E676), width: 1), // Borda verde para entrada
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.black.withOpacity(0.5),
-                                                      offset: Offset(4, 4),
-                                                      blurRadius: 8,
-                                                    ),
-                                                    BoxShadow(
-                                                      color: Colors.black.withOpacity(0.2),
-                                                      offset: Offset(-4, -4),
-                                                      blurRadius: 8,
+                                                      color: Colors.black.withOpacity(0.3),
+                                                      offset: Offset(2, 2),
+                                                      blurRadius: 4,
                                                     ),
                                                   ],
                                                 ),
@@ -572,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Text(
                                                       localizations.saldoAtual,
                                                       style: const TextStyle(
-                                                        color: Colors.white70,
+                                                        color: Color(0xFFE0E0E0), // Cor do texto
                                                         fontSize: 16,
                                                         fontWeight: FontWeight.w600,
                                                       ),
@@ -590,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               return Text(
                                                                 formatter.format(saldoAtual),
                                                                 style: const TextStyle(
-                                                                  color: Color.fromARGB(255, 24, 119, 5),
+                                                                  color: Color(0xFF00E676), // Cor de entrada
                                                                   fontWeight: FontWeight.bold,
                                                                   fontSize: 16,
                                                                 ),
@@ -602,7 +587,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         const SizedBox(width: 8),
                                                         Icon(
                                                           Icons.account_balance_wallet,
-                                                          color: const Color.fromARGB(255, 24, 119, 5),
+                                                          color: Color(0xFF00E676), // Cor de entrada
                                                           size: 28,
                                                         ),
                                                       ],
@@ -626,22 +611,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 margin: const EdgeInsets.all(3),
                                                 padding: const EdgeInsets.all(16),
                                                 decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    colors: [Color(0xFF3A1C1C), Color(0xFF2A1A1A)],
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                  ),
+                                                  color: Color(0xFF1E1E1E), // Cor de fundo mais clara que o fundo principal
                                                   borderRadius: BorderRadius.circular(16),
+                                                  border: Border.all(color: Color(0xFFEF5350), width: 1), // Borda vermelha para saída
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.black.withOpacity(0.5),
-                                                      offset: Offset(4, 4),
-                                                      blurRadius: 8,
-                                                    ),
-                                                    BoxShadow(
-                                                      color: Colors.black.withOpacity(0.2),
-                                                      offset: Offset(-4, -4),
-                                                      blurRadius: 8,
+                                                      color: Colors.black.withOpacity(0.3),
+                                                      offset: Offset(2, 2),
+                                                      blurRadius: 4,
                                                     ),
                                                   ],
                                                 ),
@@ -655,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Text(
                                                       localizations.gastoNoMes,
                                                       style: const TextStyle(
-                                                        color: Colors.white70,
+                                                        color: Color(0xFFE0E0E0), // Cor do texto
                                                         fontSize: 16,
                                                         fontWeight: FontWeight.w600,
                                                       ),
@@ -674,7 +651,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               return Text(
                                                                 formatter.format(totalGasto),
                                                                 style: const TextStyle(
-                                                                  color: Color.fromARGB(255, 151, 53, 53),
+                                                                  color: Color(0xFFEF5350), // Cor de saída
                                                                   fontWeight: FontWeight.bold,
                                                                   fontSize: 16,
                                                                 ),
@@ -686,7 +663,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         const SizedBox(width: 8),
                                                         Icon(
                                                           Icons.trending_down,
-                                                          color: const Color.fromARGB(255, 151, 53, 53),
+                                                          color: Color(0xFFEF5350), // Cor de saída
                                                           size: 28,
                                                         ),
                                                       ],
@@ -712,22 +689,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                         margin: const EdgeInsets.all(3),
                                         padding: const EdgeInsets.all(16),
                                         decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [Color(0xFF1C2A3A), Color(0xFF1A2A2F)],
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                          ),
+                                          color: Color(0xFF1E1E1E), // Cor de fundo mais clara que o fundo principal
                                           borderRadius: BorderRadius.circular(16),
+                                          border: Border.all(color: Color(0xFF448AFF), width: 1), // Borda azul para investimentos
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.5),
-                                              offset: Offset(4, 4),
-                                              blurRadius: 8,
-                                            ),
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.2),
-                                              offset: Offset(-4, -4),
-                                              blurRadius: 8,
+                                              color: Colors.black.withOpacity(0.3),
+                                              offset: Offset(2, 2),
+                                              blurRadius: 4,
                                             ),
                                           ],
                                         ),
@@ -742,7 +711,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             Text(
                                               localizations.investimentos,
                                               style: const TextStyle(
-                                                  color: Colors.white70, fontSize: 16),
+                                                  color: Color(0xFFE0E0E0), fontSize: 16), // Cor do texto
                                               softWrap: true,
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -759,7 +728,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       thousandSeparator: ThousandSeparator.Period,
                                                     ),
                                                     style: const TextStyle(
-                                                      color: Color.fromARGB(255, 15, 157, 240),
+                                                      color: Color(0xFF448AFF), // Cor do botão primário
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 16,
                                                     ),
@@ -769,7 +738,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 const SizedBox(width: 8),
                                                 const Icon(
                                                   Icons.trending_up,
-                                                  color: Color.fromARGB(255, 15, 157, 240),
+                                                  color: Color(0xFF448AFF), // Cor do botão primário
                                                   size: 28,
                                                 ),
                                               ],
@@ -862,7 +831,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
       children: [
         Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Color(0xFFB983FF)),
+            icon: const Icon(Icons.menu, color: Color(0xFFB388FF)), // Cor dos acentos
             onPressed: () {
               abrirMenuLateral(context);
             },
@@ -878,7 +847,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
                   "NossoDinDin",
                   key: ValueKey('title'),
                   style: TextStyle(
-                    color: Color(0xFFB983FF),
+                    color: Color(0xFFB388FF), // Cor dos acentos
                     fontWeight: FontWeight.bold,
                     fontSize: 22,
                   ),
@@ -903,7 +872,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
           child: !caixaTextoOverlay.isExpanded(context)
               ? IconButton(
                   key: const ValueKey('notif'),
-                  icon: const Icon(Icons.notifications_none, color: Color(0xFFB983FF)),
+                  icon: const Icon(Icons.notifications_none, color: Color(0xFFB388FF)), // Cor dos acentos
                   tooltip: 'Notificações',
                   onPressed: () {
                     showGeneralDialog(
@@ -917,24 +886,23 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
                           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                           child: Center(
                             child: AlertDialog(
-                              backgroundColor: const Color(0xFF181818),
+                              backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
                               title: const Row(
                                 children: [
-                                  Icon(Icons.notifications, color: Color(0xFFB983FF)),
+                                  Icon(Icons.notifications, color: Color(0xFFB388FF)), // Cor dos acentos
                                   SizedBox(width: 8),
                                   Text(
                                     'Notificações',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
+                                    style: TextStyle(                                      color: Color(0xFFE0E0E0), // Cor do texto
+                                      fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
                               content: const Text(
                                 'Nenhuma notificação no momento.',
-                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                                style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Cor do texto
                               ),
                               actions: [
                                 TextButton(
@@ -942,7 +910,7 @@ class _TopBarWithCaixaTextoState extends State<_TopBarWithCaixaTexto> {
                                     Navigator.of(context).pop();
                                   },
                                   child: const Text('Fechar',
-                                      style: TextStyle(color: Colors.white70)),
+                                      style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
                                 ),
                               ],
                             ),
