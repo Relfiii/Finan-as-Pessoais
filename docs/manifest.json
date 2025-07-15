@@ -1,14 +1,24 @@
 {
-    "name": "financeiro_app",
-    "short_name": "financeiro_app",
+    "name": "NossoDinDin - Finanças Pessoais",
+    "short_name": "NossoDinDin",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#1976d2",
+    "theme_color": "#1976d2",
+    "description": "Gerencie suas finanças pessoais de forma simples e eficiente. Controle despesas, receitas e organize seu orçamento.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
+        {
+            "src": "icons/logo-NossoDinDin.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/logo-NossoDinDin.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",
