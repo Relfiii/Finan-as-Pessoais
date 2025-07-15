@@ -156,11 +156,11 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
             child: Center(
               child: AlertDialog(
-                backgroundColor: const Color(0xFF181828),
+                backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 title: const Text(
                   'Editar Investimento',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Color(0xFFE0E0E0), fontWeight: FontWeight.bold), // Cor do texto
                 ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -168,20 +168,28 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                   children: [
                     const Text(
                       'Edite os dados do investimento selecionado.',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Cor do texto
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: descricaoController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                       decoration: InputDecoration(
                         hintText: 'Descrição',
-                        hintStyle: const TextStyle(color: Colors.white54),
+                        hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                         filled: true,
-                        fillColor: const Color(0xFF23273A),
+                        fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFF448AFF), width: 2), // Borda azul mais grossa quando focado
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -190,7 +198,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                     TextField(
                       controller: valorController,
                       keyboardType: TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                       inputFormatters: [
                         MoneyInputFormatter(
                           leadingSymbol: 'R\$',
@@ -200,12 +208,20 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                       ],
                       decoration: InputDecoration(
                         hintText: 'Valor investido',
-                        hintStyle: const TextStyle(color: Colors.white54),
+                        hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                         filled: true,
-                        fillColor: const Color(0xFF23273A),
+                        fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFF448AFF), width: 2), // Borda azul mais grossa quando focado
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -213,14 +229,22 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: tipoSelecionado,
-                      dropdownColor: const Color(0xFF23273A),
-                      style: const TextStyle(color: Colors.white),
+                      dropdownColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+                      style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: const Color(0xFF23273A),
+                        fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFF448AFF), width: 2), // Borda azul mais grossa quando focado
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -240,7 +264,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                         'Outro'
                       ].map((tipo) => DropdownMenuItem(
                         value: tipo,
-                        child: Text(tipo),
+                        child: Text(tipo, style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
                       )).toList(),
                       onChanged: (value) {
                         setState(() {
@@ -253,15 +277,23 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                         padding: const EdgeInsets.only(top: 12),
                         child: TextField(
                           controller: tipoOutroController,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                           decoration: InputDecoration(
                             hintText: 'Descreva o tipo de investimento',
-                            hintStyle: const TextStyle(color: Colors.white54),
+                            hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                             filled: true,
-                            fillColor: const Color(0xFF23273A),
+                            fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
+                              borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFF448AFF), width: 2), // Borda azul mais grossa quando focado
                             ),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
@@ -274,12 +306,12 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
+                    child: const Text('Cancelar', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7DE2FC),
-                      foregroundColor: Colors.black,
+                      backgroundColor: const Color(0xFF448AFF), // Azul para investimentos
+                      foregroundColor: const Color(0xFF121212), // Texto preto
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
@@ -337,21 +369,21 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: AlertDialog(
-          backgroundColor: const Color(0xFF23273A),
-          title: const Text('Confirmar exclusão', style: TextStyle(color: Colors.white)),
+          backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+          title: const Text('Confirmar exclusão', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
           content: const Text(
             'Deseja realmente deletar este investimento?',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
           ),
           actions: [
             TextButton(
-              child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+              child: const Text('Cancelar', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
               onPressed: () => Navigator.of(context).pop(false),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
+                backgroundColor: Color(0xFFEF5350), // Cor de saída
+                foregroundColor: Color(0xFF121212), // Texto preto
               ),
               child: const Text('Deletar'),
               onPressed: () => Navigator.of(context).pop(true),
@@ -388,26 +420,16 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fundo gradiente com blur e overlay de gráfico
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF23273A),
-                    Color(0xFF181828),
-                  ],
-                ),
-              ),
+          // Fundo com cor sólida da paleta
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF121212), // Fundo da paleta
             ),
           ),
           Positioned(
             top: -60,
             right: -60,
-            child: Icon(Icons.pie_chart, size: 180, color: Colors.white.withOpacity(0.04)),
+            child: Icon(Icons.pie_chart, size: 180, color: Color(0xFF448AFF).withOpacity(0.04)), // Azul para investimentos
           ),
           SafeArea(
             child: Column(
@@ -418,14 +440,14 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Color(0xFF7DE2FC)),
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB388FF)), // Cor dos acentos
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       const SizedBox(width: 8),
                       const Text(
                         'Investimentos',
                         style: TextStyle(
-                          color: Color(0xFF7DE2FC),
+                          color: Color(0xFFB388FF), // Cor dos acentos
                           fontWeight: FontWeight.bold,
                           fontSize: 22,
                           letterSpacing: 1.1,
@@ -435,7 +457,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                const Divider(color: Color(0xFF303030), thickness: 1, indent: 24, endIndent: 24), // Cor mais clara para o divisor
                 // Conteúdo centralizado
                 Expanded(
                   child: Center(
@@ -454,11 +476,11 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                 children: [
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
+                                      color: Color(0xFF1E1E1E), // Cor de fundo mais clara
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: IconButton(
-                                      icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                      icon: const Icon(Icons.chevron_left, color: Color(0xFFE0E0E0)), // Cor do texto
                                       onPressed: _previousMonth,
                                     ),
                                   ),
@@ -480,7 +502,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                       _formatMonthYear(_currentDate),
                                       key: ValueKey(_currentDate.toString()),
                                       style: const TextStyle(
-                                        color: Colors.white70,
+                                        color: Color(0xFFB388FF), // Cor dos acentos
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 0.5,
@@ -489,11 +511,11 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                   ),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
+                                      color: Color(0xFF1E1E1E), // Cor de fundo mais clara
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: IconButton(
-                                      icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                      icon: const Icon(Icons.chevron_right, color: Color(0xFFE0E0E0)), // Cor do texto
                                       onPressed: _nextMonth,
                                     ),
                                   ),
@@ -516,7 +538,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                     width: size,
                                     height: size,
                                     decoration: BoxDecoration(
-                                      color: Color(0xFF7DE2FC).withOpacity(opacity),
+                                      color: Color(0xFF448AFF).withOpacity(opacity), // Azul para investimentos
                                       borderRadius: BorderRadius.circular(size / 2),
                                     ),
                                   );
@@ -531,14 +553,17 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                     height: 44,
                                     child: ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF23273A),
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+                                        foregroundColor: Color(0xFFE0E0E0), // Cor do texto
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          side: BorderSide(color: Color(0xFF448AFF)), // Borda azul
+                                        ),
                                         padding: const EdgeInsets.symmetric(horizontal: 10),
                                         textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                         minimumSize: const Size(0, 44),
                                       ),
-                                      icon: const Icon(Icons.add_chart, color: Color(0xFF7DE2FC)),
+                                      icon: const Icon(Icons.add_chart, color: Color(0xFF448AFF)), // Azul para investimentos
                                       label: const Text('Investir'),
                                       onPressed: () async {
                                         // Chama o popup externo e recarrega ao salvar
@@ -553,12 +578,13 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF23273A),
+                                      color: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                                       borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Color(0xFF448AFF)), // Borda azul
                                     ),
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.savings, color: Color(0xFF7DE2FC), size: 18),
+                                        const Icon(Icons.savings, color: Color(0xFF448AFF), size: 18), // Azul para investimentos
                                         const SizedBox(width: 6),
                                         Text(
                                           toCurrencyString(
@@ -568,7 +594,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                             thousandSeparator: ThousandSeparator.Period,
                                           ),
                                           style: const TextStyle(
-                                            color: Color(0xFF7DE2FC),
+                                            color: Color(0xFF448AFF), // Azul para investimentos
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
                                           ),
@@ -634,7 +660,7 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                                                   thousandSeparator: ThousandSeparator.Period,
                                                                 ),
                                                             style: const TextStyle(
-                                                              color: Color(0xFF7DE2FC),
+                                                              color: Color(0xFF448AFF), // Azul para investimentos
                                                               fontWeight: FontWeight.bold,
                                                               fontSize: 16,
                                                             ),
@@ -650,13 +676,13 @@ class _ControleInvestimentosPageState extends State<ControleInvestimentosPage> {
                                                                     Icon(
                                                                       Icons.trending_up_outlined,
                                                                       size: 64,
-                                                                      color: Colors.white.withOpacity(0.3),
+                                                                      color: Color(0xFFE0E0E0).withOpacity(0.3), // Texto em cinza claro
                                                                     ),
                                                                     const SizedBox(height: 16),
                                                                     Text(
                                                                       'Nenhum investimento cadastrado neste mês.',
                                                                       style: TextStyle(
-                                                                        color: Colors.white54, 
+                                                                        color: Color(0xFFE0E0E0).withOpacity(0.7), // Texto em cinza claro
                                                                         fontSize: 16,
                                                                         fontWeight: FontWeight.w500,
                                                                       ),
@@ -748,15 +774,15 @@ class InvestimentoCard extends StatelessWidget {
   Color _corTipo(String tipo) {
     switch (tipo) {
       case 'Renda Fixa':
-        return const Color(0xFF7DE2FC);
+        return const Color(0xFF448AFF); // Azul para investimentos
       case 'Renda Variável':
-        return const Color(0xFFB983FF);
+        return const Color(0xFFB388FF); // Cor dos acentos
       case 'Cripto':
-        return const Color(0xFFFFA8A8);
+        return const Color(0xFFEF5350); // Cor de saída
       case 'Imóveis':
-        return const Color(0xFFB8FFB8);
+        return const Color(0xFF00E676); // Verde para receitas
       default:
-        return Colors.white24;
+        return const Color(0xFF448AFF); // Azul padrão para investimentos
     }
   }
 
@@ -787,21 +813,14 @@ class InvestimentoCard extends StatelessWidget {
     return Container(
       height: 140,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            _corTipo(tipo).withOpacity(0.13),
-            Colors.black.withOpacity(0.10),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Color(0xFF1E1E1E), // Cor de fundo mais clara que o fundo principal
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _corTipo(tipo).withOpacity(0.25), width: 1.2),
+        border: Border.all(color: _corTipo(tipo), width: 1), // Borda colorida conforme o tipo
         boxShadow: [
           BoxShadow(
-            color: _corTipo(tipo).withOpacity(0.09),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -820,7 +839,7 @@ class InvestimentoCard extends StatelessWidget {
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: _corTipo(tipo).withOpacity(0.18),
+                        backgroundColor: _corTipo(tipo).withOpacity(0.15), // Fundo do avatar mais sutil
                         child: Icon(_iconeTipo(tipo), color: _corTipo(tipo), size: 24),
                         radius: 22,
                       ),
@@ -829,7 +848,7 @@ class InvestimentoCard extends StatelessWidget {
                         child: Text(
                           descricao,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFFE0E0E0), // Cor do texto
                             fontWeight: FontWeight.bold,
                             fontSize: 17,
                           ),
@@ -837,8 +856,8 @@ class InvestimentoCard extends StatelessWidget {
                         ),
                       ),
                       PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
-                        color: const Color(0xFF23273A),
+                        icon: const Icon(Icons.more_vert, color: Color(0xFFE0E0E0), size: 20), // Cor do texto
+                        color: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                         padding: EdgeInsets.zero,
                         onSelected: (value) {
                           if (value == 'editar') {
@@ -850,11 +869,11 @@ class InvestimentoCard extends StatelessWidget {
                         itemBuilder: (context) => [
                           const PopupMenuItem(
                             value: 'editar',
-                            child: Text('Editar', style: TextStyle(color: Colors.white)),
+                            child: Text('Editar', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
                           ),
                           const PopupMenuItem(
                             value: 'deletar',
-                            child: Text('Deletar', style: TextStyle(color: Colors.red)),
+                            child: Text('Deletar', style: TextStyle(color: Color(0xFFEF5350))), // Cor de saída
                           ),
                         ],
                       ),
@@ -877,7 +896,7 @@ class InvestimentoCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _corTipo(tipo).withOpacity(0.13),
+                          color: _corTipo(tipo).withOpacity(0.15), // Fundo do badge mais sutil
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -899,7 +918,7 @@ class InvestimentoCard extends StatelessWidget {
                       '${data.month.toString().padLeft(2, '0')}/'
                       '${data.year}',
                       style: const TextStyle(
-                        color: Colors.white54,
+                        color: Color(0xFFE0E0E0), // Cor do texto
                         fontSize: 13,
                       ),
                     ),

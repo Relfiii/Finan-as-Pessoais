@@ -45,11 +45,11 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
             child: Center(
               child: AlertDialog(
-                backgroundColor: const Color(0xFF181818),
+                backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 title: const Text(
                   'Editar Receita',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Color(0xFFE0E0E0), fontWeight: FontWeight.bold), // Cor do texto
                 ),
                 content: SizedBox(
                   width: double.maxFinite,
@@ -59,20 +59,28 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                     children: [
                       const Text(
                         'Edite os dados da receita selecionada.',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Cor do texto
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: descricaoController,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                         decoration: InputDecoration(
                           hintText: 'Descrição',
-                          hintStyle: const TextStyle(color: Colors.white54),
+                          hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                           filled: true,
-                          fillColor: const Color(0xFF23272F),
+                          fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: Color(0xFF00E676)), // Borda verde
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Color(0xFF00E676)), // Borda verde
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Color(0xFF00E676), width: 2), // Borda verde mais grossa quando focado
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
@@ -81,7 +89,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                       TextField(
                         controller: valorController,
                         keyboardType: TextInputType.numberWithOptions(decimal: true),
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                         inputFormatters: [
                           MoneyInputFormatter(
                             leadingSymbol: 'R\$',
@@ -91,12 +99,20 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                         ],
                         decoration: InputDecoration(
                           hintText: 'Valor',
-                          hintStyle: const TextStyle(color: Colors.white54),
+                          hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                           filled: true,
-                          fillColor: const Color(0xFF23272F),
+                          fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                            borderSide: BorderSide(color: Color(0xFF00E676)), // Borda verde
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Color(0xFF00E676)), // Borda verde
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Color(0xFF00E676), width: 2), // Borda verde mais grossa quando focado
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
@@ -150,14 +166,14 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                             height: 4,
                                             margin: const EdgeInsets.only(bottom: 16),
                                             decoration: BoxDecoration(
-                                              color: Colors.white24,
+                                              color: Color(0xFF303030), // Cor mais clara para o divisor
                                               borderRadius: BorderRadius.circular(2),
                                             ),
                                           ),
                                           const Text(
                                             'Selecione a data do investimento',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: Color(0xFFE0E0E0), // Cor do texto
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18,
                                             ),
@@ -170,7 +186,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                                 color: const Color(0xFF23272F),
                                                 borderRadius: BorderRadius.circular(18),
                                                 border: Border.all(
-                                                  color: const Color(0xFFB983FF).withOpacity(0.5),
+                                                  color: const Color(0xFF00E676).withOpacity(0.5), // Verde para receitas
                                                   width: 2,
                                                 ),
                                                 boxShadow: [
@@ -187,20 +203,20 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                                 child: Theme(
                                                   data: ThemeData.dark().copyWith(
                                                     colorScheme: const ColorScheme.dark(
-                                                      primary: Color(0xFFB983FF),
+                                                      primary: Color(0xFF00E676), // Verde para receitas
                                                       onPrimary: Colors.black,
                                                       surface: Color(0xFF23272F),
-                                                      onSurface: Colors.white,
+                                                      onSurface: Color(0xFFE0E0E0), // Cor do texto
                                                     ),
                                                     dialogBackgroundColor: const Color(0xFF23272F),
                                                     textTheme: const TextTheme(
-                                                      bodyMedium: TextStyle(color: Colors.white),
+                                                      bodyMedium: TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                                                     ),
                                                     datePickerTheme: const DatePickerThemeData(
                                                       backgroundColor: Colors.transparent,
                                                       headerBackgroundColor: Color(0xFF181828),
-                                                      dayStyle: TextStyle(color: Colors.white),
-                                                      todayBackgroundColor: MaterialStatePropertyAll(Color(0xFFB983FF)),
+                                                      dayStyle: TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
+                                                      todayBackgroundColor: MaterialStatePropertyAll(Color(0xFF00E676)), // Verde para receitas
                                                       todayForegroundColor: MaterialStatePropertyAll(Colors.black),
                                                       rangePickerBackgroundColor: Colors.transparent,
                                                     ),
@@ -225,8 +241,8 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                               Expanded(
                                                 child: OutlinedButton(
                                                   style: OutlinedButton.styleFrom(
-                                                    foregroundColor: Colors.white70,
-                                                    side: const BorderSide(color: Colors.white24),
+                                                    foregroundColor: Color(0xFFE0E0E0), // Cor do texto
+                                                    side: const BorderSide(color: Color(0xFF303030)), // Cor mais clara para a borda
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
                                                     ),
@@ -240,7 +256,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                               Expanded(
                                                 child: ElevatedButton(
                                                   style: ElevatedButton.styleFrom(
-                                                    backgroundColor: const Color(0xFFB983FF),
+                                                    backgroundColor: const Color(0xFF00E676), // Verde para receitas
                                                     foregroundColor: Colors.black,
                                                     shape: RoundedRectangleBorder(
                                                       borderRadius: BorderRadius.circular(12),
@@ -274,18 +290,26 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                   '${receita['data'].month.toString().padLeft(2, '0')}/'
                                   '${receita['data'].year}',
                           ),
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                           decoration: InputDecoration(
-                            hintText: 'Data do investimento',
-                            hintStyle: const TextStyle(color: Colors.white54),
+                            hintText: 'Data da receita',
+                            hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
                             filled: true,
-                            fillColor: const Color(0xFF23272F),
+                            fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
+                              borderSide: BorderSide(color: Color(0xFF00E676)), // Borda verde
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFF00E676)), // Borda verde
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFF00E676), width: 2), // Borda verde mais grossa quando focado
                             ),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            suffixIcon: const Icon(Icons.calendar_today, color: Colors.white54),
+                            suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFF00E676)), // Ícone verde
                           ),
                           readOnly: true,
                         ),
@@ -299,12 +323,12 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                     onPressed: () {
                       Navigator.of(context).pop(false);
                     },
-                    child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
+                    child: const Text('Cancelar', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB983FF),
-                      foregroundColor: Colors.black,
+                      backgroundColor: const Color(0xFF00E676), // Cor de entrada (verde)
+                      foregroundColor: const Color(0xFF121212), // Texto preto
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
@@ -371,21 +395,21 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: AlertDialog(
-          backgroundColor: const Color(0xFF23272F),
-          title: const Text('Confirmar exclusão', style: TextStyle(color: Colors.white)),
+          backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+          title: const Text('Confirmar exclusão', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
           content: const Text(
             'Deseja realmente deletar esta receita?',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
           ),
           actions: [
             TextButton(
-              child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+              child: const Text('Cancelar', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
               onPressed: () => Navigator.of(context).pop(false),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
+                backgroundColor: Color(0xFFEF5350), // Cor de saída
+                foregroundColor: Color(0xFF121212), // Texto preto
               ),
               child: const Text('Deletar'),
               onPressed: () => Navigator.of(context).pop(true),
@@ -523,17 +547,10 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fundo gradiente com blur
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
-                ),
-              ),
+          // Fundo com cor sólida da paleta
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF121212), // Fundo da paleta
             ),
           ),
           SafeArea(
@@ -545,7 +562,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB388FF)), // Cor dos acentos
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       const SizedBox(width: 8),
@@ -553,7 +570,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                       const Text(
                         'Receitas do Mês',
                         style: TextStyle(
-                          color: Color(0xFFB983FF),
+                          color: Color(0xFFB388FF), // Cor dos acentos
                           fontWeight: FontWeight.bold,
                           fontSize: 22,
                           letterSpacing: 1.1,
@@ -564,7 +581,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                const Divider(color: Color(0xFF303030), thickness: 1, indent: 24, endIndent: 24), // Cor mais clara para o divisor
                 // Conteúdo centralizado
                 Expanded(
                   child: Center(
@@ -583,11 +600,11 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                 children: [
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
+                                      color: Color(0xFF1E1E1E), // Cor de fundo mais clara
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: IconButton(
-                                      icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                      icon: const Icon(Icons.chevron_left, color: Color(0xFFE0E0E0)), // Cor do texto
                                       onPressed: _previousMonth,
                                     ),
                                   ),
@@ -609,7 +626,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                       _formatMonthYear(_currentDate),
                                       key: ValueKey(_currentDate.toString()),
                                       style: const TextStyle(
-                                        color: Colors.white70,
+                                        color: Color(0xFFB388FF), // Cor dos acentos
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         letterSpacing: 0.5,
@@ -618,11 +635,11 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                   ),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
+                                      color: Color(0xFF1E1E1E), // Cor de fundo mais clara
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: IconButton(
-                                      icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                      icon: const Icon(Icons.chevron_right, color: Color(0xFFE0E0E0)), // Cor do texto
                                       onPressed: _nextMonth,
                                     ),
                                   ),
@@ -645,7 +662,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                     width: size,
                                     height: size,
                                     decoration: BoxDecoration(
-                                      color: Color(0xFFB983FF).withOpacity(opacity),
+                                      color: Color(0xFF00E676).withOpacity(opacity), // Verde para receitas
                                       borderRadius: BorderRadius.circular(size / 2),
                                     ),
                                   );
@@ -661,14 +678,17 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                     height: 44,
                                     child: ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF23272F),
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+                                        foregroundColor: Color(0xFFE0E0E0), // Cor do texto
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          side: BorderSide(color: Color(0xFF00E676)), // Borda verde
+                                        ),
                                         padding: const EdgeInsets.symmetric(horizontal: 10),
                                         textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                         minimumSize: const Size(0, 44),
                                       ),
-                                      icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                                      icon: const Icon(Icons.add, color: Color(0xFF00E676)), // Verde para receitas
                                       label: const Text('Receita'),
                                       onPressed: () async {
                                         final result = await showDialog(
@@ -685,8 +705,9 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF23272F),
+                                      color: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                                       borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Color(0xFF00E676)), // Borda verde
                                     ),
                                     child: Row(
                                       children: [
@@ -698,7 +719,7 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                             thousandSeparator: ThousandSeparator.Period,
                                           ),
                                           style: const TextStyle(
-                                            color: Color.fromARGB(255, 158, 214, 158),
+                                            color: Color(0xFF00E676), // Verde para receitas
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
                                           ),
@@ -755,13 +776,13 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
                                                               Icon(
                                                                 Icons.attach_money_outlined,
                                                                 size: 64,
-                                                                color: Colors.white.withOpacity(0.3),
+                                                                color: Color(0xFF00E676).withOpacity(0.3), // Verde para receitas
                                                               ),
                                                               const SizedBox(height: 16),
                                                               Text(
                                                                 'Nenhuma receita cadastrada neste mês.',
                                                                 style: TextStyle(
-                                                                  color: Colors.white54, 
+                                                                  color: Color(0xFFE0E0E0), // Cor do texto
                                                                   fontSize: 16,
                                                                   fontWeight: FontWeight.w500,
                                                                 ),
@@ -862,17 +883,14 @@ class ReceitaCard extends StatelessWidget {
         curve: Curves.easeInOut,
         height: 140, // Altura ajustada
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF2A2A2A), Color(0xFF1E1E1E)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Color(0xFF1E1E1E), // Cor de fundo mais clara que o fundo principal
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Color(0xFF00E676), width: 1), // Borda verde para receitas
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -881,7 +899,7 @@ class ReceitaCard extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              splashColor: Colors.purple.withOpacity(0.2),
+              splashColor: Color(0xFF00E676).withOpacity(0.2), // Verde para receitas
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(12),
@@ -895,7 +913,7 @@ class ReceitaCard extends StatelessWidget {
                           child: Text(
                             descricao,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFFE0E0E0), // Cor do texto
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
@@ -903,8 +921,8 @@ class ReceitaCard extends StatelessWidget {
                           ),
                         ),
                         PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
-                          color: const Color(0xFF2A2A2A),
+                          icon: const Icon(Icons.more_vert, color: Color(0xFFE0E0E0), size: 20), // Cor do texto
+                          color: const Color(0xFF1E1E1E), // Cor de fundo mais clara
                           padding: EdgeInsets.zero,
                           onSelected: (value) {
                             if (value == 'editar') {
@@ -916,11 +934,11 @@ class ReceitaCard extends StatelessWidget {
                           itemBuilder: (context) => [
                             const PopupMenuItem(
                               value: 'editar',
-                              child: Text('Editar', style: TextStyle(color: Colors.white)),
+                              child: Text('Editar', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
                             ),
                             const PopupMenuItem(
                               value: 'deletar',
-                              child: Text('Deletar', style: TextStyle(color: Colors.red)),
+                              child: Text('Deletar', style: TextStyle(color: Color(0xFFEF5350))), // Cor de saída
                             ),
                           ],
                         ),
@@ -929,12 +947,12 @@ class ReceitaCard extends StatelessWidget {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        const Icon(Icons.attach_money, color: Color(0xFFB983FF), size: 20),
+                        const Icon(Icons.attach_money, color: Color(0xFF00E676), size: 20), // Verde para receitas
                         const SizedBox(width: 6),
                         Text(
                           valorFormatado,
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 158, 214, 158),
+                            color: Color(0xFF00E676), // Verde para receitas
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -949,7 +967,7 @@ class ReceitaCard extends StatelessWidget {
                         '${data.month.toString().padLeft(2, '0')}/'
                         '${data.year}',
                         style: const TextStyle(
-                          color: Colors.white54,
+                          color: Color(0xFFE0E0E0), // Cor do texto
                           fontSize: 13,
                         ),
                       ),

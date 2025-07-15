@@ -86,11 +86,11 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Center(
             child: AlertDialog(
-              backgroundColor: const Color(0xFF181818),
+              backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               title: const Text(
                 'Confirmar exclusão',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Color(0xFFE0E0E0), fontWeight: FontWeight.bold), // Texto da paleta
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -98,15 +98,16 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                 children: [
                   const Text(
                     'Tem certeza que deseja deletar esta despesa?',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Texto da paleta
                   ),
                   const SizedBox(height: 16),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF23272F),
+                      color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Color(0xFFEF5350)), // Borda vermelha para gastos
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,7 +115,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         Text(
                           gasto.descricao.toString(),
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFFE0E0E0), // Texto da paleta
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -123,7 +124,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         Text(
                           'R\$ ${gasto.valor.toStringAsFixed(2).replaceAll('.', ',')}',
                           style: const TextStyle(
-                            color: Colors.red,
+                            color: Color(0xFFEF5350), // Cor vermelha para gastos
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -132,7 +133,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         Text(
                           '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
                           style: const TextStyle(
-                            color: Colors.white54,
+                            color: Color(0xFFE0E0E0), // Texto da paleta
                             fontSize: 12,
                           ),
                         ),
@@ -146,13 +147,13 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text(
                     'Cancelar',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                   ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Color(0xFFEF5350), // Cor vermelha para gastos
+                    foregroundColor: Color(0xFF121212), // Texto preto sobre fundo colorido
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
@@ -165,7 +166,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Despesa deletada com sucesso!'),
-                            backgroundColor: Colors.green,
+                            backgroundColor: Color(0xFF00E676), // Verde da paleta
                           ),
                         );
                       }
@@ -175,7 +176,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Erro ao deletar despesa: $e'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: Color(0xFFEF5350), // Vermelho da paleta
                           ),
                         );
                       }
@@ -205,11 +206,11 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Center(
             child: AlertDialog(
-              backgroundColor: const Color(0xFF181818),
+              backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               title: const Text(
                 'Editar Despesa',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Color(0xFFE0E0E0), fontWeight: FontWeight.bold), // Texto da paleta
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -218,20 +219,28 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   children: [
                     const Text(
                       'Altere as informações da despesa.',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Texto da paleta
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: descricaoController,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                       decoration: InputDecoration(
                         hintText: 'Descrição da Despesa',
-                        hintStyle: const TextStyle(color: Colors.white54),
+                        hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                         filled: true,
-                        fillColor: const Color(0xFF23272F),
+                        fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFFEF5350), width: 2), // Borda vermelha focada
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -240,17 +249,25 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                     TextField(
                       controller: valorController,
                       keyboardType: TextInputType.number,
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Color(0xFFE0E0E0), fontSize: 18, fontWeight: FontWeight.bold), // Texto da paleta
                       decoration: InputDecoration(
                         prefixText: 'R\$ ',
-                        prefixStyle: const TextStyle(color: Colors.white54, fontWeight: FontWeight.bold),
+                        prefixStyle: const TextStyle(color: Color(0xFFEF5350), fontWeight: FontWeight.bold), // Cor vermelha para gastos
                         hintText: '0,00',
-                        hintStyle: const TextStyle(color: Colors.white54),
+                        hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                         filled: true,
-                        fillColor: const Color(0xFF23272F),
+                        fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFFEF5350), width: 2), // Borda vermelha focada
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -261,12 +278,12 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
+                  child: const Text('Cancelar', style: TextStyle(color: Color(0xFFE0E0E0))), // Texto da paleta
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB983FF),
-                    foregroundColor: Colors.black,
+                    backgroundColor: const Color(0xFFEF5350), // Cor vermelha para gastos
+                    foregroundColor: const Color(0xFF121212), // Texto preto sobre fundo colorido
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
@@ -291,7 +308,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Despesa atualizada com sucesso!'),
-                              backgroundColor: Colors.green,
+                              backgroundColor: Color(0xFF00E676), // Verde da paleta
                             ),
                           );
                         }
@@ -300,7 +317,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Erro ao atualizar despesa: ${e.toString()}'),
-                            backgroundColor: Colors.red,
+                            backgroundColor: Color(0xFFEF5350), // Vermelho da paleta
                           ),
                         );
                       }
@@ -308,7 +325,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Preencha todos os campos corretamente.'),
-                          backgroundColor: Colors.orange,
+                          backgroundColor: Color(0xFF448AFF), // Cor do botão primário da paleta
                         ),
                       );
                     }
@@ -337,11 +354,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
-                ),
+                color: Color(0xFF121212), // Fundo da paleta
               ),
             ),
           ),
@@ -354,7 +367,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB388FF)), // Cor dos acentos da paleta
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       const SizedBox(width: 8),
@@ -362,7 +375,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         child: Text(
                           widget.categoryName,
                           style: const TextStyle(
-                            color: Color(0xFFB983FF),
+                            color: Color(0xFFB388FF), // Cor dos acentos da paleta
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
                             letterSpacing: 1.1,
@@ -372,13 +385,14 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF232323),
+                          color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Color(0xFFEF5350)), // Borda vermelha para gastos
                         ),
                         child: Text(
                           NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(_calcularTotalMesAtual()),
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 214, 158, 158),
+                            color: Color(0xFFEF5350), // Cor vermelha para gastos
                             fontSize: 16,
                           ),
                         ),
@@ -386,7 +400,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                const Divider(color: Color(0xFF303030), thickness: 1, indent: 24, endIndent: 24), // Cor mais clara para o divisor
                 Expanded(
                   child: Center(
                     child: Container(
@@ -412,14 +426,15 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                           height: 44,
                                           child: ElevatedButton.icon(
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF23272F),
-                                              foregroundColor: Colors.white,
+                                              backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
+                                              foregroundColor: Color(0xFFE0E0E0), // Texto da paleta
                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                                               textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                               minimumSize: const Size(0, 44),
+                                              side: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
                                             ),
-                                            icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                                            icon: const Icon(Icons.add, color: Color(0xFFEF5350)), // Ícone vermelho para gastos
                                             label: const Text('Despesa'),
                                             onPressed: () async {
                                               final categoryProvider = context.read<CategoryProvider>();
@@ -480,19 +495,19 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         IconButton(
-                                          icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                          icon: const Icon(Icons.chevron_left, color: Color(0xFFE0E0E0)), // Texto da paleta
                                           onPressed: _previousMonth,
                                         ),
                                         Text(
                                           _formatMonthYear(_currentDate),
                                           style: const TextStyle(
-                                            color: Colors.white70,
+                                            color: Color(0xFFB388FF), // Cor dos acentos da paleta
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         IconButton(
-                                          icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                          icon: const Icon(Icons.chevron_right, color: Color(0xFFE0E0E0)), // Texto da paleta
                                           onPressed: _nextMonth,
                                         ),
                                       ],
@@ -502,7 +517,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF23272F),
+                                      color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                                       borderRadius: BorderRadius.circular(8),
                                       boxShadow: [
                                         BoxShadow(
@@ -533,7 +548,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 const Text(
                                                   'Descrição',
                                                   style: TextStyle(
-                                                    color: Colors.white70,
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -541,7 +556,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 if (_sortBy == 'descricao')
                                                   Icon(
                                                     _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                                    color: Colors.white70,
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
                                                     size: 18,
                                                   ),
                                               ],
@@ -567,7 +582,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 const Text(
                                                   'Data',
                                                   style: TextStyle(
-                                                    color: Colors.white70,
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -575,7 +590,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 if (_sortBy == 'data')
                                                   Icon(
                                                     _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                                    color: Colors.white70,
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
                                                     size: 18,
                                                   ),
                                               ],
@@ -601,7 +616,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 const Text(
                                                   'Valor',
                                                   style: TextStyle(
-                                                    color: Colors.white70,
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.bold,
                                                   ),
@@ -609,7 +624,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 if (_sortBy == 'valor')
                                                   Icon(
                                                     _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                                    color: Colors.white70,
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
                                                     size: 18,
                                                   ),
                                               ],
@@ -620,7 +635,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                         const Text(
                                           'Ações',
                                           style: TextStyle(
-                                            color: Colors.white70,
+                                            color: Color(0xFFE0E0E0), // Texto da paleta
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -635,7 +650,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                         ? const Center(
                                             child: Text(
                                               'Nenhuma despesa encontrada.',
-                                              style: TextStyle(color: Colors.white54, fontSize: 16),
+                                              style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 16), // Texto da paleta
                                             ),
                                           )
                                         : ListView.builder(
@@ -649,7 +664,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 margin: const EdgeInsets.only(bottom: 4),
                                                 padding: const EdgeInsets.all(14),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF23272F),
+                                                  color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                                                   borderRadius: BorderRadius.circular(8),
                                                 ),
                                                 child: Row(
@@ -659,7 +674,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                       child: Text(
                                                         gasto.descricao.toString(),
                                                         style: const TextStyle(
-                                                          color: Colors.white,
+                                                          color: Color(0xFFE0E0E0), // Texto da paleta
                                                           fontSize: 15,
                                                           fontWeight: FontWeight.bold,
                                                         ),
@@ -670,7 +685,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                       child: Text(
                                                         '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
                                                         style: const TextStyle(
-                                                          color: Colors.white70,
+                                                          color: Color(0xFFE0E0E0), // Texto da paleta
                                                           fontSize: 14,
                                                         ),
                                                       ),
@@ -686,7 +701,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                             decimalDigits: 2,
                                                           ).format(gasto.valor),
                                                           style: const TextStyle(
-                                                            color: Colors.greenAccent,
+                                                            color: Color(0xFFEF5350), // Cor vermelha para gastos
                                                             fontSize: 12,
                                                             fontWeight: FontWeight.bold,
                                                           ),
@@ -694,7 +709,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                       ),
                                                     ),
                                                     PopupMenuButton<String>(
-                                                      icon: const Icon(Icons.more_vert, color: Colors.white70),
+                                                      icon: const Icon(Icons.more_vert, color: Color(0xFFE0E0E0)), // Texto da paleta
                                                       onSelected: (value) async {
                                                         final gastoProvider = context.read<GastoProvider>();
                                                         if (value == 'editar') {

@@ -62,7 +62,10 @@ class _CaixaTextoOverlayState extends State<CaixaTextoOverlay> {
           );
           await categoryProvider.addCategory(newCategory);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Categoria "$nome" criada!')),
+            SnackBar(
+              content: Text('Categoria "$nome" criada!'),
+              backgroundColor: Color(0xFF00E676), // Verde da paleta
+            ),
         );
       }
     }
@@ -88,11 +91,17 @@ class _CaixaTextoOverlayState extends State<CaixaTextoOverlay> {
         if (categoria != null) {
           await categoryProvider.deleteCategory(categoria.id);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Categoria "${categoria.name}" deletada!')),
+            SnackBar(
+              content: Text('Categoria "${categoria.name}" deletada!'),
+              backgroundColor: Color(0xFF00E676), // Verde da paleta
+            ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Categoria "$nome" não encontrada!')),
+            SnackBar(
+              content: Text('Categoria "$nome" não encontrada!'),
+              backgroundColor: Color(0xFFEF5350), // Vermelho da paleta
+            ),
           );
         }
       } else {
@@ -141,7 +150,7 @@ class _CardGastoState extends State<CardGasto> {
           filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Center(
             child: AlertDialog(
-              backgroundColor: const Color(0xFF181818),
+              backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               contentPadding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
@@ -151,10 +160,10 @@ class _CardGastoState extends State<CardGasto> {
                 children: [
                   const Text(
                     'Confirmar exclusão',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                    style: TextStyle(color: Color(0xFFE0E0E0), fontWeight: FontWeight.bold, fontSize: 20), // Texto da paleta
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white54),
+                    icon: const Icon(Icons.close, color: Color(0xFFE0E0E0)), // Texto da paleta
                     onPressed: () => Navigator.of(context).pop(),
                     splashRadius: 20,
                   ),
@@ -166,20 +175,21 @@ class _CardGastoState extends State<CardGasto> {
                 children: [
                   const Text(
                     'Tem certeza que deseja deletar esta categoria?',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Texto da paleta
                   ),
                   const SizedBox(height: 16),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF23272F),
+                      color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Color(0xFFEF5350)), // Borda vermelha para gastos
                     ),
                     child: Text(
                       categoria.name.toString(),
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Color(0xFFEF5350), // Cor vermelha para gastos
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -192,23 +202,26 @@ class _CardGastoState extends State<CardGasto> {
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text(
                     'Cancelar',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                   ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Color(0xFFEF5350), // Cor vermelha para gastos
+                    foregroundColor: Color(0xFF121212), // Texto preto sobre fundo colorido
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
-                        onPressed: () async {
+                  onPressed: () async {
                           final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
                           final gastosDaCategoria = await gastoProvider.getGastosPorMes(categoria.id, _currentDate);
                           if (gastosDaCategoria.isNotEmpty) {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Não é possível deletar a categoria "${categoria.name}" pois ela possui gastos cadastrados.')),
+                              SnackBar(
+                                content: Text('Não é possível deletar a categoria "${categoria.name}" pois ela possui gastos cadastrados.'),
+                                backgroundColor: Color(0xFFEF5350), // Vermelho da paleta
+                              ),
                             );
                             return;
                           }
@@ -218,7 +231,7 @@ class _CardGastoState extends State<CardGasto> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Categoria "${categoria.name}" deletada!'),
-                                backgroundColor: Colors.green,
+                                backgroundColor: Color(0xFF00E676), // Verde da paleta
                               ),
                             );
                             // Recarrega categorias e gastos após deletar
@@ -230,7 +243,7 @@ class _CardGastoState extends State<CardGasto> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Erro ao deletar categoria: $e'),
-                                backgroundColor: Colors.red,
+                                backgroundColor: Color(0xFFEF5350), // Vermelho da paleta
                               ),
                             );
                           }
@@ -273,7 +286,7 @@ class _CardGastoState extends State<CardGasto> {
             ),
             child: Container(
               decoration: const BoxDecoration(
-                color: Color(0xFF23272F),
+                color: Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 boxShadow: [
                   BoxShadow(
@@ -292,14 +305,14 @@ class _CardGastoState extends State<CardGasto> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white24,
+                      color: Color(0xFFE0E0E0).withOpacity(0.3), // Texto da paleta com opacidade
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const Text(
                     'Selecione a data',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFFE0E0E0), // Texto da paleta
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -321,8 +334,8 @@ class _CardGastoState extends State<CardGasto> {
                       Expanded(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white70,
-                            side: const BorderSide(color: Colors.white24),
+                            foregroundColor: Color(0xFFE0E0E0), // Texto da paleta
+                            side: const BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -336,8 +349,8 @@ class _CardGastoState extends State<CardGasto> {
                       Expanded(
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFB983FF),
-                            foregroundColor: Colors.black,
+                            backgroundColor: const Color(0xFFEF5350), // Cor vermelha para gastos
+                            foregroundColor: const Color(0xFF121212), // Texto preto sobre fundo colorido
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -370,11 +383,11 @@ class _CardGastoState extends State<CardGasto> {
             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
             child: Center(
               child: AlertDialog(
-                backgroundColor: const Color(0xFF181818),
+                backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 title: const Text(
                   'Editar Categoria',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Color(0xFFE0E0E0), fontWeight: FontWeight.bold), // Texto da paleta
                 ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -382,20 +395,28 @@ class _CardGastoState extends State<CardGasto> {
                   children: [
                     const Text(
                       'Altere o nome da categoria.',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Texto da paleta
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: controller,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                       decoration: InputDecoration(
                         hintText: 'Nome da categoria',
-                        hintStyle: const TextStyle(color: Colors.white54),
+                        hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta com opacidade
                         filled: true,
-                        fillColor: const Color(0xFF23272F),
+                        fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Color(0xFFEF5350), width: 2), // Borda vermelha focada
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
@@ -406,18 +427,22 @@ class _CardGastoState extends State<CardGasto> {
                       child: AbsorbPointer(
                         child: TextField(
                           controller: TextEditingController(text: _formatDate(selectedDate)),
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                           decoration: InputDecoration(
                             hintText: 'Data da categoria',
-                            hintStyle: const TextStyle(color: Colors.white54),
+                            hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Texto da paleta
                             filled: true,
-                            fillColor: const Color(0xFF23272F),
+                            fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
+                              borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFFEF5350)), // Borda vermelha para gastos
                             ),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            suffixIcon: const Icon(Icons.calendar_today, color: Colors.white54),
+                            suffixIcon: const Icon(Icons.calendar_today, color: Color(0xFFEF5350)), // Ícone vermelho para gastos
                           ),
                           readOnly: true,
                         ),
@@ -429,12 +454,12 @@ class _CardGastoState extends State<CardGasto> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
+                    child: const Text('Cancelar', style: TextStyle(color: Color(0xFFE0E0E0))), // Texto da paleta
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB983FF),
-                      foregroundColor: Colors.black,
+                      backgroundColor: const Color(0xFFEF5350), // Cor vermelha para gastos
+                      foregroundColor: const Color(0xFF121212), // Texto preto sobre fundo colorido
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
@@ -461,7 +486,7 @@ class _CardGastoState extends State<CardGasto> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Categoria atualizada com sucesso!'),
-                        backgroundColor: Colors.green,
+                        backgroundColor: Color(0xFF00E676), // Verde da paleta
                       ),
                     );
                     
@@ -470,7 +495,7 @@ class _CardGastoState extends State<CardGasto> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Erro ao atualizar categoria: $e'),
-                        backgroundColor: Colors.red,
+                        backgroundColor: Color(0xFFEF5350), // Vermelho da paleta
                       ),
                     );
                   }
@@ -637,11 +662,7 @@ class _CardGastoState extends State<CardGasto> {
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
-                  ),
+                  color: Color(0xFF121212), // Fundo da paleta
                 ),
               ),
             ),
@@ -654,14 +675,14 @@ class _CardGastoState extends State<CardGasto> {
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
+                          icon: const Icon(Icons.arrow_back, color: Color(0xFFB388FF)), // Cor dos acentos da paleta
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                         const SizedBox(width: 8),
                         const Text(
                           'Gastos',
                           style: TextStyle(
-                            color: Color(0xFFB983FF),
+                            color: Color(0xFFB388FF), // Cor dos acentos da paleta
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
                             letterSpacing: 1.1,
@@ -671,7 +692,7 @@ class _CardGastoState extends State<CardGasto> {
                       ],
                     ),
                   ),
-                  const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                  const Divider(color: Color(0xFF303030), thickness: 1, indent: 24, endIndent: 24), // Cor mais clara para o divisor
                   // Conteúdo centralizado
                   Expanded(
                     child: Center(
@@ -697,7 +718,7 @@ class _CardGastoState extends State<CardGasto> {
                                           Text(
                                             'Total de Gastos:',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: Color(0xFFE0E0E0), // Texto da paleta
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -705,7 +726,7 @@ class _CardGastoState extends State<CardGasto> {
                                           Text(
                                             NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(_totalGastosMes),
                                             style: TextStyle(
-                                              color: Colors.redAccent,
+                                              color: Color(0xFFEF5350), // Cor vermelha para gastos
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -721,11 +742,11 @@ class _CardGastoState extends State<CardGasto> {
                                         children: [
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.1),
+                                              color: Color(0xFFE0E0E0).withOpacity(0.1), // Texto da paleta com opacidade
                                               borderRadius: BorderRadius.circular(20),
                                             ),
                                             child: IconButton(
-                                              icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                              icon: const Icon(Icons.chevron_left, color: Color(0xFFE0E0E0)), // Texto da paleta
                                               onPressed: _previousMonth,
                                             ),
                                           ),
@@ -747,7 +768,7 @@ class _CardGastoState extends State<CardGasto> {
                                               _formatMonthYear(_currentDate),
                                               key: ValueKey(_currentDate.toString()),
                                               style: const TextStyle(
-                                                color: Colors.white70,
+                                                color: Color(0xFFB388FF), // Cor dos acentos da paleta
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.bold,
                                                 letterSpacing: 0.5,
@@ -756,11 +777,11 @@ class _CardGastoState extends State<CardGasto> {
                                           ),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.1),
+                                              color: Color(0xFFE0E0E0).withOpacity(0.1), // Texto da paleta com opacidade
                                               borderRadius: BorderRadius.circular(20),
                                             ),
                                             child: IconButton(
-                                              icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                              icon: const Icon(Icons.chevron_right, color: Color(0xFFE0E0E0)), // Texto da paleta
                                               onPressed: _nextMonth,
                                             ),
                                           ),
@@ -906,13 +927,13 @@ class _CardGastoState extends State<CardGasto> {
                                                                   Icon(
                                                                     Icons.category_outlined,
                                                                     size: 64,
-                                                                    color: Colors.white.withOpacity(0.3),
+                                                                    color: Color(0xFFE0E0E0).withOpacity(0.3), // Texto da paleta com opacidade
                                                                   ),
                                                                   const SizedBox(height: 16),
-                                                                  const Text(
+                                                                  Text(
                                                                     'Nenhuma categoria criada.',
                                                                     style: TextStyle(
-                                                                      color: Colors.white54, 
+                                                                      color: Color(0xFFE0E0E0).withOpacity(0.7), // Texto da paleta com opacidade 
                                                                       fontSize: 16,
                                                                       fontWeight: FontWeight.w500,
                                                                     ),
