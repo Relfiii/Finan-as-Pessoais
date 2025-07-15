@@ -4,6 +4,9 @@ class Gasto {
   String descricao;
   double valor;
   DateTime data;
+  DateTime? dataCompra; // Data original da compra (para parcelamentos)
+  int parcelaAtual;
+  int totalParcelas;
 
   Gasto({
     required this.id,
@@ -11,6 +14,9 @@ class Gasto {
     required this.descricao,
     required this.valor,
     required this.data,
+    this.dataCompra,
+    this.parcelaAtual = 1,
+    this.totalParcelas = 1,
   });
 
   // Método para criar um objeto Gasto a partir de um Map
@@ -21,6 +27,9 @@ class Gasto {
       descricao: map['descricao'] ?? '',
       valor: (map['valor'] as num).toDouble(),
       data: DateTime.parse(map['data']),
+      dataCompra: map['data_compra'] != null ? DateTime.parse(map['data_compra']) : null,
+      parcelaAtual: map['parcela_atual'] ?? 1,
+      totalParcelas: map['total_parcelas'] ?? 1,
     );
   }
 }

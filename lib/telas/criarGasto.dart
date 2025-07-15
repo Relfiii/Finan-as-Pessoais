@@ -42,6 +42,12 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   final List<int> _intervalosMeses = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   int? _intervaloSelecionado;
 
+  // Adicionar variáveis para parcelamento
+  final List<String> _opcoesParcelamento = ['2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x', '11x', '12x', 'Personalizado'];
+  String _tipoUnicaSelecionado = 'À vista'; // À vista ou Parcelado
+  String _parcelamentoSelecionado = '2x';
+  final TextEditingController _parcelasCustomController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +69,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
   void dispose() {
     _descController.dispose();
     _valueController.dispose();
+    _parcelasCustomController.dispose();
     super.dispose();
   }
 
@@ -236,6 +243,140 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
     return DateFormat("d 'de' MMMM 'de' y", 'pt_BR').format(date);
   }
 
+  int _getNumeroParcelasAtual() {
+    // Para tipos que não são "Despesa única", sempre retorna 1
+    if (_tipoGasto != 'Despesa única') {
+      return 1;
+    }
+    
+    // Para "Despesa única", verifica se é "À vista" ou "Parcelado"
+    if (_tipoUnicaSelecionado == 'À vista') {
+      return 1;
+    }
+    
+    // Para "Despesa única" + "Parcelado", verifica as opções de parcelamento
+    if (_parcelamentoSelecionado == 'Outros' && _parcelasCustomController.text.isNotEmpty) {
+      return int.tryParse(_parcelasCustomController.text) ?? 1;
+    }
+    
+    if (_parcelamentoSelecionado != 'Outros') {
+      return int.tryParse(_parcelamentoSelecionado.replaceAll('x', '')) ?? 1;
+    }
+    
+    return 1;
+  }
+
+  Widget _buildResumoParcelamento() {
+    final valor = double.tryParse(
+      _valueController.text.replaceAll('.', '').replaceAll(',', '.')
+    ) ?? 0.0;
+    
+    if (valor <= 0) return const SizedBox.shrink();
+    
+    final numeroParcelas = _getNumeroParcelasAtual();
+    final valorParcela = valor / numeroParcelas;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF23272F),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFB983FF).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.credit_card, color: const Color(0xFFB983FF), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Parcelamento:',
+                style: const TextStyle(
+                  color: Color(0xFFB983FF),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${numeroParcelas}x de R\$ ${valorParcela.toStringAsFixed(2).replaceAll('.', ',')}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'As parcelas serão distribuídas pelos próximos $numeroParcelas meses',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildResumoRecorrencia() {
+    final valor = double.tryParse(
+      _valueController.text.replaceAll('.', '').replaceAll(',', '.')
+    ) ?? 0.0;
+    
+    if (valor <= 0 || _intervaloSelecionado == null) return const SizedBox.shrink();
+    
+    final valorTotal = valor * _intervaloSelecionado!;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF23272F),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFB983FF).withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.repeat, color: const Color(0xFFB983FF), size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Despesa Recorrente:',
+                style: const TextStyle(
+                  color: Color(0xFFB983FF),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')} por mês',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Total em ${_intervaloSelecionado} meses: R\$ ${valorTotal.toStringAsFixed(2).replaceAll('.', ',')}',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_localeReady) {
@@ -371,6 +512,92 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                   icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
                 ),
                 const SizedBox(height: 14),
+                // Sub-opção para Despesa única (À vista ou Parcelado)
+                if (_tipoGasto == 'Despesa única') ...[
+                  DropdownButtonFormField<String>(
+                    value: _tipoUnicaSelecionado,
+                    items: ['À vista', 'Parcelado'].map((tipo) {
+                      return DropdownMenuItem(
+                        value: tipo,
+                        child: Text(tipo, style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (tipo) => setState(() => _tipoUnicaSelecionado = tipo!),
+                    dropdownColor: const Color(0xFF23272F),
+                    decoration: InputDecoration(
+                      hintText: 'Forma de pagamento',
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xFF23272F),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                // Opções de parcelamento (apenas quando Despesa única + Parcelado for selecionado)
+                if (_tipoGasto == 'Despesa única' && _tipoUnicaSelecionado == 'Parcelado') ...[
+                  DropdownButtonFormField<String>(
+                    value: _parcelamentoSelecionado,
+                    items: _opcoesParcelamento.map((opcao) {
+                      return DropdownMenuItem(
+                        value: opcao,
+                        child: Text(opcao, style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (opcao) => setState(() {
+                      _parcelamentoSelecionado = opcao!;
+                      if (opcao != 'Outros') {
+                        _parcelasCustomController.clear();
+                      }
+                    }),
+                    dropdownColor: const Color(0xFF23272F),
+                    decoration: InputDecoration(
+                      hintText: 'Número de parcelas',
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xFF23272F),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                // Campo para número de parcelas customizado (apenas quando "Outros" for selecionado)
+                if (_tipoGasto == 'Despesa única' && _tipoUnicaSelecionado == 'Parcelado' && _parcelamentoSelecionado == 'Outros') ...[
+                  TextField(
+                    controller: _parcelasCustomController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Número de parcelas (ex: 15)',
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xFF23272F),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      suffixIcon: const Icon(Icons.credit_card, color: Colors.white54),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                // Card de resumo do parcelamento (apenas quando Despesa única + Parcelado for selecionado)
+                if (_tipoGasto == 'Despesa única' && _tipoUnicaSelecionado == 'Parcelado') ...[
+                  _buildResumoParcelamento(),
+                  const SizedBox(height: 14),
+                ],
+                const SizedBox(height: 14),
                 // Intervalo de meses (apenas para despesas recorrentes)
                 if (_tipoGasto == 'Recorrente') ...[
                   DropdownButtonFormField<int>(
@@ -399,6 +626,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                     ),
                     icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54),
                   ),
+                  const SizedBox(height: 14),
+                  // Card de resumo da recorrência
+                  _buildResumoRecorrencia(),
                 ],
                 const SizedBox(height: 14),
                 // Data
@@ -448,6 +678,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
                     if (_tipoGasto == 'Recorrente') {
                       _categoriaError ??= _intervaloSelecionado == null ? 'Por favor, selecione o intervalo de meses.' : null;
+                    }
+
+                    // Validação do parcelamento personalizado
+                    if (_parcelamentoSelecionado == 'Outros') {
+                      final parcelas = int.tryParse(_parcelasCustomController.text);
+                      if (parcelas == null || parcelas < 1 || parcelas > 999) {
+                        _categoriaError ??= 'Por favor, digite um número válido de parcelas (1-999).';
+                      }
                     }
                   });
 
@@ -536,6 +774,7 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           'descricao': _descController.text,
                           'valor': valor,
                           'data': dataGasto.toIso8601String(),
+                          'data_compra': _selectedDate.toIso8601String(), // Data original da compra
                           'categoria_id': categoriaId,
                           'user_id': userId,
                           'recorrente': true,
@@ -565,7 +804,10 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             descricao: _descController.text,
                             valor: valor,
                             data: DateTime.parse(result['data']),
+                            dataCompra: result['data_compra'] != null ? DateTime.parse(result['data_compra']) : null,
                             categoriaId: result['categoria_id'],
+                            parcelaAtual: result['parcela_atual'] ?? 1,
+                            totalParcelas: result['total_parcelas'] ?? 1,
                           ),
                         );
                       }
@@ -585,38 +827,104 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       
                       Navigator.of(context).pop();
                     } else {
-                      // Para despesas únicas, criar apenas um gasto
-                      final result = await Supabase.instance.client
-                          .from('gastos')
-                          .insert({
+                      // Para despesas únicas ou parceladas
+                      final numeroParcelas = _getNumeroParcelasAtual();
+                      final valorParcela = valor / numeroParcelas;
+                      
+                      if (numeroParcelas == 1) {
+                        // Despesa única (à vista)
+                        final result = await Supabase.instance.client
+                            .from('gastos')
+                            .insert({
+                              'descricao': _descController.text,
+                              'valor': valor,
+                              'data': _selectedDate.toIso8601String(),
+                              'data_compra': _selectedDate.toIso8601String(), // Data original da compra
+                              'categoria_id': _selectedCategoria!.id,
+                              'user_id': Supabase.instance.client.auth.currentUser?.id,
+                              'recorrente': false,
+                              'intervalo_meses': null,
+                              'parcela_atual': 1,
+                              'total_parcelas': 1,
+                            })
+                            .select()
+                            .single();
+
+                        // Adiciona no provedor local
+                        gastoProvider.addGasto(
+                          Gasto(
+                            id: result['id'],
+                            descricao: _descController.text,
+                            valor: valor,
+                            data: _selectedDate,
+                            dataCompra: _selectedDate, // Data original da compra
+                            categoriaId: _selectedCategoria!.id,
+                            parcelaAtual: result['parcela_atual'] ?? 1,
+                            totalParcelas: result['total_parcelas'] ?? 1,
+                          ),
+                        );
+                        
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Despesa criada com sucesso!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        // Despesa parcelada
+                        final List<Map<String, dynamic>> gastosParcelados = [];
+                        
+                        for (int i = 1; i <= numeroParcelas; i++) {
+                          final dataParcela = DateTime(
+                            _selectedDate.year,
+                            _selectedDate.month + (i - 1),
+                            _selectedDate.day,
+                          );
+                          
+                          gastosParcelados.add({
                             'descricao': _descController.text,
-                            'valor': valor,
-                            'data': _selectedDate.toIso8601String(),
+                            'valor': valorParcela,
+                            'data': dataParcela.toIso8601String(),
+                            'data_compra': _selectedDate.toIso8601String(), // Data original da compra
                             'categoria_id': _selectedCategoria!.id,
                             'user_id': Supabase.instance.client.auth.currentUser?.id,
                             'recorrente': false,
                             'intervalo_meses': null,
-                          })
-                          .select()
-                          .single();
-
-                      // Adiciona no provedor local
-                      gastoProvider.addGasto(
-                        Gasto(
-                          id: result['id'],
-                          descricao: _descController.text,
-                          valor: valor,
-                          data: _selectedDate,
-                          categoriaId: _selectedCategoria!.id,
-                        ),
-                      );
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Despesa criada com sucesso!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                            'parcela_atual': i,
+                            'total_parcelas': numeroParcelas,
+                          });
+                        }
+                        
+                        // Insere todas as parcelas de uma vez
+                        final gastosResults = await Supabase.instance.client
+                            .from('gastos')
+                            .insert(gastosParcelados)
+                            .select();
+                        
+                        // Adiciona todos os gastos no provedor
+                        for (final result in gastosResults) {
+                          gastoProvider.addGasto(
+                            Gasto(
+                              id: result['id'],
+                              descricao: _descController.text,
+                              valor: result['valor'].toDouble(),
+                              data: DateTime.parse(result['data']),
+                              dataCompra: result['data_compra'] != null ? DateTime.parse(result['data_compra']) : null,
+                              categoriaId: result['categoria_id'],
+                              parcelaAtual: result['parcela_atual'] ?? 1,
+                              totalParcelas: result['total_parcelas'] ?? 1,
+                            ),
+                          );
+                        }
+                        
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Despesa parcelada em ${numeroParcelas}x criada com sucesso!'),
+                            backgroundColor: Colors.green,
+                            duration: const Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     }
 
                     Navigator.of(context).pop();

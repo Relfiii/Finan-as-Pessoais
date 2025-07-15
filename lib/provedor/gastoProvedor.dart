@@ -58,6 +58,8 @@ class GastoProvider with ChangeNotifier {
           valor: (item['valor'] as num).toDouble(),
           data: DateTime.parse(item['data']),
           categoriaId: item['categoria_id'],
+          parcelaAtual: item['parcela_atual'] ?? 1,
+          totalParcelas: item['total_parcelas'] ?? 1,
         );
         _gastos.add(gasto);
 
@@ -200,7 +202,10 @@ class GastoProvider with ChangeNotifier {
         descricao: item['descricao'],
         valor: (item['valor'] as num).toDouble(),
         data: DateTime.parse(item['data']),
+        dataCompra: item['data_compra'] != null ? DateTime.parse(item['data_compra']) : null,
         categoriaId: item['categoria_id'],
+        parcelaAtual: item['parcela_atual'] ?? 1,
+        totalParcelas: item['total_parcelas'] ?? 1,
       )).toList();
     } catch (e) {
       throw Exception('Erro ao buscar gastos por mês: $e');
@@ -234,7 +239,10 @@ class GastoProvider with ChangeNotifier {
           descricao: item['descricao'] ?? '',
           valor: (item['valor'] as num).toDouble(),
           data: DateTime.parse(item['data']),
+          dataCompra: item['data_compra'] != null ? DateTime.parse(item['data_compra']) : null,
           categoriaId: item['categoria_id'],
+          parcelaAtual: item['parcela_atual'] ?? 1,
+          totalParcelas: item['total_parcelas'] ?? 1,
         ));
       }
 
@@ -294,7 +302,10 @@ class GastoProvider with ChangeNotifier {
       descricao: item['descricao'],
       valor: (item['valor'] as num).toDouble(),
       data: DateTime.parse(item['data']),
+      dataCompra: item['data_compra'] != null ? DateTime.parse(item['data_compra']) : null,
       categoriaId: item['categoria_id'],
+      parcelaAtual: item['parcela_atual'] ?? 1,
+      totalParcelas: item['total_parcelas'] ?? 1,
     )).toList();
   }
 

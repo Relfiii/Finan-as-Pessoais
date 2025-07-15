@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../provedor/gastoProvedor.dart';
 import '../provedor/categoriaProvedor.dart';
 import '../telas/criarGasto.dart';
+import '../modelos/gasto.dart';
 import 'dart:ui';
 import '../caixaTexto/caixaTexto.dart';
 import 'package:intl/intl.dart';
@@ -56,12 +57,125 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     final gastoProvider = context.read<GastoProvider>();
     final gastos = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
     setState(() {
-      _gastosDoMes = gastos;
+      _gastosDoMes = _sortGastos(gastos);
     });
+  }
+
+  List<dynamic> _sortGastos(List<dynamic> gastos) {
+    List<dynamic> gastosSorted = List.from(gastos);
+    
+    gastosSorted.sort((a, b) {
+      int comparison = 0;
+      
+      switch (_sortBy) {
+        case 'descricao':
+          comparison = a.descricao.toString().toLowerCase().compareTo(b.descricao.toString().toLowerCase());
+          break;
+        case 'data':
+          comparison = a.data.compareTo(b.data);
+          break;
+        case 'valor':
+          comparison = a.valor.compareTo(b.valor);
+          break;
+        case 'parcelas':
+          // Ordenar por parcela atual
+          try {
+            int parcelaA = 1;
+            int parcelaB = 1;
+            
+            // Tenta acessar parcela_atual de diferentes formas
+            if (a.runtimeType.toString().contains('Map')) {
+              parcelaA = (a as Map)['parcela_atual'] ?? 1;
+            } else {
+              try {
+                parcelaA = a.parcela_atual ?? 1;
+              } catch (e) {
+                try {
+                  parcelaA = a.parcelaAtual ?? 1;
+                } catch (e) {
+                  parcelaA = 1;
+                }
+              }
+            }
+            
+            if (b.runtimeType.toString().contains('Map')) {
+              parcelaB = (b as Map)['parcela_atual'] ?? 1;
+            } else {
+              try {
+                parcelaB = b.parcela_atual ?? 1;
+              } catch (e) {
+                try {
+                  parcelaB = b.parcelaAtual ?? 1;
+                } catch (e) {
+                  parcelaB = 1;
+                }
+              }
+            }
+            
+            comparison = parcelaA.compareTo(parcelaB);
+          } catch (e) {
+            // Se der erro, ordena por descrição como fallback
+            comparison = a.descricao.toString().toLowerCase().compareTo(b.descricao.toString().toLowerCase());
+          }
+          break;
+      }
+      
+      return _ascending ? comparison : -comparison;
+    });
+    
+    return gastosSorted;
   }
 
   String _formatMonthYear(DateTime date) {
     return DateFormat("MMMM y", 'pt_BR').format(date).capitalize();
+  }
+
+  String _formatParcelas(dynamic gasto) {
+    // Verifica se o gasto tem informações de parcelas usando try/catch
+    try {
+      // Se é um objeto Gasto diretamente
+      if (gasto is Gasto) {
+        if (gasto.totalParcelas > 1) {
+          return '${gasto.parcelaAtual}/${gasto.totalParcelas}';
+        } else {
+          return 'À vista';
+        }
+      }
+      
+      // Tenta acessar as propriedades de parcelas para outros tipos
+      dynamic parcelaAtual;
+      dynamic totalParcelas;
+      
+      if (gasto.runtimeType.toString().contains('Map')) {
+        final gastoMap = gasto as Map;
+        parcelaAtual = gastoMap['parcela_atual'];
+        totalParcelas = gastoMap['total_parcelas'];
+      } else {
+        // Tenta acessar como propriedades do objeto
+        try {
+          parcelaAtual = gasto.parcelaAtual;
+          totalParcelas = gasto.totalParcelas;
+        } catch (e) {
+          // Se não conseguir acessar, tenta como propriedades alternativas
+          try {
+            parcelaAtual = gasto.parcela_atual;
+            totalParcelas = gasto.total_parcelas;
+          } catch (e) {
+            parcelaAtual = null;
+            totalParcelas = null;
+          }
+        }
+      }
+          
+      if (parcelaAtual != null && totalParcelas != null && totalParcelas > 1) {
+        return '$parcelaAtual/$totalParcelas';
+      } else {
+        return 'À vista';
+      }
+    } catch (e) {
+      // Se der erro ao tentar acessar as propriedades, retorna "À vista"
+      return 'À vista';
+    }
   }
 
   void _nextMonth() async {
@@ -131,7 +245,11 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
+                          () {
+                            // Se tem data da compra (parcelamentos), usa ela; senão usa a data normal
+                            final dataParaExibir = gasto.dataCompra ?? gasto.data;
+                            return '${dataParaExibir.day.toString().padLeft(2, '0')}/${dataParaExibir.month.toString().padLeft(2, '0')}/${dataParaExibir.year}';
+                          }(),
                           style: const TextStyle(
                             color: Color(0xFFE0E0E0), // Texto da paleta
                             fontSize: 12,
@@ -541,6 +659,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                   _sortBy = 'descricao';
                                                   _ascending = true;
                                                 }
+                                                _gastosDoMes = _sortGastos(_gastosDoMes);
                                               });
                                             },
                                             child: Row(
@@ -574,10 +693,10 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                   _sortBy = 'data';
                                                   _ascending = false;
                                                 }
+                                                _gastosDoMes = _sortGastos(_gastosDoMes);
                                               });
                                             },
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
                                                 const Text(
                                                   'Data',
@@ -608,10 +727,10 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                   _sortBy = 'valor';
                                                   _ascending = false;
                                                 }
+                                                _gastosDoMes = _sortGastos(_gastosDoMes);
                                               });
                                             },
                                             child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.end,
                                               children: [
                                                 const Text(
                                                   'Valor',
@@ -631,13 +750,50 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 40),
-                                        const Text(
-                                          'Ações',
-                                          style: TextStyle(
-                                            color: Color(0xFFE0E0E0), // Texto da paleta
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
+                                        Expanded(
+                                          flex: 1,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                if (_sortBy == 'parcelas') {
+                                                  _ascending = !_ascending;
+                                                } else {
+                                                  _sortBy = 'parcelas';
+                                                  _ascending = true;
+                                                }
+                                                _gastosDoMes = _sortGastos(_gastosDoMes);
+                                              });
+                                            },
+                                            child: Row(
+                                              children: [
+                                                const Text(
+                                                  'Parcelas',
+                                                  style: TextStyle(
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                if (_sortBy == 'parcelas')
+                                                  Icon(
+                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                                    color: Color(0xFFE0E0E0), // Texto da paleta
+                                                    size: 18,
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 60,
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            'Ações',
+                                            style: TextStyle(
+                                              color: Color(0xFFE0E0E0), // Texto da paleta
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -656,13 +812,13 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                         : ListView.builder(
                                             shrinkWrap: true,
                                             physics: const NeverScrollableScrollPhysics(),
-                                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                             itemCount: _gastosDoMes.length,
                                             itemBuilder: (context, index) {
                                               final gasto = _gastosDoMes[index];
                                               return Container(
                                                 margin: const EdgeInsets.only(bottom: 4),
-                                                padding: const EdgeInsets.all(14),
+                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                                 decoration: BoxDecoration(
                                                   color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
                                                   borderRadius: BorderRadius.circular(8),
@@ -683,7 +839,11 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                     Expanded(
                                                       flex: 2,
                                                       child: Text(
-                                                        '${gasto.data.day.toString().padLeft(2, '0')}/${gasto.data.month.toString().padLeft(2, '0')}',
+                                                        () {
+                                                          // Se tem data da compra (parcelamentos), usa ela; senão usa a data normal
+                                                          final dataParaExibir = gasto.dataCompra ?? gasto.data;
+                                                          return '${dataParaExibir.day.toString().padLeft(2, '0')}/${dataParaExibir.month.toString().padLeft(2, '0')}';
+                                                        }(),
                                                         style: const TextStyle(
                                                           color: Color(0xFFE0E0E0), // Texto da paleta
                                                           fontSize: 14,
@@ -692,42 +852,54 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                     ),
                                                     Expanded(
                                                       flex: 2,
-                                                      child: Align(
-                                                        alignment: Alignment.topLeft,
-                                                        child: Text(
-                                                          NumberFormat.currency(
-                                                            locale: 'pt_BR',
-                                                            symbol: 'R\$',
-                                                            decimalDigits: 2,
-                                                          ).format(gasto.valor),
-                                                          style: const TextStyle(
-                                                            color: Color(0xFFEF5350), // Cor vermelha para gastos
-                                                            fontSize: 12,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
+                                                      child: Text(
+                                                        NumberFormat.currency(
+                                                          locale: 'pt_BR',
+                                                          symbol: 'R\$',
+                                                          decimalDigits: 2,
+                                                        ).format(gasto.valor),
+                                                        style: const TextStyle(
+                                                          color: Color(0xFFEF5350), // Cor vermelha para gastos
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
                                                     ),
-                                                    PopupMenuButton<String>(
-                                                      icon: const Icon(Icons.more_vert, color: Color(0xFFE0E0E0)), // Texto da paleta
-                                                      onSelected: (value) async {
-                                                        final gastoProvider = context.read<GastoProvider>();
-                                                        if (value == 'editar') {
-                                                          _editarGasto(context, gasto, gastoProvider);
-                                                        } else if (value == 'deletar') {
-                                                          _confirmarDeletarGasto(context, gasto, gastoProvider);
-                                                        }
-                                                      },
-                                                      itemBuilder: (context) => [
-                                                        const PopupMenuItem(
-                                                          value: 'editar',
-                                                          child: Text('Editar'),
+                                                    Expanded(
+                                                      flex: 1,
+                                                      child: Text(
+                                                        _formatParcelas(gasto),
+                                                        style: const TextStyle(
+                                                          color: Color(0xFFE0E0E0), // Texto da paleta
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w500,
                                                         ),
-                                                        const PopupMenuItem(
-                                                          value: 'deletar',
-                                                          child: Text('Deletar'),
-                                                        ),
-                                                      ],
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: 60,
+                                                      alignment: Alignment.center,
+                                                      child: PopupMenuButton<String>(
+                                                        icon: const Icon(Icons.more_vert, color: Color(0xFFE0E0E0)), // Texto da paleta
+                                                        onSelected: (value) async {
+                                                          final gastoProvider = context.read<GastoProvider>();
+                                                          if (value == 'editar') {
+                                                            _editarGasto(context, gasto, gastoProvider);
+                                                          } else if (value == 'deletar') {
+                                                            _confirmarDeletarGasto(context, gasto, gastoProvider);
+                                                          }
+                                                        },
+                                                        itemBuilder: (context) => [
+                                                          const PopupMenuItem(
+                                                            value: 'editar',
+                                                            child: Text('Editar'),
+                                                          ),
+                                                          const PopupMenuItem(
+                                                            value: 'deletar',
+                                                            child: Text('Deletar'),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ],
                                                 ),

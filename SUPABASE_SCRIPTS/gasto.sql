@@ -16,6 +16,18 @@ CREATE TABLE IF NOT EXISTS public.gastos (
   intervalo_meses integer
 );
 
+-- Adicionar colunas de parcelamento caso não existam
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='gastos' AND column_name='parcela_atual') THEN
+        ALTER TABLE public.gastos ADD COLUMN parcela_atual integer DEFAULT 1;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='gastos' AND column_name='total_parcelas') THEN
+        ALTER TABLE public.gastos ADD COLUMN total_parcelas integer DEFAULT 1;
+    END IF;
+END $$;
+
 -- Criar índice para user_id
 CREATE INDEX IF NOT EXISTS idx_gastos_user_id ON public.gastos(user_id);
 
