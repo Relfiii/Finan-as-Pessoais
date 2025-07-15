@@ -982,6 +982,7 @@ class _CardGastoState extends State<CardGasto> {
                                                                                 builder: (context) => DetalhesCategoriaScreen(
                                                                                   categoryId: cat.id,
                                                                                   categoryName: cat.name,
+                                                                                  initialDate: pageDate,
                                                                                 ),
                                                                               ),
                                                                             );

@@ -6,7 +6,6 @@ import '../provedor/categoriaProvedor.dart';
 import '../telas/criarGasto.dart';
 import '../modelos/gasto.dart';
 import 'dart:ui';
-import '../caixaTexto/caixaTexto.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import '../extensao/stringExtensao.dart';
@@ -14,11 +13,13 @@ import '../extensao/stringExtensao.dart';
 class DetalhesCategoriaScreen extends StatefulWidget {
   final String categoryId;
   final String categoryName;
+  final DateTime? initialDate;
 
   const DetalhesCategoriaScreen({
     Key? key,
     required this.categoryId,
     required this.categoryName,
+    this.initialDate,
   }) : super(key: key);
 
   @override
@@ -28,7 +29,7 @@ class DetalhesCategoriaScreen extends StatefulWidget {
 class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   String _sortBy = 'data';
   bool _ascending = false;
-  DateTime _currentDate = DateTime.now();
+  late DateTime _currentDate;
 
   // Lista para armazenar os gastos do mês atual
   List<dynamic> _gastosDoMes = [];
@@ -50,6 +51,8 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   @override
   void initState() {
     super.initState();
+    // Inicializa _currentDate com a data fornecida ou a data atual
+    _currentDate = widget.initialDate ?? DateTime.now();
     _carregarGastosDoMes();
   }
 
