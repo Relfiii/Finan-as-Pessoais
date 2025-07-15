@@ -64,239 +64,313 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF1E1E2C), Color(0xFF121212)],
-                ),
+      backgroundColor: const Color(0xFF121212),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header igual telaLogin.dart
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Color(0xFF00E6D8),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Criar Conta',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 28,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
-                        onPressed: () => Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => TelaLogin()),
-                        ),
-                      ),
-                      const Expanded(
-                        child: Center(
-                          child: Text(
-                            'Criar Conta',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                              letterSpacing: 1.1,
-                            ),
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Logo igual telaLogin.dart
+                        Container(
+                          padding: EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFF1E1E1E),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 40),
-                    ],
-                  ),
-                ),
-                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                Expanded(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Image.asset(
+                          child: Image.asset(
                             'assets/logo-NossoDinDin.png',
-                            width: 100,
+                            width: 80,
+                            height: 80,
                             fit: BoxFit.contain,
                           ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: const EdgeInsets.all(32),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.10),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            width: 320,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextField(
-                                  controller: _nomeController,
-                                  obscureText: false,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFF181818),
-                                    hintText: 'Nome',
-                                    hintStyle: TextStyle(color: Colors.grey[400]),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _nomeBorderColor, width: 2),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _nomeBorderColor, width: 2),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _nomeBorderColor, width: 2),
-                                    ),
+                        ),
+                        const SizedBox(height: 60),
+                        // Campos de input
+                        Container(
+                          constraints: BoxConstraints(maxWidth: 400),
+                          child: Column(
+                            children: [
+                              // Campo Nome
+                              TextField(
+                                controller: _nomeController,
+                                decoration: InputDecoration(
+                                  labelText: 'Nome',
+                                  labelStyle: TextStyle(color: Color(0xFF757575)),
+                                  hintText: 'Digite seu nome',
+                                  hintStyle: TextStyle(color: Color(0xFF555555)),
+                                  filled: true,
+                                  fillColor: Color(0xFF2C2C2C),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _nomeBorderColor == Colors.transparent ? Color(0xFF424242) : _nomeBorderColor),
                                   ),
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                                const SizedBox(height: 16),
-                                TextField(
-                                  controller: _emailController,
-                                  obscureText: false,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFF181818),
-                                    hintText: 'E-mail',
-                                    hintStyle: TextStyle(color: Colors.grey[400]),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _emailBorderColor, width: 2),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _emailBorderColor, width: 2),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _emailBorderColor, width: 2),
-                                    ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _nomeBorderColor == Colors.transparent ? Color(0xFF00E6D8) : _nomeBorderColor),
                                   ),
-                                  style: const TextStyle(color: Colors.white),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _nomeBorderColor == Colors.transparent ? Color(0xFF424242) : _nomeBorderColor),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                                 ),
-                                const SizedBox(height: 16),
-                                TextField(
-                                  controller: _senhaController,
-                                  obscureText: _obscureSenha,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFF181818),
-                                    hintText: 'Senha',
-                                    hintStyle: TextStyle(color: Colors.grey[400]),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _senhaBorderColor, width: 2),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(height: 16),
+                              // Campo Email
+                              TextField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  labelText: 'E-mail',
+                                  labelStyle: TextStyle(color: Color(0xFF757575)),
+                                  hintText: 'Digite seu e-mail',
+                                  hintStyle: TextStyle(color: Color(0xFF555555)),
+                                  filled: true,
+                                  fillColor: Color(0xFF2C2C2C),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _emailBorderColor == Colors.transparent ? Color(0xFF424242) : _emailBorderColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _emailBorderColor == Colors.transparent ? Color(0xFF00E6D8) : _emailBorderColor),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _emailBorderColor == Colors.transparent ? Color(0xFF424242) : _emailBorderColor),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                ),
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(height: 16),
+                              // Campo Senha
+                              TextField(
+                                controller: _senhaController,
+                                obscureText: _obscureSenha,
+                                decoration: InputDecoration(
+                                  labelText: 'Senha',
+                                  labelStyle: TextStyle(color: Color(0xFF757575)),
+                                  hintText: 'Digite sua senha',
+                                  hintStyle: TextStyle(color: Color(0xFF555555)),
+                                  filled: true,
+                                  fillColor: Color(0xFF2C2C2C),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _senhaBorderColor == Colors.transparent ? Color(0xFF424242) : _senhaBorderColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _senhaBorderColor == Colors.transparent ? Color(0xFF00E6D8) : _senhaBorderColor),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _senhaBorderColor == Colors.transparent ? Color(0xFF424242) : _senhaBorderColor),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                  suffixIcon: _senhaController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: Icon(
+                                            _obscureSenha ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                            color: Color(0xFF757575),
+                                            size: 20,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _obscureSenha = !_obscureSenha;
+                                            });
+                                          },
+                                        )
+                                      : null,
+                                ),
+                                style: const TextStyle(color: Colors.white),
+                                onChanged: (_) {
+                                  setState(() {});
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              // Campo Confirme Senha
+                              TextField(
+                                controller: _confirmeController,
+                                obscureText: _obscureConfirme,
+                                decoration: InputDecoration(
+                                  labelText: 'Confirme a senha',
+                                  labelStyle: TextStyle(color: Color(0xFF757575)),
+                                  hintText: 'Digite novamente sua senha',
+                                  hintStyle: TextStyle(color: Color(0xFF555555)),
+                                  filled: true,
+                                  fillColor: Color(0xFF2C2C2C),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _confirmeBorderColor == Colors.transparent ? Color(0xFF424242) : _confirmeBorderColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _confirmeBorderColor == Colors.transparent ? Color(0xFF00E6D8) : _confirmeBorderColor),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: _confirmeBorderColor == Colors.transparent ? Color(0xFF424242) : _confirmeBorderColor),
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                  suffixIcon: _confirmeController.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: Icon(
+                                            _obscureConfirme ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                            color: Color(0xFF757575),
+                                            size: 20,
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _obscureConfirme = !_obscureConfirme;
+                                            });
+                                          },
+                                        )
+                                      : null,
+                                ),
+                                style: const TextStyle(color: Colors.white),
+                                onChanged: (_) {
+                                  setState(() {});
+                                },
+                              ),
+                              // Mensagem de senha igual
+                              if (_senhaStatus != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        _senhaStatus == "ok" ? Icons.check_circle : Icons.error_outline,
+                                        color: _senhaStatus == "ok" ? Colors.green : Colors.red,
+                                        size: 16,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        _senhaStatus == "ok"
+                                            ? "Senhas coincidem"
+                                            : _senhaStatus == "erro"
+                                                ? "As senhas não coincidem"
+                                                : "",
+                                        style: TextStyle(
+                                          color: _senhaStatus == "ok" ? Colors.green : Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              // Mensagem de erro campos vazios
+                              if (_erroCamposVazios != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                                  child: Container(
+                                    padding: EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.red,
+                                        width: 1,
+                                      ),
                                     ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _senhaBorderColor, width: 2),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _senhaBorderColor, width: 2),
-                                    ),
-                                    suffixIcon: _senhaController.text.isNotEmpty
-                                        ? IconButton(
-                                            icon: Icon(
-                                              _obscureSenha ? Icons.visibility_off : Icons.visibility,
-                                              color: Colors.grey[400],
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.error_outline, color: Colors.red, size: 16),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            _erroCamposVazios!,
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
                                             ),
-                                            onPressed: () {
-                                              setState(() {
-                                                _obscureSenha = !_obscureSenha;
-                                              });
-                                            },
-                                          )
-                                        : null,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  style: const TextStyle(color: Colors.white),
-                                  onChanged: (_) {
-                                    setState(() {});
-                                  },
                                 ),
-                                const SizedBox(height: 16),
-                                TextField(
-                                  controller: _confirmeController,
-                                  obscureText: _obscureConfirme,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: const Color(0xFF181818),
-                                    hintText: 'Confirme senha',
-                                    hintStyle: TextStyle(color: Colors.grey[400]),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _confirmeBorderColor, width: 2),
+                              if (_mostrarErroSenhaVazia)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                                  child: Container(
+                                    padding: EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.red,
+                                        width: 1,
+                                      ),
                                     ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _confirmeBorderColor, width: 2),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                      borderSide: BorderSide(color: _confirmeBorderColor, width: 2),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.error_outline, color: Colors.red, size: 16),
+                                        SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Preencha todos os campos de senha.',
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  style: const TextStyle(color: Colors.white),
-                                  onChanged: (_) {
-                                    setState(() {});
-                                  },
                                 ),
-                                if (_senhaStatus != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0, left: 4.0),
-                                    child: Text(
-                                      _senhaStatus == "ok"
-                                          ? "Senhas coincidem"
-                                          : _senhaStatus == "erro"
-                                              ? "As senhas não coincidem"
-                                              : "",
-                                      style: TextStyle(
-                                        color: _senhaStatus == "ok"
-                                            ? Colors.green
-                                            : Colors.red,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                              const SizedBox(height: 32),
+                              // Botão Cadastrar
+                              SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF00E6D8),
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
+                                    elevation: 0,
                                   ),
-                                if (_erroCamposVazios != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0, left: 4.0),
-                                    child: Text(
-                                      _erroCamposVazios!,
-                                      style: const TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                if (_mostrarErroSenhaVazia)
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 8.0, left: 4.0),
-                                    child: Text(
-                                      'Preencha todos os campos de senha.',
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                const SizedBox(height: 24),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 44,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF00E6D8),
-                                      foregroundColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                    ),
-                                    onPressed: _isCadastroAtivo()
-                                        ? () async {
+                                  onPressed: _isCadastroAtivo()
+                                      ? () async {
                                             // Verifica se todos os campos estão vazios
                                             if (_nomeController.text.isEmpty &&
                                                 _emailController.text.isEmpty &&
@@ -428,54 +502,69 @@ class _CadastroContaScreenState extends State<CadastroContaScreen> {
                                             }
                                           }
                                         : null,
-                                    child: const Text('Cadastrar'),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Center(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => TelaLogin(),
-                                        ),
-                                      );
-                                    },
-                                    child: const Text(
-                                      'Já tem uma conta?',
-                                      style: TextStyle(
-                                        color: Color(0xFFB983FF),
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  child: Text(
+                                    'Cadastrar',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 16),
+                              // Botão para tela de login
+                              SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => TelaLogin(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'Já tem uma conta?',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Center(
-                  child: Text(
-                    'NossoDinDin v1.0',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.18),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
+              ),
             ),
-          ),
-        ],
+            // Rodapé igual telaLogin.dart
+            const SizedBox(height: 16),
+            Center(
+              child: Text(
+                'NossoDinDin v1.0',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.18),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
