@@ -324,7 +324,10 @@ class TransactionProvider with ChangeNotifier {
 
   /// Carrega todas as transações
   Future<void> loadTransactions() async {
-    _setLoading(true);
+    // Só marca como carregando se não estiver já carregando
+    if (!_isLoading) {
+      _setLoading(true);
+    }
     _setError(null);
 
     try {

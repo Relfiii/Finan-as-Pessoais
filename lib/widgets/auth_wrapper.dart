@@ -44,11 +44,14 @@ class _AuthWrapperState extends State<AuthWrapper> {
       final session = supabase.auth.currentSession;
       
       if (session != null) {
-        // Usuário está logado, carrega os dados
-        await _loadUserData();
         setState(() {
           _isInitialized = true;
           _isLoading = false;
+        });
+        
+        // Carrega os dados após o build ser concluído
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _loadUserData();
         });
       } else {
         // Não há sessão ativa

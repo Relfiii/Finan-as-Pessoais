@@ -42,7 +42,11 @@ class CategoryProvider with ChangeNotifier {
 
   /// Atualiza uma categoria
   Future<void> loadCategories() async {
-      _setLoading(true);
+      // Só marca como carregando se não estiver já carregando
+      if (!_isLoading) {
+        _setLoading(true);
+      }
+      
       try {
         final supabase = Supabase.instance.client;
         final user = supabase.auth.currentUser;

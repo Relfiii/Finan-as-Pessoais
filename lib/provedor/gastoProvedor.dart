@@ -29,7 +29,10 @@ class GastoProvider with ChangeNotifier {
   List<Gasto> get gastos => _gastos;
 
   Future<void> loadGastos() async {
-    _setLoading(true);
+    // Só marca como carregando se não estiver já carregando
+    if (!_isLoading) {
+      _setLoading(true);
+    }
     _setError(null);
 
     final user = Supabase.instance.client.auth.currentUser;
