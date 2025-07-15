@@ -634,174 +634,6 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                       ],
                                     ),
                                   ),
-                                  // Cabeçalho da tabela
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 3,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                if (_sortBy == 'descricao') {
-                                                  _ascending = !_ascending;
-                                                } else {
-                                                  _sortBy = 'descricao';
-                                                  _ascending = true;
-                                                }
-                                                _gastosDoMes = _sortGastos(_gastosDoMes);
-                                              });
-                                            },
-                                            child: Row(
-                                              children: [
-                                                const Text(
-                                                  'Descrição',
-                                                  style: TextStyle(
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                if (_sortBy == 'descricao')
-                                                  Icon(
-                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    size: 18,
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                if (_sortBy == 'data') {
-                                                  _ascending = !_ascending;
-                                                } else {
-                                                  _sortBy = 'data';
-                                                  _ascending = false;
-                                                }
-                                                _gastosDoMes = _sortGastos(_gastosDoMes);
-                                              });
-                                            },
-                                            child: Row(
-                                              children: [
-                                                const Text(
-                                                  'Data',
-                                                  style: TextStyle(
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                if (_sortBy == 'data')
-                                                  Icon(
-                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    size: 18,
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                if (_sortBy == 'valor') {
-                                                  _ascending = !_ascending;
-                                                } else {
-                                                  _sortBy = 'valor';
-                                                  _ascending = false;
-                                                }
-                                                _gastosDoMes = _sortGastos(_gastosDoMes);
-                                              });
-                                            },
-                                            child: Row(
-                                              children: [
-                                                const Text(
-                                                  'Valor',
-                                                  style: TextStyle(
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                if (_sortBy == 'valor')
-                                                  Icon(
-                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    size: 18,
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 1,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                if (_sortBy == 'parcelas') {
-                                                  _ascending = !_ascending;
-                                                } else {
-                                                  _sortBy = 'parcelas';
-                                                  _ascending = true;
-                                                }
-                                                _gastosDoMes = _sortGastos(_gastosDoMes);
-                                              });
-                                            },
-                                            child: Row(
-                                              children: [
-                                                const Text(
-                                                  'Parcelas',
-                                                  style: TextStyle(
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                if (_sortBy == 'parcelas')
-                                                  Icon(
-                                                    _ascending ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                                    color: Color(0xFFE0E0E0), // Texto da paleta
-                                                    size: 18,
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 60,
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            'Ações',
-                                            style: TextStyle(
-                                              color: Color(0xFFE0E0E0), // Texto da paleta
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
                                   // Lista de gastos
                                   RefreshIndicator(
                                     onRefresh: _carregarGastosDoMes,
@@ -820,70 +652,90 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                             itemBuilder: (context, index) {
                                               final gasto = _gastosDoMes[index];
                                               return Container(
-                                                margin: const EdgeInsets.only(bottom: 4),
-                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                                margin: const EdgeInsets.only(bottom: 8),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF1E1E1E), // Cor de fundo mais clara da paleta
-                                                  borderRadius: BorderRadius.circular(8),
+                                                  color: const Color(0xFF1E1E1E),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  border: Border.all(color: const Color(0xFF303030), width: 1),
                                                 ),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      flex: 3,
-                                                      child: Text(
-                                                        gasto.descricao.toString(),
-                                                        style: const TextStyle(
-                                                          color: Color(0xFFE0E0E0), // Texto da paleta
-                                                          fontSize: 15,
-                                                          fontWeight: FontWeight.bold,
+                                                child: ListTile(
+                                                  title: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          gasto.descricao.toString(),
+                                                          style: const TextStyle(
+                                                            color: Color(0xFFE0E0E0),
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 2,
-                                                      child: Text(
-                                                        () {
-                                                          // Se tem data da compra (parcelamentos), usa ela; senão usa a data normal
-                                                          final dataParaExibir = gasto.dataCompra ?? gasto.data;
-                                                          return '${dataParaExibir.day.toString().padLeft(2, '0')}/${dataParaExibir.month.toString().padLeft(2, '0')}';
-                                                        }(),
-                                                        style: const TextStyle(
-                                                          color: Color(0xFFE0E0E0), // Texto da paleta
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 2,
-                                                      child: Text(
+                                                      Text(
                                                         NumberFormat.currency(
                                                           locale: 'pt_BR',
                                                           symbol: 'R\$',
                                                           decimalDigits: 2,
                                                         ).format(gasto.valor),
                                                         style: const TextStyle(
-                                                          color: Color(0xFFEF5350), // Cor vermelha para gastos
-                                                          fontSize: 12,
+                                                          color: Color(0xFFEF5350),
+                                                          fontSize: 16,
                                                           fontWeight: FontWeight.bold,
                                                         ),
                                                       ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 1,
-                                                      child: Text(
-                                                        _formatParcelas(gasto),
-                                                        style: const TextStyle(
-                                                          color: Color(0xFFE0E0E0), // Texto da paleta
-                                                          fontSize: 12,
-                                                          fontWeight: FontWeight.w500,
+                                                    ],
+                                                  ),
+                                                  subtitle: Padding(
+                                                    padding: const EdgeInsets.only(top: 4),
+                                                    child: Row(
+                                                      children: [
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                          decoration: BoxDecoration(
+                                                            color: const Color(0xFF303030),
+                                                            borderRadius: BorderRadius.circular(4),
+                                                          ),
+                                                          child: Text(
+                                                            widget.categoryName,
+                                                            style: const TextStyle(
+                                                              color: Color(0xFFE0E0E0),
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
                                                         ),
-                                                      ),
+                                                        const SizedBox(width: 8),
+                                                        Text(
+                                                          _formatParcelas(gasto),
+                                                          style: const TextStyle(
+                                                            color: Color(0xFFE0E0E0),
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                    Container(
-                                                      width: 60,
-                                                      alignment: Alignment.center,
-                                                      child: PopupMenuButton<String>(
-                                                        icon: const Icon(Icons.more_vert, color: Color(0xFFE0E0E0)), // Texto da paleta
+                                                  ),
+                                                  trailing: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                                        children: [
+                                                          Text(
+                                                            () {
+                                                              final dataParaExibir = gasto.dataCompra ?? gasto.data;
+                                                              return '${dataParaExibir.day.toString().padLeft(2, '0')} de ${DateFormat("MMM", 'pt_BR').format(dataParaExibir)}';
+                                                            }(),
+                                                            style: const TextStyle(
+                                                              color: Color(0xFFE0E0E0),
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(width: 8),
+                                                      PopupMenuButton<String>(
+                                                        icon: const Icon(Icons.more_vert, color: Color(0xFFE0E0E0), size: 20),
                                                         onSelected: (value) async {
                                                           final gastoProvider = context.read<GastoProvider>();
                                                           if (value == 'editar') {
@@ -903,8 +755,8 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                           ),
                                                         ],
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               );
                                             },
