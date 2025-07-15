@@ -1,0 +1,46 @@
+4. IMPORTANTE: Debounce na Navegação
+Timer? _debounceTimer;
+
+void _nextPeriod() {
+  _debounceTimer?.cancel();
+  _debounceTimer = Timer(Duration(milliseconds: 300), () {
+    setState(() {
+      // lógica de navegação
+    });
+    _loadResumo();
+  });
+}
+
+5. MODERADO: Otimizar a Animação (mas manter)
+class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal> {
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600), // Reduzir de 1200ms
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.8, // Começar mais próximo do final
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutCubic, // Curva mais simples
+    ));
+    
+    // Só animar se os dados já estiverem disponíveis
+    if (widget.receitas.isNotEmpty) {
+      _animationController.forward();
+    }
+  }
+  
+  @override
+  void didUpdateWidget(GraficoColunaPrincipal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Animar apenas quando novos dados chegarem
+    if (oldWidget.receitas.isEmpty && widget.receitas.isNotEmpty) {
+      _animationController.forward();
+    }
+  }
+}

@@ -6,6 +6,7 @@ import '../provedor/categoriaProvedor.dart';
 import '../telas/criarGasto.dart';
 import '../modelos/gasto.dart';
 import 'dart:ui';
+import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import '../extensao/stringExtensao.dart';
@@ -31,6 +32,9 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   bool _ascending = false;
   late DateTime _currentDate;
 
+  // Timer para debounce na navegação
+  Timer? _debounceTimer;
+
   // Lista para armazenar os gastos do mês atual
   List<dynamic> _gastosDoMes = [];
 
@@ -45,6 +49,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   void dispose() {
     descricaoController.dispose();
     valorController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -182,17 +187,23 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
   }
 
   void _nextMonth() async {
-    setState(() {
-      _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      setState(() {
+        _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+      });
+      await _carregarGastosDoMes();
     });
-    await _carregarGastosDoMes();
   }
 
   void _previousMonth() async {
-    setState(() {
-      _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      setState(() {
+        _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+      });
+      await _carregarGastosDoMes();
     });
-    await _carregarGastosDoMes();
   }
 
   Future<void> _confirmarDeletarGasto(BuildContext context, dynamic gasto, GastoProvider gastoProvider) async {
@@ -724,7 +735,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                           Text(
                                                             () {
                                                               final dataParaExibir = gasto.dataCompra ?? gasto.data;
-                                                              return '${dataParaExibir.day.toString().padLeft(2, '0')} de ${DateFormat("MMM", 'pt_BR').format(dataParaExibir)}';
+                                                              return DateFormat('dd/MM', 'pt_BR').format(dataParaExibir);
                                                             }(),
                                                             style: const TextStyle(
                                                               color: Color(0xFFE0E0E0),

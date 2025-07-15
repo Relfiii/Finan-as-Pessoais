@@ -8,6 +8,13 @@ class GastoProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Estados de loading granulares para melhor UX
+  bool _isLoadingGastosMes = false;
+  bool _isLoadingGastosDia = false;
+  bool _isLoadingGastosAno = false;
+  bool _isLoadingTotals = false;
+  Map<String, bool> _isLoadingSpecific = {}; // Para carregamentos específicos
+
   // Cache estruturado para melhorar performance
   final Map<String, double> _cacheGastosMes = {}; // "2025-01" -> valor
   final Map<String, double> _cacheGastosDia = {}; // "2025-01-15" -> valor
@@ -21,6 +28,20 @@ class GastoProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<Gasto> get gastos => _gastos;
+  
+  // Getters para estados de loading granulares
+  bool get isLoadingGastosMes => _isLoadingGastosMes;
+  bool get isLoadingGastosDia => _isLoadingGastosDia;
+  bool get isLoadingGastosAno => _isLoadingGastosAno;
+  bool get isLoadingTotals => _isLoadingTotals;
+  
+  /// Verifica se está carregando um período específico
+  bool isLoadingPeriod(String period) => _isLoadingSpecific[period] ?? false;
+  
+  /// Verifica se há qualquer carregamento ativo
+  bool get hasAnyLoading => _isLoading || _isLoadingGastosMes || _isLoadingGastosDia || 
+                            _isLoadingGastosAno || _isLoadingTotals ||
+                            _isLoadingSpecific.values.any((loading) => loading);
 
   /// Limpa todo o cache - usar após inserções/atualizações/exclusões
   void clearCache() {
@@ -63,16 +84,24 @@ class GastoProvider with ChangeNotifier {
       return _cacheGastosAno[key]!;
     }
     
+    _setLoadingGastosAno(true);
+    _setLoadingSpecific('gastos_ano_$key', true);
+    
     print('💸 Cache miss - Calculando gastos ano ${key}');
     if (_gastos.isEmpty) await loadGastos();
     
-    final total = _gastos.where((g) => g.data.year == ano).fold<double>(0.0, (sum, g) => sum + g.valor);
-    
-    // Armazenar no cache
-    _cacheGastosAno[key] = total;
-    print('💸 Cache set - Gastos ano ${key}: R\$ ${total}');
-    
-    return total;
+    try {
+      final total = _gastos.where((g) => g.data.year == ano).fold<double>(0.0, (sum, g) => sum + g.valor);
+      
+      // Armazenar no cache
+      _cacheGastosAno[key] = total;
+      print('💸 Cache set - Gastos ano ${key}: R\$ ${total}');
+      
+      return total;
+    } finally {
+      _setLoadingGastosAno(false);
+      _setLoadingSpecific('gastos_ano_$key', false);
+    }
   }
 
   /// Retorna o total de gastos para um dia específico (otimizado com cache)
@@ -86,19 +115,27 @@ class GastoProvider with ChangeNotifier {
       return _cacheGastosDia[key]!;
     }
     
+    _setLoadingGastosDia(true);
+    _setLoadingSpecific('gastos_dia_$key', true);
+    
     print('💸 Cache miss - Calculando gastos dia ${key}');
-    final total = _gastos
-        .where((g) =>
-            g.data.year == now.year &&
-            g.data.month == now.month &&
-            g.data.day == now.day)
-        .fold(0.0, (soma, g) => soma + g.valor);
-    
-    // Armazenar no cache
-    _cacheGastosDia[key] = total;
-    print('💸 Cache set - Gastos dia ${key}: R\$ ${total}');
-    
-    return total;
+    try {
+      final total = _gastos
+          .where((g) =>
+              g.data.year == now.year &&
+              g.data.month == now.month &&
+              g.data.day == now.day)
+          .fold(0.0, (soma, g) => soma + g.valor);
+      
+      // Armazenar no cache
+      _cacheGastosDia[key] = total;
+      print('💸 Cache set - Gastos dia ${key}: R\$ ${total}');
+      
+      return total;
+    } finally {
+      _setLoadingGastosDia(false);
+      _setLoadingSpecific('gastos_dia_$key', false);
+    }
   }
 
   Future<void> loadGastos() async {
@@ -268,6 +305,36 @@ class GastoProvider with ChangeNotifier {
   void _setError(String? error) {
     _error = error;
     if (error != null) notifyListeners();
+  }
+
+  /// Métodos para controlar estados de loading granulares
+  void _setLoadingGastosMes(bool loading) {
+    _isLoadingGastosMes = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingGastosDia(bool loading) {
+    _isLoadingGastosDia = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingGastosAno(bool loading) {
+    _isLoadingGastosAno = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingTotals(bool loading) {
+    _isLoadingTotals = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingSpecific(String period, bool loading) {
+    if (loading) {
+      _isLoadingSpecific[period] = true;
+    } else {
+      _isLoadingSpecific.remove(period);
+    }
+    notifyListeners();
   }
 
   Future<List<Gasto>> getGastosPorMes(String? categoryId, DateTime mes) async {
@@ -469,6 +536,9 @@ class GastoProvider with ChangeNotifier {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return {};
 
+    _setLoadingTotals(true);
+    _setLoadingSpecific('lote_gastos_${meses.length}', true);
+
     // Calcular range de datas que engloba todos os meses
     final primeiroMes = meses.reduce((a, b) => a.isBefore(b) ? a : b);
     final ultimoMes = meses.reduce((a, b) => a.isAfter(b) ? a : b);
@@ -517,6 +587,9 @@ class GastoProvider with ChangeNotifier {
     } catch (e) {
       print('❌ Erro na consulta em lote de gastos: $e');
       return {};
+    } finally {
+      _setLoadingTotals(false);
+      _setLoadingSpecific('lote_gastos_${meses.length}', false);
     }
   }
 }

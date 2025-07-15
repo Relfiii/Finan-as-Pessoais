@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../provedor/transicaoProvedor.dart';
 import '../provedor/categoriaProvedor.dart';
 import 'dart:ui';
+import 'dart:async';
 import 'telaLateral.dart';
 import '../caixaTexto/caixaTexto.dart';
 import '../cardsPrincipais/cardSaldo.dart';
@@ -15,6 +16,7 @@ import '../l10n/app_localizations.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import '../graficos/graficoColunaPrincipal.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../widgets/dashboard_card.dart';
 
 /// Tela principal do aplicativo
 class HomeScreen extends StatefulWidget {
@@ -31,6 +33,9 @@ class _HomeScreenState extends State<HomeScreen> {
   double investimento = 0.0;
   PeriodoFiltro _periodoSelecionado = PeriodoFiltro.mes;
   DateTime _currentDate = DateTime.now();
+
+  // Timer para debounce na navegação
+  Timer? _debounceTimer;
 
   // Adicione estas linhas:
   List<double> receitasPorMes = [];
@@ -183,32 +188,38 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  // Método para navegar para o próximo período
+  // Método para navegar para o próximo período com debounce
   void _nextPeriod() {
-    setState(() {
-      if (_periodoSelecionado == PeriodoFiltro.mes) {
-        _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
-      } else if (_periodoSelecionado == PeriodoFiltro.ano) {
-        _currentDate = DateTime(_currentDate.year + 1, _currentDate.month);
-      } else if (_periodoSelecionado == PeriodoFiltro.dia) {
-        _currentDate = _currentDate.add(const Duration(days: 1));
-      }
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      setState(() {
+        if (_periodoSelecionado == PeriodoFiltro.mes) {
+          _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
+        } else if (_periodoSelecionado == PeriodoFiltro.ano) {
+          _currentDate = DateTime(_currentDate.year + 1, _currentDate.month);
+        } else if (_periodoSelecionado == PeriodoFiltro.dia) {
+          _currentDate = _currentDate.add(const Duration(days: 1));
+        }
+      });
+      _loadResumo();
     });
-    _loadResumo();
   }
 
-  // Método para navegar para o período anterior
+  // Método para navegar para o período anterior com debounce
   void _previousPeriod() {
-    setState(() {
-      if (_periodoSelecionado == PeriodoFiltro.mes) {
-        _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
-      } else if (_periodoSelecionado == PeriodoFiltro.ano) {
-        _currentDate = DateTime(_currentDate.year - 1, _currentDate.month);
-      } else if (_periodoSelecionado == PeriodoFiltro.dia) {
-        _currentDate = _currentDate.subtract(const Duration(days: 1));
-      }
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      setState(() {
+        if (_periodoSelecionado == PeriodoFiltro.mes) {
+          _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
+        } else if (_periodoSelecionado == PeriodoFiltro.ano) {
+          _currentDate = DateTime(_currentDate.year - 1, _currentDate.month);
+        } else if (_periodoSelecionado == PeriodoFiltro.dia) {
+          _currentDate = _currentDate.subtract(const Duration(days: 1));
+        }
+      });
+      _loadResumo();
     });
-    _loadResumo();
   }
 
   // Método para formatar a data conforme o filtro selecionado
@@ -234,6 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -750,6 +762,89 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ],
                                         ),
                                       ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Exemplo de Loading States Granulares - Dashboard Cards
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Status de Carregamento',
+                                      style: TextStyle(
+                                        color: Color(0xFFE0E0E0),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Consumer2<TransactionProvider, GastoProvider>(
+                                      builder: (context, transactionProvider, gastoProvider, child) {
+                                        return GridView.count(
+                                          crossAxisCount: 2,
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          childAspectRatio: 1.5,
+                                          mainAxisSpacing: 8,
+                                          crossAxisSpacing: 8,
+                                          children: [
+                                            DashboardCard(
+                                              title: 'Receitas',
+                                              value: transactionProvider.isLoadingReceitas 
+                                                ? '---' 
+                                                : toCurrencyString(
+                                                    saldoAtual.toString(),
+                                                    leadingSymbol: 'R\$',
+                                                  ),
+                                              icon: Icons.trending_up,
+                                              color: Color(0xFF00E676),
+                                              isLoading: transactionProvider.isLoadingReceitas,
+                                              loadingMessage: 'Carregando receitas...',
+                                            ),
+                                            DashboardCard(
+                                              title: 'Investimentos',
+                                              value: transactionProvider.isLoadingInvestimentos 
+                                                ? '---' 
+                                                : toCurrencyString(
+                                                    investimento.toString(),
+                                                    leadingSymbol: 'R\$',
+                                                  ),
+                                              icon: Icons.trending_up,
+                                              color: Color(0xFF2196F3),
+                                              isLoading: transactionProvider.isLoadingInvestimentos,
+                                              loadingMessage: 'Carregando investimentos...',
+                                            ),
+                                            DashboardCard(
+                                              title: 'Gastos Mensais',
+                                              value: gastoProvider.isLoadingGastosMes 
+                                                ? '---' 
+                                                : toCurrencyString(
+                                                    gastoMes.toString(),
+                                                    leadingSymbol: 'R\$',
+                                                  ),
+                                              icon: Icons.trending_down,
+                                              color: Color(0xFFFF5722),
+                                              isLoading: gastoProvider.isLoadingGastosMes,
+                                              loadingMessage: 'Calculando gastos...',
+                                            ),
+                                            DashboardCard(
+                                              title: 'Período',
+                                              value: transactionProvider.isLoadingYearRange 
+                                                ? '---' 
+                                                : '${DateFormat('MMM/yy', 'pt_BR').format(_currentDate)}',
+                                              icon: Icons.calendar_today,
+                                              color: Color(0xFFB388FF),
+                                              isLoading: transactionProvider.isLoadingYearRange,
+                                              loadingMessage: 'Buscando período...',
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),

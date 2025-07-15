@@ -4,8 +4,9 @@ import '../provedor/transicaoProvedor.dart';
 import '../provedor/categoriaProvedor.dart';
 import '../modelos/transicao.dart';
 import '../utils/formatarUtils.dart';
+import 'loading_indicators.dart';
 
-/// Widget para exibir transações recentes
+/// Widget para exibir transações recentes com loading states granulares
 class RecentTransactions extends StatelessWidget {
   const RecentTransactions({super.key});
 
@@ -13,6 +14,20 @@ class RecentTransactions extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<TransactionProvider, CategoryProvider>(
       builder: (context, transactionProvider, categoryProvider, child) {
+        // Mostra loading granular enquanto carrega transações
+        if (transactionProvider.isLoadingReceitas) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: GranularLoadingIndicator(
+                isLoading: true,
+                child: const SizedBox(height: 100),
+                size: 24,
+              ),
+            ),
+          );
+        }
+
         final transactions = transactionProvider.transactions.take(5).toList();
         
         if (transactions.isEmpty) {
@@ -50,6 +65,46 @@ class RecentTransactions extends StatelessWidget {
         return Card(
           child: Column(
             children: [
+              // Header com loading state para contagem total
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.history,
+                      color: Theme.of(context).primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Transações Recentes',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (transactionProvider.isLoadingChart)
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      )
+                    else
+                      Text(
+                        '${transactionProvider.transactions.length} total',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
               ...transactions.map((transaction) {
                 final category = categoryProvider.getCategoryById(transaction.categoryId);
                 return TransactionListItem(

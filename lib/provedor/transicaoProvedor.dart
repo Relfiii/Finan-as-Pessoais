@@ -56,6 +56,8 @@ class TransactionProvider with ChangeNotifier {
     final userId = Supabase.instance.client.auth.currentUser!.id;
     print('🔍 Buscando ano mais antigo para usuário: $userId');
     
+    _setLoadingYearRange(true);
+    
     // OTIMIZAÇÃO: Fazer consultas em paralelo e buscar apenas o primeiro registro
     try {
       final futures = await Future.wait([
@@ -104,6 +106,8 @@ class TransactionProvider with ChangeNotifier {
     } catch (e) {
       print('❌ Erro ao buscar ano mais antigo em lote: $e');
       return null;
+    } finally {
+      _setLoadingYearRange(false);
     }
   }
 
@@ -111,6 +115,8 @@ class TransactionProvider with ChangeNotifier {
   Future<int?> getAnoMaisRecente() async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
     print('🔍 Buscando ano mais recente para usuário: $userId');
+    
+    _setLoadingYearRange(true);
     
     // OTIMIZAÇÃO: Fazer consultas em paralelo e buscar apenas o primeiro registro
     try {
@@ -160,6 +166,8 @@ class TransactionProvider with ChangeNotifier {
     } catch (e) {
       print('❌ Erro ao buscar ano mais recente em lote: $e');
       return null;
+    } finally {
+      _setLoadingYearRange(false);
     }
   }
 
@@ -409,11 +417,34 @@ class TransactionProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Estados de loading granulares para melhor UX
+  bool _isLoadingReceitas = false;
+  bool _isLoadingInvestimentos = false;
+  bool _isLoadingGastos = false;
+  bool _isLoadingChart = false;
+  bool _isLoadingYearRange = false;
+  Map<String, bool> _isLoadingSpecific = {}; // Para carregamentos específicos por período
+
   /// Lista de transações
   List<Transaction> get transactions => _transactions;
 
-  /// Estado de carregamento
+  /// Estado de carregamento geral
   bool get isLoading => _isLoading;
+  
+  /// Estados de loading granulares para UX específica
+  bool get isLoadingReceitas => _isLoadingReceitas;
+  bool get isLoadingInvestimentos => _isLoadingInvestimentos;
+  bool get isLoadingGastos => _isLoadingGastos;
+  bool get isLoadingChart => _isLoadingChart;
+  bool get isLoadingYearRange => _isLoadingYearRange;
+  
+  /// Verifica se está carregando um período específico
+  bool isLoadingPeriod(String period) => _isLoadingSpecific[period] ?? false;
+  
+  /// Verifica se há qualquer carregamento ativo
+  bool get hasAnyLoading => _isLoading || _isLoadingReceitas || _isLoadingInvestimentos || 
+                            _isLoadingGastos || _isLoadingChart || _isLoadingYearRange ||
+                            _isLoadingSpecific.values.any((loading) => loading);
 
   /// Mensagem de erro
   String? get error => _error;
@@ -577,6 +608,9 @@ class TransactionProvider with ChangeNotifier {
       return _cacheReceitas[key]!;
     }
     
+    _setLoadingReceitas(true);
+    _setLoadingSpecific('receitas_$key', true);
+    
     print('📈 Cache miss - Consultando banco para receitas ${key}');
     final userId = Supabase.instance.client.auth.currentUser!.id;
     final inicio = DateTime(referencia.year, referencia.month, 1);
@@ -625,6 +659,9 @@ class TransactionProvider with ChangeNotifier {
     } catch (e) {
       print('❌ Erro ao buscar receitas por mês em lote: $e');
       return 0.0;
+    } finally {
+      _setLoadingReceitas(false);
+      _setLoadingSpecific('receitas_$key', false);
     }
   }
 
@@ -636,6 +673,9 @@ class TransactionProvider with ChangeNotifier {
       print('💰 Cache hit - Investimentos ${key}: R\$ ${_cacheInvestimentos[key]}');
       return _cacheInvestimentos[key]!;
     }
+    
+    _setLoadingInvestimentos(true);
+    _setLoadingSpecific('investimentos_$key', true);
     
     print('💰 Cache miss - Consultando banco para investimentos ${key}');
     final userId = Supabase.instance.client.auth.currentUser!.id;
@@ -685,6 +725,9 @@ class TransactionProvider with ChangeNotifier {
     } catch (e) {
       print('❌ Erro ao buscar investimentos por mês em lote: $e');
       return 0.0;
+    } finally {
+      _setLoadingInvestimentos(false);
+      _setLoadingSpecific('investimentos_$key', false);
     }
   }
 
@@ -747,6 +790,9 @@ class TransactionProvider with ChangeNotifier {
     required String granularidade, // 'mes', 'dia', 'ano'
   }) async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
+    
+    _setLoadingChart(true);
+    _setLoadingSpecific('lote_${granularidade}_${periodos.length}', true);
     
     // Calcular range que engloba todos os períodos
     final primeiro = periodos.reduce((a, b) => a.isBefore(b) ? a : b);
@@ -911,6 +957,44 @@ class TransactionProvider with ChangeNotifier {
     } catch (e) {
       print('❌ Erro na consulta em lote: $e');
       return {};
+    } finally {
+      _setLoadingChart(false);
+      _setLoadingSpecific('lote_${granularidade}_${periodos.length}', false);
     }
+  }
+
+  /// Métodos para controlar estados de loading granulares
+  void _setLoadingReceitas(bool loading) {
+    _isLoadingReceitas = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingInvestimentos(bool loading) {
+    _isLoadingInvestimentos = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingGastos(bool loading) {
+    _isLoadingGastos = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingChart(bool loading) {
+    _isLoadingChart = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingYearRange(bool loading) {
+    _isLoadingYearRange = loading;
+    notifyListeners();
+  }
+  
+  void _setLoadingSpecific(String period, bool loading) {
+    if (loading) {
+      _isLoadingSpecific[period] = true;
+    } else {
+      _isLoadingSpecific.remove(period);
+    }
+    notifyListeners();
   }
 }
