@@ -522,10 +522,6 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
                             }
                             return Expanded(
                               child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: Colors.white.withOpacity(0.05),
-                                ),
                                 margin: const EdgeInsets.symmetric(vertical: 1),
                                 child: Align(
                                   alignment: Alignment.centerRight,
