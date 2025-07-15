@@ -5,6 +5,7 @@ import '../telas/criarReceita.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ControleReceitasPage extends StatefulWidget {
   const ControleReceitasPage({Key? key}) : super(key: key);
@@ -536,293 +537,291 @@ class _ControleReceitasPageState extends State<ControleReceitasPage> {
             ),
           ),
           SafeArea(
-            child: RefreshIndicator(
-              onRefresh: _carregarReceitas,
-              child: Column(
-                children: [
-                  // AppBar customizada
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
-                          onPressed: () => Navigator.of(context).pop(),
+            child: Column(
+              children: [
+                // AppBar customizada (largura total)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFFB983FF)),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const SizedBox(width: 8),
+                      // Título ocupando toda a largura, alinhado à esquerda
+                      const Text(
+                        'Receitas do Mês',
+                        style: TextStyle(
+                          color: Color(0xFFB983FF),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          letterSpacing: 1.1,
                         ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Center(
-                            child: Text(
-                              'Receitas do Mês',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22,
-                                letterSpacing: 1.1,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 40),
-                      ],
-                    ),
+                      ),
+                      // Spacer para empurrar o título para a esquerda
+                      const Spacer(),
+                    ],
                   ),
-                  const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
-                  // Navegação de mês/ano com efeito parallax
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.chevron_left, color: Colors.white70),
-                            onPressed: _previousMonth,
-                          ),
-                        ),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          transitionBuilder: (child, animation) {
-                            return SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0, 0.3),
-                                end: Offset.zero,
-                              ).animate(animation),
-                              child: FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Text(
-                            _formatMonthYear(_currentDate),
-                            key: ValueKey(_currentDate.toString()),
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.chevron_right, color: Colors.white70),
-                            onPressed: _nextMonth,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Indicador visual da navegação
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(5, (index) {
-                        // Mostra 5 pontos, com o do meio sendo o atual
-                        double opacity = index == 2 ? 1.0 : 0.3;
-                        double size = index == 2 ? 8.0 : 6.0;
-                        
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: size,
-                          height: size,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFB983FF).withOpacity(opacity),
-                            borderRadius: BorderRadius.circular(size / 2),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                  // Botão de adicionar receita + total receitas
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8, right: 16, top: 8, bottom: 0),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 10),
-                        SizedBox(
-                          height: 44,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF23272F),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                              minimumSize: const Size(0, 44),
-                            ),
-                            icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
-                            label: const Text('Receita'),
-                            onPressed: () async {
-                              final result = await showDialog(
-                                context: context,
-                                builder: (context) => const AddReceitaDialog(),
-                              );
-                              if (result == true) {
-                                await _carregarReceitas(); // Função para buscar receitas do Supabase
-                              }
-                            },
-                          ),
-                        ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF23272F),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                toCurrencyString(
-                                  _totalReceitas.toString(),
-                                  leadingSymbol: 'R\$',
-                                  useSymbolPadding: true,
-                                  thousandSeparator: ThousandSeparator.Period,
-                                ),
-                                style: const TextStyle(
-                                  color: Color.fromARGB(255, 158, 214, 158),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Cards de receitas do mês selecionado com PageView
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: _onPageChanged,
-                      itemBuilder: (context, index) {
-                        // Calcula o mês baseado no índice da página
-                        int monthOffset = index - 1000;
-                        DateTime pageDate = DateTime(DateTime.now().year, DateTime.now().month + monthOffset);
-                        
-                        // Calcula o fator de escala e opacidade baseado na posição da página
-                        double value = 1.0;
-                        if (_pageController.hasClients && _pageController.position.haveDimensions) {
-                          value = _pageController.page ?? 1000.0;
-                          value = (1 - (index - value).abs()).clamp(0.0, 1.0);
-                        }
-                        
-                        return AnimatedBuilder(
-                          animation: _pageController,
-                          builder: (context, child) {
-                            // Efeito de parallax e escala - garantindo valores válidos
-                            double scale = (0.8 + (value * 0.2)).clamp(0.5, 1.0);
-                            double opacity = (0.5 + (value * 0.5)).clamp(0.0, 1.0);
-                            
-                            return Transform.scale(
-                              scale: scale,
-                              child: Opacity(
-                                opacity: opacity,
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                                  child: FutureBuilder<List<Map<String, dynamic>>>(
-                                    future: _carregarReceitasDoMesEspecifico(pageDate),
-                                    builder: (context, snapshot) {
-                                      List<Map<String, dynamic>> receitasDoMes = snapshot.data ?? [];
-                                      
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        child: receitasDoMes.isEmpty
-                                            ? Center(
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.attach_money_outlined,
-                                                      size: 64,
-                                                      color: Colors.white.withOpacity(0.3),
-                                                    ),
-                                                    const SizedBox(height: 16),
-                                                    Text(
-                                                      'Nenhuma receita cadastrada neste mês.',
-                                                      style: TextStyle(
-                                                        color: Colors.white54, 
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                      textAlign: TextAlign.center,
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                            : ListView.separated(
-                                                padding: EdgeInsets.zero,
-                                                itemCount: receitasDoMes.length,
-                                                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                                itemBuilder: (context, receitaIndex) {
-                                                  final receita = receitasDoMes[receitaIndex];
-                                                  
-                                                  // Animação staggered para os cards
-                                                  return TweenAnimationBuilder<double>(
-                                                    duration: Duration(milliseconds: 200 + (receitaIndex * 50)),
-                                                    tween: Tween(begin: 0.0, end: 1.0),
-                                                    curve: Curves.easeOutBack,
-                                                    builder: (context, animationValue, child) {
-                                                      // Garante que os valores estejam dentro do range válido
-                                                      final clampedAnimation = animationValue.clamp(0.0, 1.0);
-                                                      final translateY = 20 * (1 - clampedAnimation);
-                                                      
-                                                      return Transform.translate(
-                                                        offset: Offset(0, translateY),
-                                                        child: Opacity(
-                                                          opacity: clampedAnimation,
-                                                          child: ReceitaCard(
-                                                            descricao: receita['descricao'],
-                                                            valor: receita['valor'],
-                                                            data: receita['data'],
-                                                            onEdit: () => _editarReceita(receita['id']),
-                                                            onDelete: () => _deletarReceita(receita['id']),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                              ),
+                ),
+                const Divider(color: Colors.white24, thickness: 1, indent: 24, endIndent: 24),
+                // Conteúdo centralizado
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      width: kIsWeb ? 1000 : double.infinity,
+                      constraints: kIsWeb ? const BoxConstraints(maxWidth: 1000) : null,
+                      child: RefreshIndicator(
+                        onRefresh: _carregarReceitas,
+                        child: Column(
+                          children: [
+                            // Navegação de mês/ano com efeito parallax
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.chevron_left, color: Colors.white70),
+                                      onPressed: _previousMonth,
+                                    ),
+                                  ),
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    transitionBuilder: (child, animation) {
+                                      return SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: const Offset(0, 0.3),
+                                          end: Offset.zero,
+                                        ).animate(animation),
+                                        child: FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        ),
                                       );
                                     },
+                                    child: Text(
+                                      _formatMonthYear(_currentDate),
+                                      key: ValueKey(_currentDate.toString()),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.chevron_right, color: Colors.white70),
+                                      onPressed: _nextMonth,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  Center(
-                    child: Text(
-                      'NossoDinDin v1.0',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.18),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 1.1,
+                            ),
+                            // Indicador visual da navegação
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(5, (index) {
+                                  // Mostra 5 pontos, com o do meio sendo o atual
+                                  double opacity = index == 2 ? 1.0 : 0.3;
+                                  double size = index == 2 ? 8.0 : 6.0;
+                                  
+                                  return AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                                    width: size,
+                                    height: size,
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFFB983FF).withOpacity(opacity),
+                                      borderRadius: BorderRadius.circular(size / 2),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            // Botão de adicionar receita + total receitas
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 0),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    height: 44,
+                                    child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF23272F),
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                                        textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                        minimumSize: const Size(0, 44),
+                                      ),
+                                      icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
+                                      label: const Text('Receita'),
+                                      onPressed: () async {
+                                        final result = await showDialog(
+                                          context: context,
+                                          builder: (context) => const AddReceitaDialog(),
+                                        );
+                                        if (result == true) {
+                                          await _carregarReceitas(); // Função para buscar receitas do Supabase
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF23272F),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          toCurrencyString(
+                                            _totalReceitas.toString(),
+                                            leadingSymbol: 'R\$',
+                                            useSymbolPadding: true,
+                                            thousandSeparator: ThousandSeparator.Period,
+                                          ),
+                                          style: const TextStyle(
+                                            color: Color.fromARGB(255, 158, 214, 158),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            // Cards de receitas do mês selecionado com PageView
+                            Expanded(
+                              child: PageView.builder(
+                                controller: _pageController,
+                                onPageChanged: _onPageChanged,
+                                itemBuilder: (context, index) {
+                                  // Calcula o mês baseado no índice da página
+                                  int monthOffset = index - 1000;
+                                  DateTime pageDate = DateTime(DateTime.now().year, DateTime.now().month + monthOffset);
+                                  
+                                  // Calcula o fator de escala e opacidade baseado na posição da página
+                                  double value = 1.0;
+                                  if (_pageController.hasClients && _pageController.position.haveDimensions) {
+                                    value = _pageController.page ?? 1000.0;
+                                    value = (1 - (index - value).abs()).clamp(0.0, 1.0);
+                                  }
+                                  
+                                  return AnimatedBuilder(
+                                    animation: _pageController,
+                                    builder: (context, child) {
+                                      // Efeito de parallax e escala - garantindo valores válidos
+                                      double scale = (0.8 + (value * 0.2)).clamp(0.5, 1.0);
+                                      double opacity = (0.5 + (value * 0.5)).clamp(0.0, 1.0);
+                                      
+                                      return Transform.scale(
+                                        scale: scale,
+                                        child: Opacity(
+                                          opacity: opacity,
+                                          child: Container(
+                                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                                            child: FutureBuilder<List<Map<String, dynamic>>>(
+                                              future: _carregarReceitasDoMesEspecifico(pageDate),
+                                              builder: (context, snapshot) {
+                                                List<Map<String, dynamic>> receitasDoMes = snapshot.data ?? [];
+                                                
+                                                return Padding(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                  child: receitasDoMes.isEmpty
+                                                      ? Center(
+                                                          child: Column(
+                                                            mainAxisAlignment: MainAxisAlignment.center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons.attach_money_outlined,
+                                                                size: 64,
+                                                                color: Colors.white.withOpacity(0.3),
+                                                              ),
+                                                              const SizedBox(height: 16),
+                                                              Text(
+                                                                'Nenhuma receita cadastrada neste mês.',
+                                                                style: TextStyle(
+                                                                  color: Colors.white54, 
+                                                                  fontSize: 16,
+                                                                  fontWeight: FontWeight.w500,
+                                                                ),
+                                                                textAlign: TextAlign.center,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                      : ListView.separated(
+                                                          padding: EdgeInsets.zero,
+                                                          itemCount: receitasDoMes.length,
+                                                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                                          itemBuilder: (context, receitaIndex) {
+                                                            final receita = receitasDoMes[receitaIndex];
+                                                            
+                                                            // Animação staggered para os cards
+                                                            return TweenAnimationBuilder<double>(
+                                                              duration: Duration(milliseconds: 200 + (receitaIndex * 50)),
+                                                              tween: Tween(begin: 0.0, end: 1.0),
+                                                              curve: Curves.easeOutBack,
+                                                              builder: (context, animationValue, child) {
+                                                                // Garante que os valores estejam dentro do range válido
+                                                                final clampedAnimation = animationValue.clamp(0.0, 1.0);
+                                                                final translateY = 20 * (1 - clampedAnimation);
+                                                                
+                                                                return Transform.translate(
+                                                                  offset: Offset(0, translateY),
+                                                                  child: Opacity(
+                                                                    opacity: clampedAnimation,
+                                                                    child: ReceitaCard(
+                                                                      descricao: receita['descricao'],
+                                                                      valor: receita['valor'],
+                                                                      data: receita['data'],
+                                                                      onEdit: () => _editarReceita(receita['id']),
+                                                                      onDelete: () => _deletarReceita(receita['id']),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              },
+                                                            );
+                                                          },
+                                                        ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
