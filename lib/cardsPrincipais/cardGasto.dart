@@ -951,7 +951,7 @@ class _CardGastoState extends State<CardGasto> {
                                                                 crossAxisCount: kIsWeb ? 2 : 1,
                                                                 crossAxisSpacing: 12,
                                                                 mainAxisSpacing: 12,
-                                                                childAspectRatio: kIsWeb ? 1.6 : 3.5,
+                                                                childAspectRatio: kIsWeb ? 3.6 : 2.0,
                                                               ),
                                                               itemBuilder: (context, categoryIndex) {
                                                                 final cat = _todasCategorias[categoryIndex];
