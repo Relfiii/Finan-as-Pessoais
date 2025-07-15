@@ -80472,7 +80472,7 @@ s=this.b
 return s*(B.e.h6(a-1,this.a)+1)-(s-this.d)}}
 A.auu.prototype={}
 A.auv.prototype={
-zB(a){var s=Math.max(0,a.w-12)/2,r=s/1.6
+zB(a){var s=Math.max(0,a.w-12)/2,r=s/3.6
 return new A.Fm(2,r+12,s+12,r,s,A.qb(a.x))},
 jh(a){return!1}}
 A.xf.prototype={
