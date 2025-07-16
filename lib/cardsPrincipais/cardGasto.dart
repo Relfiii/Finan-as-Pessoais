@@ -140,6 +140,167 @@ class _CardGastoState extends State<CardGasto> {
     });
   }
 
+  Future<void> _editarCategoria(Category categoria) async {
+    final TextEditingController controller = TextEditingController(text: categoria.name);
+    
+    final resultado = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Center(
+            child: AlertDialog(
+              backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              title: const Text(
+                'Editar Categoria',
+                style: TextStyle(color: Color(0xFFE0E0E0), fontWeight: FontWeight.bold), // Cor do texto
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Edite o nome da categoria selecionada.',
+                    style: TextStyle(color: Color(0xFFE0E0E0), fontSize: 14), // Cor do texto
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
+                    decoration: InputDecoration(
+                      hintText: 'Nome da categoria',
+                      hintStyle: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
+                      filled: true,
+                      fillColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xFFB983FF)), // Borda roxa
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xFFB983FF)), // Borda roxa
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xFFB983FF), width: 2), // Borda roxa mais grossa quando focado
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB983FF), // Roxa para categorias
+                    foregroundColor: const Color(0xFF121212), // Texto preto
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  onPressed: () {
+                    final novoNome = controller.text.trim();
+                    if (novoNome.isNotEmpty) {
+                      Navigator.of(context).pop(novoNome);
+                    }
+                  },
+                  child: const Text('Salvar'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (resultado != null && resultado != categoria.name) {
+      try {
+        final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+        await categoryProvider.updateCategoryName(categoria.id, resultado);
+        
+        // Recarregar as categorias locais
+        await _carregarTodasCategorias();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Categoria atualizada com sucesso!'),
+            backgroundColor: Color(0xFFB983FF),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao atualizar categoria: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deletarCategoria(Category categoria) async {
+    final confirmacao = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.4),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF1E1E1E), // Cor de fundo mais clara
+          title: const Text('Confirmar exclusão', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
+          content: Text(
+            'Tem certeza que deseja excluir a categoria "${categoria.name}"?\n\nEsta ação não pode ser desfeita.',
+            style: const TextStyle(color: Color(0xFFE0E0E0)), // Cor do texto
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancelar', style: TextStyle(color: Color(0xFFE0E0E0))), // Cor do texto
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFEF5350), // Cor de saída
+                foregroundColor: Color(0xFF121212), // Texto preto
+              ),
+              child: const Text('Deletar'),
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmacao == true) {
+      try {
+        final categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+        await categoryProvider.deleteCategory(categoria.id);
+        
+        // Recarregar as categorias locais
+        await _carregarTodasCategorias();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Categoria "${categoria.name}" excluída com sucesso!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao excluir categoria: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   String _formatMonthYear(DateTime date) {
     return DateFormat("MMMM y", 'pt_BR').format(date);
   }
@@ -424,20 +585,10 @@ class _CardGastoState extends State<CardGasto> {
                                                 );
                                               },
                                               onEdit: () async {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text('Editar categoria: ${cat.name}'),
-                                                    backgroundColor: Color(0xFFB983FF),
-                                                  ),
-                                                );
+                                                await _editarCategoria(cat);
                                               },
                                               onDelete: () async {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text('Deletar categoria: ${cat.name}'),
-                                                    backgroundColor: Color(0xFFEF5350),
-                                                  ),
-                                                );
+                                                await _deletarCategoria(cat);
                                               },
                                             );
                                           },

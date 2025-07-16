@@ -20,13 +20,19 @@ class CategoryProvider with ChangeNotifier {
   /// Mensagem de erro
   String? get error => _error;
 
-  /// Carrega todas as categorias
+  /// Remove uma categoria
   Future<void> deleteCategory(String id) async {
-    final supabase = Supabase.instance.client;
-    await supabase.from('categorias').delete().eq('id', id);
-    // Remova da lista local
-    categories.removeWhere((cat) => cat.id == id);
-    notifyListeners();
+    try {
+      final supabase = Supabase.instance.client;
+      await supabase.from('categorias').delete().eq('id', id);
+      
+      // Remove da lista local
+      _categories.removeWhere((cat) => cat.id == id);
+      notifyListeners();
+    } catch (e) {
+      _setError('Erro ao deletar categoria: $e');
+      rethrow;
+    }
   }
 
   /// Adiciona uma nova categoria
@@ -97,8 +103,9 @@ class CategoryProvider with ChangeNotifier {
       }
     }
 
-    /// Atualiza o nome de uma categoria
-    Future<void> updateCategoryName(String id, String novoNome) async {
+  /// Atualiza o nome de uma categoria
+  Future<void> updateCategoryName(String id, String novoNome) async {
+    try {
       final supabase = Supabase.instance.client;
       await supabase.from('categorias').update({'nome': novoNome}).eq('id', id);
 
@@ -107,7 +114,11 @@ class CategoryProvider with ChangeNotifier {
         _categories[idx] = _categories[idx].copyWith(name: novoNome);
         notifyListeners();
       }
+    } catch (e) {
+      _setError('Erro ao atualizar categoria: $e');
+      rethrow;
     }
+  }
 
     /// Define o estado de carregamento
     void _setLoading(bool loading) {
