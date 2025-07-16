@@ -35,30 +35,36 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 600), // Reduzir de 1200ms
       vsync: this,
     );
     _scaleAnimation = Tween<double>(
-      begin: 0.0,
+      begin: 0.8, // Começar mais próximo do final
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Curves.elasticOut,
+      curve: Curves.easeOutCubic, // Curva mais simples
     ));
     _scrollController = ScrollController();
-    _animationController.forward();
     
-    // Posicionar no período atual após a animação
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToCurrentPeriod();
-    });
+    // Só animar se os dados já estiverem disponíveis
+    if (widget.receitas.isNotEmpty) {
+      _animationController.forward();
+    }
+    
+    // Posicionar no período atual após a animação (apenas se auto-scroll estiver habilitado)
+    if (widget.enableAutoScroll) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToCurrentPeriod();
+      });
+    }
   }
 
   void _scrollToCurrentPeriod() {
-    if (!_scrollController.hasClients) return;
+    if (!_scrollController.hasClients || !widget.enableAutoScroll) return;
     
-    // Aguardar um pouco para garantir que o layout está completo
-    Future.delayed(const Duration(milliseconds: 500), () {
+    // Aguardar menos tempo para melhor responsividade
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (!mounted || !_scrollController.hasClients) return;
       
       final now = DateTime.now();
@@ -279,9 +285,15 @@ class _GraficoColunaPrincipalState extends State<GraficoColunaPrincipal>
   void didUpdateWidget(GraficoColunaPrincipal oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // Se os dados mudaram, reposicionar no período atual
-    if (oldWidget.labels != widget.labels ||
-        oldWidget.isDailyView != widget.isDailyView) {
+    // Animar apenas quando novos dados chegarem
+    if (oldWidget.receitas.isEmpty && widget.receitas.isNotEmpty) {
+      _animationController.forward();
+    }
+    
+    // Se os dados mudaram e auto-scroll está habilitado, reposicionar no período atual
+    if (widget.enableAutoScroll && 
+        (oldWidget.labels != widget.labels ||
+         oldWidget.isDailyView != widget.isDailyView)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToCurrentPeriod();
       });

@@ -115,27 +115,21 @@ class GastoProvider with ChangeNotifier {
       return _cacheGastosDia[key]!;
     }
     
-    _setLoadingGastosDia(true);
-    _setLoadingSpecific('gastos_dia_$key', true);
-    
     print('💸 Cache miss - Calculando gastos dia ${key}');
-    try {
-      final total = _gastos
-          .where((g) =>
-              g.data.year == now.year &&
-              g.data.month == now.month &&
-              g.data.day == now.day)
-          .fold(0.0, (soma, g) => soma + g.valor);
-      
-      // Armazenar no cache
-      _cacheGastosDia[key] = total;
-      print('💸 Cache set - Gastos dia ${key}: R\$ ${total}');
-      
-      return total;
-    } finally {
-      _setLoadingGastosDia(false);
-      _setLoadingSpecific('gastos_dia_$key', false);
-    }
+    
+    // Calcular sem atualizar estado de loading (método síncrono)
+    final total = _gastos
+        .where((g) =>
+            g.data.year == now.year &&
+            g.data.month == now.month &&
+            g.data.day == now.day)
+        .fold(0.0, (soma, g) => soma + g.valor);
+    
+    // Armazenar no cache
+    _cacheGastosDia[key] = total;
+    print('💸 Cache set - Gastos dia ${key}: R\$ ${total}');
+    
+    return total;
   }
 
   Future<void> loadGastos() async {
@@ -282,6 +276,8 @@ class GastoProvider with ChangeNotifier {
     }
     
     print('💸 Cache miss - Calculando gastos mês ${key}');
+    
+    // Calcular sem atualizar estado de loading (método síncrono)
     final total = _gastos
         .where((g) => g.data.month == now.month && g.data.year == now.year)
         .fold(0.0, (soma, g) => soma + g.valor);
@@ -308,16 +304,6 @@ class GastoProvider with ChangeNotifier {
   }
 
   /// Métodos para controlar estados de loading granulares
-  void _setLoadingGastosMes(bool loading) {
-    _isLoadingGastosMes = loading;
-    notifyListeners();
-  }
-  
-  void _setLoadingGastosDia(bool loading) {
-    _isLoadingGastosDia = loading;
-    notifyListeners();
-  }
-  
   void _setLoadingGastosAno(bool loading) {
     _isLoadingGastosAno = loading;
     notifyListeners();
@@ -335,6 +321,69 @@ class GastoProvider with ChangeNotifier {
       _isLoadingSpecific.remove(period);
     }
     notifyListeners();
+  }
+
+  /// Versão assíncrona para quando precisar de estado de loading
+  Future<double> totalGastoMesAsync({DateTime? referencia}) async {
+    final now = referencia ?? DateTime.now();
+    final key = _getMesKey(now);
+    
+    // Verificar cache primeiro
+    if (_cacheGastosMes.containsKey(key) && _isCacheValid()) {
+      print('💸 Cache hit - Gastos mês ${key}: R\$ ${_cacheGastosMes[key]}');
+      return _cacheGastosMes[key]!;
+    }
+    
+    _setLoadingSpecific('gastos_mes_$key', true);
+    
+    print('💸 Cache miss - Calculando gastos mês ${key}');
+    
+    try {
+      final total = _gastos
+          .where((g) => g.data.month == now.month && g.data.year == now.year)
+          .fold(0.0, (soma, g) => soma + g.valor);
+      
+      // Armazenar no cache
+      _cacheGastosMes[key] = total;
+      print('💸 Cache set - Gastos mês ${key}: R\$ ${total}');
+      
+      return total;
+    } finally {
+      _setLoadingSpecific('gastos_mes_$key', false);
+    }
+  }
+
+  /// Versão assíncrona para quando precisar de estado de loading
+  Future<double> totalGastoDiaAsync({DateTime? referencia}) async {
+    final now = referencia ?? DateTime.now();
+    final key = _getDiaKey(now);
+    
+    // Verificar cache primeiro
+    if (_cacheGastosDia.containsKey(key) && _isCacheValid()) {
+      print('💸 Cache hit - Gastos dia ${key}: R\$ ${_cacheGastosDia[key]}');
+      return _cacheGastosDia[key]!;
+    }
+    
+    _setLoadingSpecific('gastos_dia_$key', true);
+    
+    print('💸 Cache miss - Calculando gastos dia ${key}');
+    
+    try {
+      final total = _gastos
+          .where((g) =>
+              g.data.year == now.year &&
+              g.data.month == now.month &&
+              g.data.day == now.day)
+          .fold(0.0, (soma, g) => soma + g.valor);
+      
+      // Armazenar no cache
+      _cacheGastosDia[key] = total;
+      print('💸 Cache set - Gastos dia ${key}: R\$ ${total}');
+      
+      return total;
+    } finally {
+      _setLoadingSpecific('gastos_dia_$key', false);
+    }
   }
 
   Future<List<Gasto>> getGastosPorMes(String? categoryId, DateTime mes) async {
