@@ -67,7 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
       categoryProvider.loadCategories(),
       gastoProvider.loadGastos(),
     ]);
-    _loadResumo();
+    
+    // Chama _loadResumo() após carregar os dados
+    await _loadResumo();
   }
 
   // Método para calcular o saldo atual (receitas do mês atual)
@@ -620,7 +622,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   context,
                                                   MaterialPageRoute(builder: (context) => CardGasto()),
                                                 );
-                                                await _loadResumo();
+                                                // Força a atualização dos dados quando retorna da tela de gastos
+                                                await _loadData();
                                               },
                                               child: Container(
                                                 margin: const EdgeInsets.all(3),
@@ -661,9 +664,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         Expanded(
                                                           child: Consumer<GastoProvider>(
                                                             builder: (context, gastoProvider, _) {
-                                                              // Usar Future.microtask para evitar setState durante build
-                                                              final totalGasto = gastoProvider.totalGastoMes(referencia: _currentDate);
+                                                              // Usa o método fresh se houve mudanças recentes, senão usa o método normal com cache
+                                                              final totalGasto = gastoProvider.totalGastoMesFresh(referencia: _currentDate);
                                                               final formatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+                                                              
+                                                              // Atualiza o valor local também para consistência
+                                                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                                if (mounted && gastoMes != totalGasto) {
+                                                                  setState(() {
+                                                                    gastoMes = totalGasto;
+                                                                  });
+                                                                }
+                                                              });
+                                                              
                                                               return Text(
                                                                 formatter.format(totalGasto),
                                                                 style: const TextStyle(

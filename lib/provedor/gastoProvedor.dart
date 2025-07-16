@@ -198,6 +198,7 @@ class GastoProvider with ChangeNotifier {
     _gastosPorCategoria[gasto.categoriaId]!.add(gasto);
     clearCache(); // Limpar cache após modificação
     notifyListeners();
+    print('💸 Gasto adicionado e listeners notificados: ${gasto.descricao} - R\$ ${gasto.valor}');
   }
 
   Future<void> deleteGasto(String gastoId) async {
@@ -285,6 +286,25 @@ class GastoProvider with ChangeNotifier {
     // Armazenar no cache
     _cacheGastosMes[key] = total;
     print('💸 Cache set - Gastos mês ${key}: R\$ ${total}');
+    
+    return total;
+  }
+
+  /// Versão que sempre recalcula os gastos sem usar cache (para forçar atualização)
+  double totalGastoMesFresh({DateTime? referencia}) {
+    final now = referencia ?? DateTime.now();
+    final key = _getMesKey(now);
+    
+    print('💸 Calculando gastos mês ${key} (fresh - sem cache)');
+    
+    // Calcular sempre, ignorando cache
+    final total = _gastos
+        .where((g) => g.data.month == now.month && g.data.year == now.year)
+        .fold(0.0, (soma, g) => soma + g.valor);
+    
+    // Atualizar cache com o novo valor
+    _cacheGastosMes[key] = total;
+    print('💸 Fresh calculation - Gastos mês ${key}: R\$ ${total}');
     
     return total;
   }
@@ -640,5 +660,12 @@ class GastoProvider with ChangeNotifier {
       _setLoadingTotals(false);
       _setLoadingSpecific('lote_gastos_${meses.length}', false);
     }
+  }
+
+  /// Força a atualização dos totais e notifica os listeners
+  void forceUpdateTotals() {
+    clearCache();
+    notifyListeners();
+    print('💸 Totais de gastos atualizados forçosamente');
   }
 }

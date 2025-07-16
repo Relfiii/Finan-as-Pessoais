@@ -815,6 +815,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       // Recarrega as categorias para atualizar a UI
                       await context.read<CategoryProvider>().loadCategories();
                       
+                      // Força atualização dos totais
+                      gastoProvider.forceUpdateTotals();
+                      
                       print('Categorias recarregadas no provider');
                       
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -863,6 +866,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                             totalParcelas: result['total_parcelas'] ?? 1,
                           ),
                         );
+                        
+                        // Força atualização dos totais
+                        gastoProvider.forceUpdateTotals();
                         
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -917,6 +923,9 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                           );
                         }
                         
+                        // Força atualização dos totais
+                        gastoProvider.forceUpdateTotals();
+                        
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Despesa parcelada em ${numeroParcelas}x criada com sucesso!'),
@@ -927,6 +936,8 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                       }
                     }
 
+                    // Força uma última atualização antes de fechar o dialog
+                    gastoProvider.forceUpdateTotals();
                     Navigator.of(context).pop(true);
                   } catch (e) {
                     print('Erro detalhado ao salvar gasto: $e');
