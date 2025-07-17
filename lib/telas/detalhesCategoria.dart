@@ -143,41 +143,65 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     try {
       // Se é um objeto Gasto diretamente
       if (gasto is Gasto) {
-        if (gasto.totalParcelas > 1) {
+        // Verifica se é recorrente primeiro
+        if (gasto.recorrente == true && gasto.intervalo_meses != null) {
+          return 'Recorrente (${gasto.intervalo_meses} meses)';
+        }
+        // Depois verifica se é parcelado
+        else if (gasto.totalParcelas > 1) {
           return '${gasto.parcelaAtual}/${gasto.totalParcelas}';
-        } else {
+        } 
+        // Se não é recorrente nem parcelado, é à vista
+        else {
           return 'À vista';
         }
       }
       
-      // Tenta acessar as propriedades de parcelas para outros tipos
+      // Tenta acessar as propriedades para outros tipos
       dynamic parcelaAtual;
       dynamic totalParcelas;
+      dynamic recorrente;
+      dynamic intervaloMeses;
       
       if (gasto.runtimeType.toString().contains('Map')) {
         final gastoMap = gasto as Map;
         parcelaAtual = gastoMap['parcela_atual'];
         totalParcelas = gastoMap['total_parcelas'];
+        recorrente = gastoMap['recorrente'];
+        intervaloMeses = gastoMap['intervalo_meses'];
       } else {
         // Tenta acessar como propriedades do objeto
         try {
           parcelaAtual = gasto.parcelaAtual;
           totalParcelas = gasto.totalParcelas;
+          recorrente = gasto.recorrente;
+          intervaloMeses = gasto.intervalo_meses;
         } catch (e) {
           // Se não conseguir acessar, tenta como propriedades alternativas
           try {
             parcelaAtual = gasto.parcela_atual;
             totalParcelas = gasto.total_parcelas;
+            recorrente = gasto.recorrente;
+            intervaloMeses = gasto.intervalo_meses;
           } catch (e) {
             parcelaAtual = null;
             totalParcelas = null;
+            recorrente = null;
+            intervaloMeses = null;
           }
         }
       }
-          
-      if (parcelaAtual != null && totalParcelas != null && totalParcelas > 1) {
+      
+      // Verifica se é recorrente primeiro
+      if (recorrente == true && intervaloMeses != null) {
+        return 'Recorrente ($intervaloMeses meses)';
+      }
+      // Depois verifica se é parcelado
+      else if (parcelaAtual != null && totalParcelas != null && totalParcelas > 1) {
         return '$parcelaAtual/$totalParcelas';
-      } else {
+      } 
+      // Se não é recorrente nem parcelado, é à vista
+      else {
         return 'À vista';
       }
     } catch (e) {

@@ -167,6 +167,8 @@ class GastoProvider with ChangeNotifier {
           categoriaId: item['categoria_id'],
           parcelaAtual: item['parcela_atual'] ?? 1,
           totalParcelas: item['total_parcelas'] ?? 1,
+          recorrente: item['recorrente'] ?? false,
+          intervalo_meses: item['intervalo_meses'],
         );
         _gastos.add(gasto);
 
@@ -261,32 +263,65 @@ class GastoProvider with ChangeNotifier {
 
   double totalPorCategoriaMes(String categoriaId, DateTime mes) {
     final gastos = _gastosPorCategoria[categoriaId] ?? [];
-    return gastos
-        .where((g) => g.data.month == mes.month && g.data.year == mes.year)
-        .fold(0.0, (sum, g) => sum + g.valor);
+    return gastos.fold(0.0, (sum, g) {
+      // Gasto recorrente: replica valor nos meses consecutivos do intervalo
+      final isRecorrente = (g as dynamic).recorrente == true;
+      final intervalo = ((g as dynamic).intervalo_meses ?? 1) as int;
+      if (isRecorrente && intervalo > 1) {
+        final dataOriginal = g.data;
+        final diferenca = (mes.year - dataOriginal.year) * 12 + (mes.month - dataOriginal.month);
+        // O gasto se aplica desde o mês original até (intervalo - 1) meses depois
+        if (diferenca >= 0 && diferenca < intervalo) {
+          return sum + g.valor;
+        }
+      } else if (g.data.month == mes.month && g.data.year == mes.year) {
+        return sum + g.valor;
+      }
+      return sum;
+    });
   }
 
   double totalGastoMes({DateTime? referencia}) {
     final now = referencia ?? DateTime.now();
     final key = _getMesKey(now);
-    
     // Verificar cache primeiro
     if (_cacheGastosMes.containsKey(key) && _isCacheValid()) {
       print('💸 Cache hit - Gastos mês ${key}: R\$ ${_cacheGastosMes[key]}');
       return _cacheGastosMes[key]!;
     }
-    
     print('💸 Cache miss - Calculando gastos mês ${key}');
     
-    // Calcular sem atualizar estado de loading (método síncrono)
-    final total = _gastos
+    // Calcular gastos físicos do mês
+    double total = _gastos
         .where((g) => g.data.month == now.month && g.data.year == now.year)
         .fold(0.0, (soma, g) => soma + g.valor);
     
-    // Armazenar no cache
+    // Adicionar gastos recorrentes virtuais
+    for (final gasto in _gastos) {
+      if (gasto.recorrente == true && gasto.intervalo_meses != null) {
+        final dataOriginal = gasto.data;
+        final intervaloMeses = gasto.intervalo_meses!;
+        
+        // Verificar se o gasto recorrente se aplica ao mês atual
+        final diferenca = (now.year - dataOriginal.year) * 12 + (now.month - dataOriginal.month);
+        
+        // Para gastos recorrentes, o gasto se aplica desde o mês original até (intervalo_meses - 1) meses depois
+        if (diferenca >= 0 && diferenca < intervaloMeses) {
+          // Se for o mês original (diferenca == 0), o gasto físico já foi contado
+          if (diferenca == 0) {
+            // Não adicionar novamente o gasto físico do mês original
+            continue;
+          }
+          
+          // Para meses seguintes (diferenca > 0), adicionar como gasto virtual
+          total += gasto.valor;
+          print('💸 Adicionado gasto recorrente virtual: ${gasto.descricao} - R\$ ${gasto.valor} (mês ${diferenca + 1}/${intervaloMeses})');
+        }
+      }
+    }
+    
     _cacheGastosMes[key] = total;
     print('💸 Cache set - Gastos mês ${key}: R\$ ${total}');
-    
     return total;
   }
 
@@ -297,10 +332,50 @@ class GastoProvider with ChangeNotifier {
     
     print('💸 Calculando gastos mês ${key} (fresh - sem cache)');
     
-    // Calcular sempre, ignorando cache
-    final total = _gastos
+    // Calcular gastos físicos do mês
+    double total = _gastos
         .where((g) => g.data.month == now.month && g.data.year == now.year)
         .fold(0.0, (soma, g) => soma + g.valor);
+    
+    // Adicionar gastos recorrentes virtuais
+    print('🔍 Verificando gastos recorrentes virtuais para mês ${key}');
+    print('🔍 Total de gastos na lista: ${_gastos.length}');
+    
+    for (final gasto in _gastos) {
+      print('🔍 Analisando gasto: ${gasto.descricao} - recorrente: ${gasto.recorrente} - intervalo: ${gasto.intervalo_meses}');
+      
+      if (gasto.recorrente == true && gasto.intervalo_meses != null) {
+        final dataOriginal = gasto.data;
+        final intervaloMeses = gasto.intervalo_meses!;
+        
+        print('🔍 Gasto recorrente encontrado: ${gasto.descricao}');
+        print('🔍 Data original: ${dataOriginal.month}/${dataOriginal.year}');
+        print('🔍 Mês atual: ${now.month}/${now.year}');
+        
+        // Verificar se o gasto recorrente se aplica ao mês atual
+        final diferenca = (now.year - dataOriginal.year) * 12 + (now.month - dataOriginal.month);
+        print('🔍 Diferença em meses: $diferenca');
+        print('🔍 Intervalo total: $intervaloMeses');
+        
+        // Para gastos recorrentes, o gasto se aplica desde o mês original até (intervalo_meses - 1) meses depois
+        if (diferenca >= 0 && diferenca < intervaloMeses) {
+          print('🔍 Gasto se aplica ao mês atual!');
+          
+          // Se for o mês original (diferenca == 0), o gasto físico já foi contado
+          if (diferenca == 0) {
+            print('🔍 Mês original - gasto físico já contado');
+            // Não adicionar novamente o gasto físico do mês original
+            continue;
+          }
+          
+          // Para meses seguintes (diferenca > 0), adicionar como gasto virtual
+          total += gasto.valor;
+          print('💸 Fresh - Adicionado gasto recorrente virtual: ${gasto.descricao} - R\$ ${gasto.valor} (mês ${diferenca + 1}/${intervaloMeses})');
+        } else {
+          print('🔍 Gasto NÃO se aplica ao mês atual');
+        }
+      }
+    }
     
     // Atualizar cache com o novo valor
     _cacheGastosMes[key] = total;
@@ -428,7 +503,7 @@ class GastoProvider with ChangeNotifier {
       final response = await query;
       final lista = List<Map<String, dynamic>>.from(response);
 
-      return lista.map((item) => Gasto(
+      List<Gasto> gastosDoMes = lista.map((item) => Gasto(
         id: item['id'],
         descricao: item['descricao'],
         valor: (item['valor'] as num).toDouble(),
@@ -437,7 +512,64 @@ class GastoProvider with ChangeNotifier {
         categoriaId: item['categoria_id'],
         parcelaAtual: item['parcela_atual'] ?? 1,
         totalParcelas: item['total_parcelas'] ?? 1,
+        recorrente: item['recorrente'] ?? false,
+        intervalo_meses: item['intervalo_meses'],
       )).toList();
+
+      // Buscar gastos recorrentes que se aplicam a este mês
+      var queryRecorrentes = Supabase.instance.client
+          .from('gastos')
+          .select()
+          .eq('user_id', user.id)
+          .eq('recorrente', true)
+          .not('intervalo_meses', 'is', null);
+
+      if (categoryId != null && categoryId.isNotEmpty) {
+        queryRecorrentes = queryRecorrentes.eq('categoria_id', categoryId);
+      }
+
+      final recorrentesResponse = await queryRecorrentes;
+      final gastosRecorrentes = List<Map<String, dynamic>>.from(recorrentesResponse);
+
+      // Para cada gasto recorrente, verificar se se aplica ao mês atual
+      for (final gastoRecorrenteData in gastosRecorrentes) {
+        final dataOriginal = DateTime.parse(gastoRecorrenteData['data']);
+        final intervaloMeses = gastoRecorrenteData['intervalo_meses'] as int;
+        
+        // Verificar se o gasto recorrente se aplica ao mês atual
+        // O gasto se aplica desde o mês original até (intervalo_meses - 1) meses depois
+        final diferenca = (mes.year - dataOriginal.year) * 12 + (mes.month - dataOriginal.month);
+        
+        if (diferenca >= 0 && diferenca < intervaloMeses) {
+          // Verificar se já não existe um gasto físico para este mês
+          final jaExiste = gastosDoMes.any((g) => 
+            g.id == gastoRecorrenteData['id'] ||
+            (g.descricao == gastoRecorrenteData['descricao'] && 
+             g.categoriaId == gastoRecorrenteData['categoria_id'] &&
+             g.valor == (gastoRecorrenteData['valor'] as num).toDouble() &&
+             g.recorrente == true)
+          );
+          
+          if (!jaExiste) {
+            // Criar gasto virtual para este mês
+            gastosDoMes.add(Gasto(
+              id: '${gastoRecorrenteData['id']}_virtual_${mes.year}_${mes.month}',
+              descricao: gastoRecorrenteData['descricao'],
+              valor: (gastoRecorrenteData['valor'] as num).toDouble(),
+              data: DateTime(mes.year, mes.month, dataOriginal.day),
+              dataCompra: DateTime.parse(gastoRecorrenteData['data_compra'] ?? gastoRecorrenteData['data']),
+              categoriaId: gastoRecorrenteData['categoria_id'],
+              parcelaAtual: 1,
+              totalParcelas: 1,
+              recorrente: true,
+              intervalo_meses: intervaloMeses,
+            ));
+            print('📱 Gasto recorrente virtual criado: ${gastoRecorrenteData['descricao']} - mês ${diferenca + 1}/${intervaloMeses}');
+          }
+        }
+      }
+
+      return gastosDoMes;
     } catch (e) {
       throw Exception('Erro ao buscar gastos por mês: $e');
     }
@@ -667,5 +799,12 @@ class GastoProvider with ChangeNotifier {
     clearCache();
     notifyListeners();
     print('💸 Totais de gastos atualizados forçosamente');
+  }
+
+  /// Recarrega todos os gastos do banco de dados
+  Future<void> reloadGastos() async {
+    await loadGastos();
+    forceUpdateTotals();
+    print('💸 Gastos recarregados do banco de dados');
   }
 }

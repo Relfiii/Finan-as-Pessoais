@@ -7,6 +7,8 @@ class Gasto {
   DateTime? dataCompra; // Data original da compra (para parcelamentos)
   int parcelaAtual;
   int totalParcelas;
+  bool recorrente;
+  int? intervalo_meses;
 
   Gasto({
     required this.id,
@@ -17,6 +19,8 @@ class Gasto {
     this.dataCompra,
     this.parcelaAtual = 1,
     this.totalParcelas = 1,
+    this.recorrente = false,
+    this.intervalo_meses,
   });
 
   // Método para criar um objeto Gasto a partir de um Map
@@ -30,6 +34,8 @@ class Gasto {
       dataCompra: map['data_compra'] != null ? DateTime.parse(map['data_compra']) : null,
       parcelaAtual: map['parcela_atual'] ?? 1,
       totalParcelas: map['total_parcelas'] ?? 1,
+      recorrente: map['recorrente'] ?? false,
+      intervalo_meses: map['intervalo_meses'],
     );
   }
 }

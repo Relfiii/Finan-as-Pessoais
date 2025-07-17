@@ -66,7 +66,6 @@ class CardGasto extends StatefulWidget {
 }
 
 class _CardGastoState extends State<CardGasto> {
-  double _totalGastosMes = 0.0;
   DateTime _currentDate = DateTime.now();
   List<dynamic> _todasCategorias = [];
 
@@ -74,7 +73,7 @@ class _CardGastoState extends State<CardGasto> {
   void initState() {
     super.initState();
     _carregarTodasCategorias();
-    _carregarTotalGastosMes();
+    // Não precisa mais carregar o total aqui, o Consumer fará isso automaticamente
   }
 
   Future<void> _carregarTodasCategorias() async {
@@ -122,22 +121,7 @@ class _CardGastoState extends State<CardGasto> {
       });
     }
     
-    await _carregarTotalGastosMes();
-  }
-
-  Future<void> _carregarTotalGastosMes() async {
-    final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
-    final gastosMes = await gastoProvider.getGastosPorMes(null, _currentDate);
-    double total = 0.0;
-    for (final gasto in gastosMes) {
-      final data = gasto.data;
-      if (data.month == _currentDate.month && data.year == _currentDate.year) {
-        total += gasto.valor;
-      }
-    }
-    setState(() {
-      _totalGastosMes = total;
-    });
+    // O Consumer já atualiza automaticamente quando necessário
   }
 
   Future<void> _editarCategoria(Category categoria) async {
@@ -316,7 +300,7 @@ class _CardGastoState extends State<CardGasto> {
       _currentDate = DateTime(_currentDate.year, _currentDate.month + 1);
     });
     
-    await _carregarTotalGastosMes();
+    // O Consumer já atualiza automaticamente
   }
 
   void _previousMonth() async {
@@ -330,20 +314,25 @@ class _CardGastoState extends State<CardGasto> {
       _currentDate = DateTime(_currentDate.year, _currentDate.month - 1);
     });
     
-    await _carregarTotalGastosMes();
+    // O Consumer já atualiza automaticamente
   }
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        print('Executando refresh da tela...');
-        await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
-        await Provider.of<GastoProvider>(context, listen: false).loadGastos();
-        await _carregarTodasCategorias();
-        await _carregarTotalGastosMes();
-        print('Refresh concluído');
-      },
+    return Consumer<GastoProvider>(
+      builder: (context, gastoProvider, child) {
+        // Debug: mostrar quando a tela está sendo reconstruída
+        print('🔄 CardGasto rebuild - Mês: ${_currentDate.month}/${_currentDate.year}');
+        
+        return RefreshIndicator(
+          onRefresh: () async {
+            print('Executando refresh da tela...');
+            await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
+            await gastoProvider.loadGastos();
+            await _carregarTodasCategorias();
+            // O Consumer já atualiza automaticamente
+            print('Refresh concluído');
+          },
       child: Scaffold(
         body: Stack(
           children: [
@@ -409,7 +398,9 @@ class _CardGastoState extends State<CardGasto> {
                                     ),
                                   ),
                                   Text(
-                                    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(_totalGastosMes),
+                                    NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(
+                                      gastoProvider.totalGastoMesFresh(referencia: _currentDate)
+                                    ),
                                     style: TextStyle(
                                       color: Color(0xFFEF5350),
                                       fontSize: 18,
@@ -511,7 +502,7 @@ class _CardGastoState extends State<CardGasto> {
                                         await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
                                         await Provider.of<GastoProvider>(context, listen: false).loadGastos();
                                         await _carregarTodasCategorias();
-                                        await _carregarTotalGastosMes();
+                                        // O Consumer já atualiza automaticamente
                                         setState(() {});
                                       },
                                     ),
@@ -566,7 +557,7 @@ class _CardGastoState extends State<CardGasto> {
                                           ),
                                           itemBuilder: (context, categoryIndex) {
                                             final cat = _todasCategorias[categoryIndex];
-                                            final gastoProvider = Provider.of<GastoProvider>(context, listen: false);
+                                            // Usar gastoProvider do Consumer
                                             final valor = gastoProvider.totalPorCategoriaMes(cat.id, _currentDate);
                                             
                                             return CategoryCard(
@@ -610,6 +601,8 @@ class _CardGastoState extends State<CardGasto> {
           ],
         ),
       ),
+      );
+      },
     );
   }
 }
