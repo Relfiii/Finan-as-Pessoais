@@ -61,9 +61,9 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
     _carregarGastosDoMes();
   }
 
-  Future<void> _carregarGastosDoMes() async {
-    final gastoProvider = context.read<GastoProvider>();
-    final gastos = await gastoProvider.getGastosPorMes(widget.categoryId, _currentDate);
+  Future<void> _carregarGastosDoMes([GastoProvider? gastoProvider]) async {
+    final provider = gastoProvider ?? context.read<GastoProvider>();
+    final gastos = await provider.getGastosPorMes(widget.categoryId, _currentDate);
     setState(() {
       _gastosDoMes = _sortGastos(gastos);
     });
@@ -317,7 +317,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                     try {
                       await gastoProvider.deleteGasto(gasto.id);
                       Navigator.of(context).pop();
-                      await _carregarGastosDoMes();
+                      // Não precisa chamar _carregarGastosDoMes() - o Consumer atualiza automaticamente
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -458,7 +458,7 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                         );
 
                         Navigator.of(context).pop();
-                        await _carregarGastosDoMes();
+                        // Não precisa chamar _carregarGastosDoMes() - o Consumer atualiza automaticamente
 
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -502,21 +502,39 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Fundo gradiente com desfoque
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF121212), // Fundo da paleta
+    return Consumer<GastoProvider>(
+      builder: (context, gastoProvider, child) {
+        print('🔄 DetalhesCategoria rebuild - Mês: ${_currentDate.month}/${_currentDate.year}');
+        
+        return FutureBuilder<List<dynamic>>(
+          future: gastoProvider.getGastosPorMes(widget.categoryId, _currentDate),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting && _gastosDoMes.isEmpty) {
+              return Scaffold(
+                body: Center(child: CircularProgressIndicator(color: Color(0xFFB388FF))),
+              );
+            }
+            
+            // Atualizar gastos quando houver dados
+            if (snapshot.hasData) {
+              _gastosDoMes = _sortGastos(snapshot.data!);
+            }
+            
+            return Scaffold(
+          body: Stack(
+            children: [
+              // Fundo gradiente com desfoque
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF121212), // Fundo da paleta
+                  ),
+                ),
               ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
+              SafeArea(
+                child: Column(
+                  children: [
                 // AppBar customizada
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -603,8 +621,10 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
                                                 ),
                                               );
 
-                                              if (result == true) {
-                                                await _carregarGastosDoMes();
+                                              // Quando vem de detalhesCategoria, sempre permanece na mesma tela
+                                              // (independente do tipo de gasto criado)
+                                              if (result != null) {
+                                                // Não precisa chamar _carregarGastosDoMes() - o Consumer atualiza automaticamente
                                               }
                                             },
                                           ),
@@ -811,6 +831,10 @@ class _DetalhesCategoriaScreenState extends State<DetalhesCategoriaScreen> {
           ),
         ],
       ),
+    );
+          },
+        );
+      },
     );
   }
 }

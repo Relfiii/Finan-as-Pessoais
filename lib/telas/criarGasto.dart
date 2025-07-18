@@ -764,7 +764,14 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
                         ),
                       );
 
-                      Navigator.of(context).pop(true);
+                      // Retorna informações sobre o gasto criado para permitir navegação
+                      Navigator.of(context).pop({
+                        'success': true,
+                        'isRecorrente': true,
+                        'categoriaId': _selectedCategoria!.id,
+                        'categoriaNome': _selectedCategoria!.name,
+                        'intervaloMeses': _intervaloSelecionado,
+                      });
                     } else {
                       // Para despesas únicas ou parceladas
                       final numeroParcelas = _getNumeroParcelasAtual();

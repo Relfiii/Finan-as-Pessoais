@@ -21,6 +21,10 @@ class GastoProvider with ChangeNotifier {
   final Map<String, double> _cacheGastosAno = {}; // "2025" -> valor
   final Map<String, List<int>> _cacheAnosComGastos = {}; // cache de anos
   
+  // Cache para gastos recorrentes excluídos por mês
+  // Chave: "gastoOriginalId_ano_mes", Valor: true se foi excluído
+  final Map<String, bool> _gastosRecorrentesExcluidos = {};
+  
   // Timestamp do último carregamento para invalidar cache se necessário
   DateTime? _lastFullLoad;
   static const Duration _cacheValidityDuration = Duration(minutes: 15);
@@ -49,6 +53,7 @@ class GastoProvider with ChangeNotifier {
     _cacheGastosDia.clear();
     _cacheGastosAno.clear();
     _cacheAnosComGastos.clear();
+    _gastosRecorrentesExcluidos.clear();
     _lastFullLoad = null;
     print('🧹 Cache do GastoProvider limpo');
   }
@@ -72,6 +77,85 @@ class GastoProvider with ChangeNotifier {
   /// Gera chave de cache para ano
   String _getAnoKey(int ano) {
     return ano.toString();
+  }
+  
+  /// Gera chave para gastos recorrentes excluídos
+  String _getGastoRecorrenteExcluidoKey(String gastoOriginalId, int ano, int mes) {
+    return "${gastoOriginalId}_${ano}_${mes}";
+  }
+  
+  /// Marca um gasto recorrente como excluído para um mês específico
+  Future<void> _marcarGastoRecorrenteComoExcluido(String gastoOriginalId, int ano, int mes) async {
+    final key = _getGastoRecorrenteExcluidoKey(gastoOriginalId, ano, mes);
+    _gastosRecorrentesExcluidos[key] = true;
+    
+    // Salvar na base de dados
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        await Supabase.instance.client
+            .from('gastos_recorrentes_excluidos')
+            .insert({
+              'gasto_original_id': gastoOriginalId,
+              'user_id': user.id,
+              'ano': ano,
+              'mes': mes,
+            });
+        print('💾 Exclusão salva na base de dados: $key');
+      }
+    } catch (e) {
+      print('❌ Erro ao salvar exclusão na base: $e');
+      // Continua funcionando com cache local mesmo se falhar no banco
+    }
+    
+    print('🚫 Gasto recorrente marcado como excluído: $key');
+  }
+  
+  /// Verifica se um gasto recorrente foi excluído para um mês específico
+  Future<bool> _gastoRecorrenteFoiExcluido(String gastoOriginalId, int ano, int mes) async {
+    final key = _getGastoRecorrenteExcluidoKey(gastoOriginalId, ano, mes);
+    
+    // Verificar cache local primeiro
+    if (_gastosRecorrentesExcluidos.containsKey(key)) {
+      return _gastosRecorrentesExcluidos[key] == true;
+    }
+    
+    // Se não estiver no cache, verificar na base de dados
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final response = await Supabase.instance.client
+            .from('gastos_recorrentes_excluidos')
+            .select('id')
+            .eq('gasto_original_id', gastoOriginalId)
+            .eq('user_id', user.id)
+            .eq('ano', ano)
+            .eq('mes', mes)
+            .maybeSingle();
+        
+        final foiExcluido = response != null;
+        // Cachear o resultado
+        _gastosRecorrentesExcluidos[key] = foiExcluido;
+        
+        if (foiExcluido) {
+          print('💾 Exclusão encontrada na base: $key');
+        }
+        
+        return foiExcluido;
+      }
+    } catch (e) {
+      print('❌ Erro ao verificar exclusão na base: $e');
+      // Se falhar, assumir que não foi excluído
+    }
+    
+    return false;
+  }
+  
+  /// Limpa todas as exclusões de gastos recorrentes (útil para reset)
+  void limparExclusoesGastosRecorrentes() {
+    _gastosRecorrentesExcluidos.clear();
+    print('🧹 Exclusões de gastos recorrentes limpas');
+    notifyListeners();
   }
 
   /// Soma todos os gastos do ano informado (otimizado com cache)
@@ -149,16 +233,30 @@ class GastoProvider with ChangeNotifier {
 
     try {
       print('💰 Carregando gastos para usuário: ${user.id}');
-      final data = await Supabase.instance.client
+      
+      // Carregar gastos e exclusões em paralelo
+      final gastosResponse = Supabase.instance.client
           .from('gastos')
           .select('*')
           .eq('user_id', user.id)
           .timeout(Duration(seconds: 10));
+      
+      final exclusoesResponse = Supabase.instance.client
+          .from('gastos_recorrentes_excluidos')
+          .select('gasto_original_id, ano, mes')
+          .eq('user_id', user.id)
+          .timeout(Duration(seconds: 10));
+      
+      final results = await Future.wait([gastosResponse, exclusoesResponse]);
+      final gastosData = results[0] as List<dynamic>;
+      final exclusoesData = results[1] as List<dynamic>;
 
       _gastos.clear();
       _gastosPorCategoria.clear();
+      _gastosRecorrentesExcluidos.clear();
 
-      for (final item in data) {
+      // Carregar gastos
+      for (final item in gastosData) {
         final gasto = Gasto(
           id: item['id'],
           descricao: item['descricao'],
@@ -175,7 +273,19 @@ class GastoProvider with ChangeNotifier {
         _gastosPorCategoria[gasto.categoriaId] ??= [];
         _gastosPorCategoria[gasto.categoriaId]!.add(gasto);
       }
+      
+      // Carregar exclusões no cache local
+      for (final exclusao in exclusoesData) {
+        final key = _getGastoRecorrenteExcluidoKey(
+          exclusao['gasto_original_id'], 
+          exclusao['ano'], 
+          exclusao['mes']
+        );
+        _gastosRecorrentesExcluidos[key] = true;
+      }
+      
       print('✅ ${_gastos.length} gastos carregados');
+      print('✅ ${exclusoesData.length} exclusões de gastos recorrentes carregadas');
       _lastFullLoad = DateTime.now(); // Marcar timestamp do carregamento
       notifyListeners();
     } catch (e) {
@@ -205,6 +315,44 @@ class GastoProvider with ChangeNotifier {
 
   Future<void> deleteGasto(String gastoId) async {
     try {
+      print('🗑️ Tentando deletar gasto com ID: $gastoId');
+      
+      // Verificar se é um gasto virtual (recorrente)
+      if (gastoId.contains('_virtual_')) {
+        print('🔍 Detectado gasto virtual recorrente: $gastoId');
+        
+        // Extrair informações do ID virtual: "originalId_virtual_ano_mes"
+        final parts = gastoId.split('_virtual_');
+        if (parts.length == 2) {
+          final gastoOriginalId = parts[0];
+          final dateParts = parts[1].split('_');
+          
+          if (dateParts.length == 2) {
+            final ano = int.tryParse(dateParts[0]);
+            final mes = int.tryParse(dateParts[1]);
+            
+            if (ano != null && mes != null) {
+              // Marcar como excluído apenas para este mês específico
+              await _marcarGastoRecorrenteComoExcluido(gastoOriginalId, ano, mes);
+              
+              // Remover da lista local se existir
+              _gastos.removeWhere((g) => g.id == gastoId);
+              
+              // Limpar cache para forçar recálculo
+              clearCache();
+              notifyListeners();
+              
+              print('✅ Gasto recorrente virtual excluído apenas do mês $mes/$ano');
+              return;
+            }
+          }
+        }
+        
+        print('❌ Erro ao parsear ID do gasto virtual: $gastoId');
+        throw Exception('ID de gasto virtual inválido');
+      }
+      
+      // Para gastos normais (não virtuais), fazer delete no banco
       await Supabase.instance.client
           .from('gastos')
           .delete()
@@ -215,7 +363,10 @@ class GastoProvider with ChangeNotifier {
       _gastosPorCategoria[gastoRemovido.categoriaId]?.remove(gastoRemovido);
       clearCache(); // Limpar cache após modificação
       notifyListeners();
+      
+      print('✅ Gasto físico deletado do banco e cache local');
     } catch (e) {
+      print('❌ Erro ao deletar gasto: $e');
       throw Exception('Erro ao deletar gasto: $e');
     }
   }
@@ -261,6 +412,34 @@ class GastoProvider with ChangeNotifier {
     return gastos.fold(0.0, (soma, g) => soma + g.valor);
   }
 
+  Future<double> totalPorCategoriaMesAsync(String categoriaId, DateTime mes) async {
+    final gastos = _gastosPorCategoria[categoriaId] ?? [];
+    double sum = 0.0;
+    
+    for (final g in gastos) {
+      // Gasto recorrente: replica valor nos meses consecutivos do intervalo
+      final isRecorrente = (g as dynamic).recorrente == true;
+      final intervalo = ((g as dynamic).intervalo_meses ?? 1) as int;
+      if (isRecorrente && intervalo > 1) {
+        final dataOriginal = g.data;
+        final diferenca = (mes.year - dataOriginal.year) * 12 + (mes.month - dataOriginal.month);
+        // O gasto se aplica desde o mês original até (intervalo - 1) meses depois
+        if (diferenca >= 0 && diferenca < intervalo) {
+          // Verificar se este gasto recorrente não foi excluído para este mês específico
+          if (!(await _gastoRecorrenteFoiExcluido(g.id, mes.year, mes.month))) {
+            sum += g.valor;
+          } else {
+            print('🚫 Categoria ${categoriaId} - Gasto recorrente ${g.descricao} foi excluído para o mês ${mes.month}/${mes.year}');
+          }
+        }
+      } else if (g.data.month == mes.month && g.data.year == mes.year) {
+        sum += g.valor;
+      }
+    }
+    
+    return sum;
+  }
+
   double totalPorCategoriaMes(String categoriaId, DateTime mes) {
     final gastos = _gastosPorCategoria[categoriaId] ?? [];
     return gastos.fold(0.0, (sum, g) {
@@ -272,7 +451,14 @@ class GastoProvider with ChangeNotifier {
         final diferenca = (mes.year - dataOriginal.year) * 12 + (mes.month - dataOriginal.month);
         // O gasto se aplica desde o mês original até (intervalo - 1) meses depois
         if (diferenca >= 0 && diferenca < intervalo) {
-          return sum + g.valor;
+          // Para o método síncrono, verificar apenas o cache local
+          final key = _getGastoRecorrenteExcluidoKey(g.id, mes.year, mes.month);
+          if (!(_gastosRecorrentesExcluidos[key] == true)) {
+            return sum + g.valor;
+          } else {
+            print('🚫 Categoria ${categoriaId} - Gasto recorrente ${g.descricao} foi excluído para o mês ${mes.month}/${mes.year}');
+            return sum; // Não adicionar o valor se foi excluído
+          }
         }
       } else if (g.data.month == mes.month && g.data.year == mes.year) {
         return sum + g.valor;
@@ -314,8 +500,14 @@ class GastoProvider with ChangeNotifier {
           }
           
           // Para meses seguintes (diferenca > 0), adicionar como gasto virtual
-          total += gasto.valor;
-          print('💸 Adicionado gasto recorrente virtual: ${gasto.descricao} - R\$ ${gasto.valor} (mês ${diferenca + 1}/${intervaloMeses})');
+          // Verificar se este gasto recorrente não foi excluído para este mês (cache local)
+          final key = _getGastoRecorrenteExcluidoKey(gasto.id, now.year, now.month);
+          if (!(_gastosRecorrentesExcluidos[key] == true)) {
+            total += gasto.valor;
+            print('💸 Adicionado gasto recorrente virtual: ${gasto.descricao} - R\$ ${gasto.valor} (mês ${diferenca + 1}/${intervaloMeses})');
+          } else {
+            print('🚫 Gasto recorrente ${gasto.descricao} foi excluído para o mês ${now.month}/${now.year}');
+          }
         }
       }
     }
@@ -369,8 +561,14 @@ class GastoProvider with ChangeNotifier {
           }
           
           // Para meses seguintes (diferenca > 0), adicionar como gasto virtual
-          total += gasto.valor;
-          print('💸 Fresh - Adicionado gasto recorrente virtual: ${gasto.descricao} - R\$ ${gasto.valor} (mês ${diferenca + 1}/${intervaloMeses})');
+          // Verificar se este gasto recorrente não foi excluído para este mês (cache local)
+          final key = _getGastoRecorrenteExcluidoKey(gasto.id, now.year, now.month);
+          if (!(_gastosRecorrentesExcluidos[key] == true)) {
+            total += gasto.valor;
+            print('💸 Fresh - Adicionado gasto recorrente virtual: ${gasto.descricao} - R\$ ${gasto.valor} (mês ${diferenca + 1}/${intervaloMeses})');
+          } else {
+            print('🚫 Fresh - Gasto recorrente ${gasto.descricao} foi excluído para o mês ${now.month}/${now.year}');
+          }
         } else {
           print('🔍 Gasto NÃO se aplica ao mês atual');
         }
@@ -541,6 +739,13 @@ class GastoProvider with ChangeNotifier {
         final diferenca = (mes.year - dataOriginal.year) * 12 + (mes.month - dataOriginal.month);
         
         if (diferenca >= 0 && diferenca < intervaloMeses) {
+          // Verificar se este gasto recorrente foi excluído para este mês específico (cache local)
+          final key = _getGastoRecorrenteExcluidoKey(gastoRecorrenteData['id'], mes.year, mes.month);
+          if (_gastosRecorrentesExcluidos[key] == true) {
+            print('🚫 Gasto recorrente ${gastoRecorrenteData['descricao']} foi excluído para o mês ${mes.month}/${mes.year}');
+            continue;
+          }
+          
           // Verificar se já não existe um gasto físico para este mês
           final jaExiste = gastosDoMes.any((g) => 
             g.id == gastoRecorrenteData['id'] ||

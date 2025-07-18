@@ -495,15 +495,34 @@ class _CardGastoState extends State<CardGasto> {
                                       icon: const Icon(Icons.add, color: Color(0xFFB983FF)),
                                       label: const Text('Despesa'),
                                       onPressed: () async {
-                                        await showDialog(
+                                        final result = await showDialog(
                                           context: context,
                                           builder: (context) => const AddExpenseDialog(),
                                         );
-                                        await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
-                                        await Provider.of<GastoProvider>(context, listen: false).loadGastos();
-                                        await _carregarTodasCategorias();
-                                        // O Consumer já atualiza automaticamente
-                                        setState(() {});
+                                        
+                                        // Verificar se foi criado um gasto recorrente
+                                        if (result is Map && result['success'] == true && result['isRecorrente'] == true) {
+                                          // Navegar para detalhesCategoria.dart
+                                          if (mounted) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => DetalhesCategoriaScreen(
+                                                  categoryId: result['categoriaId'],
+                                                  categoryName: result['categoriaNome'],
+                                                  initialDate: DateTime.now(),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          // Para outros tipos de gasto, apenas atualizar a tela atual
+                                          await Provider.of<CategoryProvider>(context, listen: false).loadCategories();
+                                          await Provider.of<GastoProvider>(context, listen: false).loadGastos();
+                                          await _carregarTodasCategorias();
+                                          // O Consumer já atualiza automaticamente
+                                          setState(() {});
+                                        }
                                       },
                                     ),
                                   ),
