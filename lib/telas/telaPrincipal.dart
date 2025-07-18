@@ -379,116 +379,59 @@ class _HomeScreenState extends State<HomeScreen> {
                         : null,
                       child: Column(
                         children: [
-                          // Botões de filtro de período com navegação
+                          // Navegação de período
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                // Botões de filtro do lado esquerdo
-                                Row(
-                                  children: [
-                                    ChoiceChip(
-                            label: Text('Mês', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.mes ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
-                            selected: _periodoSelecionado == PeriodoFiltro.mes,
-                            selectedColor: Color(0xFF448AFF), // Botão primário
-                            backgroundColor: Colors.transparent,
-                            showCheckmark: false,
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _periodoSelecionado = PeriodoFiltro.mes;
-                                });
-                                _loadResumo();
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          ChoiceChip(
-                            label: Text('Ano', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.ano ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
-                            selected: _periodoSelecionado == PeriodoFiltro.ano,
-                            selectedColor: Color(0xFF448AFF), // Botão primário
-                            backgroundColor: Colors.transparent,
-                            showCheckmark: false,
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _periodoSelecionado = PeriodoFiltro.ano;
-                                });
-                                _loadResumo();
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          ChoiceChip(
-                            label: Text('Dia', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.dia ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
-                            selected: _periodoSelecionado == PeriodoFiltro.dia,
-                            selectedColor: Color(0xFF448AFF), // Botão primário
-                            backgroundColor: Colors.transparent,
-                            showCheckmark: false,
-                            onSelected: (selected) {
-                              if (selected) {
-                                setState(() {
-                                  _periodoSelecionado = PeriodoFiltro.dia;
-                                });
-                                _loadResumo();
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      // Navegação de período do lado direito
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.chevron_left, color: Color(0xFFE0E0E0), size: 18), // Cor do texto
-                            onPressed: _previousPeriod,
-                            tooltip: 'Período anterior',
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
+                                IconButton(
+                                  icon: const Icon(Icons.chevron_left, color: Color(0xFFE0E0E0), size: 18), // Cor do texto
+                                  onPressed: _previousPeriod,
+                                  tooltip: 'Período anterior',
+                                  padding: const EdgeInsets.all(8),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 300),
+                                  transitionBuilder: (child, animation) {
+                                    return SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(0.3, 0),
+                                        end: Offset.zero,
+                                      ).animate(animation),
+                                      child: child,
+                                    );
+                                  },
+                                  child: Text(
+                                    _formatCurrentDate(),
+                                    key: ValueKey(_currentDate.toString()),
+                                    style: const TextStyle(
+                                      color: Color(0xFFB388FF), // Cor dos acentos
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.chevron_right, color: Color(0xFFE0E0E0), size: 18), // Cor do texto
+                                  onPressed: _nextPeriod,
+                                  tooltip: 'Próximo período',
+                                  padding: const EdgeInsets.all(8),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 32,
+                                    minHeight: 32,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(0.3, 0),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: child,
-                              );
-                            },
-                            child: Text(
-                              _formatCurrentDate(),
-                              key: ValueKey(_currentDate.toString()),
-                              style: const TextStyle(
-                                color: Color(0xFFB388FF), // Cor dos acentos
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right, color: Color(0xFFE0E0E0), size: 18), // Cor do texto
-                            onPressed: _nextPeriod,
-                            tooltip: 'Próximo período',
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(
-                              minWidth: 32,
-                              minHeight: 32,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
                 // Conteúdo rolável (mantém o conteúdo original)
                 Expanded(
                   child: RefreshIndicator(
@@ -775,6 +718,62 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ],
                                         ),
                                       ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Botões de filtro de período
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ChoiceChip(
+                                      label: Text('Mês', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.mes ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
+                                      selected: _periodoSelecionado == PeriodoFiltro.mes,
+                                      selectedColor: Color(0xFF448AFF), // Botão primário
+                                      backgroundColor: Colors.transparent,
+                                      showCheckmark: false,
+                                      onSelected: (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _periodoSelecionado = PeriodoFiltro.mes;
+                                          });
+                                          _loadResumo();
+                                        }
+                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ChoiceChip(
+                                      label: Text('Ano', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.ano ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
+                                      selected: _periodoSelecionado == PeriodoFiltro.ano,
+                                      selectedColor: Color(0xFF448AFF), // Botão primário
+                                      backgroundColor: Colors.transparent,
+                                      showCheckmark: false,
+                                      onSelected: (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _periodoSelecionado = PeriodoFiltro.ano;
+                                          });
+                                          _loadResumo();
+                                        }
+                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ChoiceChip(
+                                      label: Text('Dia', style: TextStyle(color: _periodoSelecionado == PeriodoFiltro.dia ? Color(0xFF121212) : Color(0xFFE0E0E0))), // Texto preto quando selecionado, texto da paleta quando não
+                                      selected: _periodoSelecionado == PeriodoFiltro.dia,
+                                      selectedColor: Color(0xFF448AFF), // Botão primário
+                                      backgroundColor: Colors.transparent,
+                                      showCheckmark: false,
+                                      onSelected: (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _periodoSelecionado = PeriodoFiltro.dia;
+                                          });
+                                          _loadResumo();
+                                        }
+                                      },
                                     ),
                                   ],
                                 ),
