@@ -317,6 +317,13 @@ class _CardGastoState extends State<CardGasto> {
     // O Consumer já atualiza automaticamente
   }
 
+  // Mova este método para cá:
+  String _formatCategoryName(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length <= 1) return name;
+    return '${parts.first}\n${parts.sublist(1).join(' ')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<GastoProvider>(
@@ -576,11 +583,11 @@ class _CardGastoState extends State<CardGasto> {
                                           ),
                                           itemBuilder: (context, categoryIndex) {
                                             final cat = _todasCategorias[categoryIndex];
-                                            // Usar gastoProvider do Consumer
                                             final valor = gastoProvider.totalPorCategoriaMes(cat.id, _currentDate);
-                                            
+
+                                            // Use o método aqui:
                                             return CategoryCard(
-                                              categoryName: cat.name,
+                                              categoryName: _formatCategoryName(cat.name),
                                               valor: valor,
                                               onTap: () async {
                                                 Navigator.push(
@@ -641,28 +648,36 @@ class GridConfig {
 }
 
 GridConfig gridConfigForItems(int itemCount, BuildContext context) {
+  // Obtém a largura da tela
   final screenWidth = MediaQuery.of(context).size.width;
+  // Define se é tablet (largura maior que 600)
   final isTablet = screenWidth > 600;
+  // Define se é desktop (largura maior que 1200)
   final isDesktop = screenWidth > 1200;
 
-  int crossAxisCount = 2;
-  double childAspectRatio = 1.2;
-  double spacing = 16;
+  // Valores padrão para celular
+  int crossAxisCount = 2;         // Quantidade de colunas no grid
+  double childAspectRatio = 1.2;  // Proporção largura/altura dos cards
+  double spacing = 16;            // Espaçamento entre os cards
 
+  // Se for desktop, ajusta os valores
   if (isDesktop) {
-    crossAxisCount = itemCount > 8 ? 5 : 4;
-    childAspectRatio = 2.0;
-    spacing = 10;
+    crossAxisCount = itemCount > 8 ? 5 : 4; // Mais colunas se houver muitos itens
+    childAspectRatio = 2.0;                 // Cards mais "esticados"
+    spacing = 10;                           // Menos espaço entre os cards
+  // Se for tablet, ajusta os valores
   } else if (isTablet) {
-    crossAxisCount = itemCount > 6 ? 4 : 3;
-    childAspectRatio = 1.15;
-    spacing = 18;
+    crossAxisCount = itemCount > 6 ? 4 : 3; // Mais colunas se houver muitos itens
+    childAspectRatio = 1.15;                // Proporção um pouco menor
+    spacing = 18;                           // Espaçamento um pouco maior
+  // Se for celular, ajusta os valores
   } else {
-    crossAxisCount = itemCount > 4 ? 2 : 1;
-    childAspectRatio = 1.5;
-    spacing = 16;
+    crossAxisCount = itemCount > 4 ? 2 : 1; // Só uma coluna se poucos itens
+    childAspectRatio = 1.4;                 // Cards mais altos
+    spacing = 16;                           // Espaçamento padrão
   }
 
+  // Retorna a configuração do grid com os valores definidos
   return GridConfig(
     crossAxisCount: crossAxisCount,
     crossAxisSpacing: spacing,
