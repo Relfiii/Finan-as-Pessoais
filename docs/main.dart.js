@@ -49260,7 +49260,7 @@ if(n>1200){s=o>8?5:4
 r=2
 q=10}else if(n>600){s=o>6?4:3
 r=1.15
-q=18}else{s=o>4?3:2
+q=18}else{s=o>4?2:1
 r=1.5
 q=16}return A.aWD(null,B.C,new A.aum(s,q,q,r),new A.aBz(p,this.b),p.e.length,B.a6,B.NE,!0)},
 $S:719}
