@@ -641,35 +641,32 @@ class GridConfig {
 }
 
 GridConfig gridConfigForItems(int itemCount, BuildContext context) {
-  final screenWidth = MediaQuery.of(context).size.width; // Largura da tela atual
-  final isTablet = screenWidth > 600;                    // Considera tablet se largura > 600px
-  final isDesktop = screenWidth > 1200;                  // Considera desktop se largura > 1200px
-  
-  int crossAxisCount = 2;        // Número de colunas padrão para mobile
-  double childAspectRatio = 1.2; // Proporção largura/altura padrão para mobile
-  double spacing = 16;           // Espaçamento padrão para mobile
-  
+  final screenWidth = MediaQuery.of(context).size.width;
+  final isTablet = screenWidth > 600;
+  final isDesktop = screenWidth > 1200;
+
+  int crossAxisCount = 2;
+  double childAspectRatio = 1.2;
+  double spacing = 16;
+
   if (isDesktop) {
-    // Se for desktop: mais colunas, cards menores
-    crossAxisCount = itemCount > 8 ? 5 : 4; // 5 colunas se muitos itens, senão 4
-    childAspectRatio = 2.0;                 // Cards mais "quadrados"
-    spacing = 10;                           // Espaçamento maior
+    crossAxisCount = itemCount > 8 ? 5 : 4;
+    childAspectRatio = 2.0;
+    spacing = 10;
   } else if (isTablet) {
-    // Se for tablet: quantidade média de colunas
-    crossAxisCount = itemCount > 6 ? 4 : 3; // 4 colunas se muitos itens, senão 3
-    childAspectRatio = 1.15;                // Cards levemente mais altos
-    spacing = 18;                           // Espaçamento intermediário
+    crossAxisCount = itemCount > 6 ? 4 : 3;
+    childAspectRatio = 1.15;
+    spacing = 18;
   } else {
-    // Se for mobile: menos colunas, cards maiores
-    crossAxisCount = itemCount > 4 ? 3 : 2; // 3 colunas se muitos itens, senão 2
-    childAspectRatio = 1.5;                // Cards mais "altos"
-    spacing = 16;                           // Espaçamento menor
+    crossAxisCount = itemCount > 4 ? 2 : 1;
+    childAspectRatio = 1.5;
+    spacing = 16;
   }
-  
+
   return GridConfig(
-    crossAxisCount: crossAxisCount,         // Quantidade de colunas no grid
-    crossAxisSpacing: spacing,              // Espaçamento horizontal entre os cards
-    mainAxisSpacing: spacing,               // Espaçamento vertical entre os cards
-    childAspectRatio: childAspectRatio,     // Proporção largura/altura dos cards
+    crossAxisCount: crossAxisCount,
+    crossAxisSpacing: spacing,
+    mainAxisSpacing: spacing,
+    childAspectRatio: childAspectRatio,
   );
 }
